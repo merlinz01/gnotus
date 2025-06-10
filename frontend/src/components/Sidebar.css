@@ -1,0 +1,4 @@
+.menu {
+  --menu-active-fg: var(--color-text);
+  --menu-active-bg: var(--color-base-300);
+}

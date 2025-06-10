@@ -1,0 +1,47 @@
+[project]
+name = "Gnotus"
+version = "0.1.0"
+description = "The backend for Gnotus, an open-source knowledge-base software."
+requires-python = ">=3.13"
+license = { text = "MIT" }
+dependencies = [
+    "aerich>=0.9.0",
+    "argon2-cffi>=25.1.0",
+    "beautifulsoup4>=4.13.4",
+    "click>=8.2.1",
+    "fastapi[standard]>=0.115.12",
+    "itsdangerous>=2.2.0",
+    "linkify-it-py>=2.0.3",
+    "markdown-it-py>=3.0.0",
+    "meilisearch-python-sdk>=4.7.1",
+    "nh3>=0.2.21",
+    "pydantic-settings>=2.9.1",
+    "pyyaml>=6.0.2",
+    "starlette-csrf>=3.0.0",
+    "tortoise-orm>=0.25.1",
+    "uvicorn[standard]>=0.34.3",
+]
+
+[dependency-groups]
+dev = [
+    "coverage>=7.9.1",
+    "isort>=6.0.1",
+    "pytest>=8.4.1",
+    "pytest-asyncio>=1.0.0",
+    "pytest-cov>=6.2.1",
+    "ruff>=0.11.13",
+]
+
+[tool.aerich]
+tortoise_orm = "app.settings.TORTOISE_ORM"
+location = "./migrations"
+src_folder = "./."
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+
+[tool.coverage.run]
+source = ["app"]
+omit = [
+    "app/manage.py"
+]

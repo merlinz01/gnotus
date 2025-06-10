@@ -1,0 +1,8 @@
+@import 'tailwindcss';
+@plugin "daisyui" {
+  themes:
+    light --default,
+    dark --prefers-dark;
+  exclude: rootscrollgutter;
+}
+@custom-variant dark (&:where(html[data-theme="dark"] *));

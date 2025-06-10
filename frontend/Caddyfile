@@ -1,0 +1,27 @@
+{
+	email {$CADDY_EMAIL}
+	admin off
+}
+{$CADDY_DOMAIN} {
+	root * /usr/share/caddy
+	encode gzip zstd
+	rate_limit {
+		zone api {
+			match {
+				not method GET
+				not path /api/auth/logout
+				path /api/*
+			}
+			key {remote_ip}
+			events 60
+			window 1m
+		}
+	}
+	handle /api/* {
+		reverse_proxy {$API_ADDRESS}
+	}
+	handle {
+		try_files {path} /index.html
+		file_server
+	}
+}

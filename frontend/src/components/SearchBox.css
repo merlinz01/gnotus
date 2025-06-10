@@ -1,0 +1,7 @@
+.search-results .search-highlight {
+  color: var(--color-primary);
+  padding: 1px;
+  border-radius: 2px;
+  font-weight: bold;
+  font-style: normal;
+}

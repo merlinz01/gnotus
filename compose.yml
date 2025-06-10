@@ -1,0 +1,47 @@
+name: gnotus
+
+services:
+  backend:
+    image: docker.io/merlinz01/gnotus-backend:latest
+    restart: unless-stopped
+    init: true
+    depends_on:
+      - search
+    environment:
+      - GNOTUS_CONFIG_FILE=/app/config.yml
+      - GNOTUS_DB_URL=sqlite:/data/gnotus.db
+      - GNOTUS_LOG_LEVEL=INFO
+      - GNOTUS_SESSION_SECRET_KEY=${SECRET_KEY}
+      - GNOTUS_CSRF_SECRET_KEY=${SECRET_KEY}
+      - GNOTUS_MEILISEARCH_URL=http://search:7700
+      - GNOTUS_MEILISEARCH_API_KEY=${SECRET_KEY}
+    volumes:
+      - ./data:/data
+      - ./config.yml:/app/config.yml
+      - ./icon.svg:/app/icon.svg
+
+  search:
+    image: getmeili/meilisearch:v1.15
+    restart: unless-stopped
+    environment:
+      - MEILI_MASTER_KEY=${SECRET_KEY}
+      # - MEILI_NO_ANALYTICS=true
+    volumes:
+      - ./data/meilisearch:/data.ms
+
+  frontend:
+    image: docker.io/merlinz01/gnotus-frontend:latest
+    restart: unless-stopped
+    ports:
+      # Uncomment these to expose the frontend on standard ports.
+      # If you do, set the CADDY_DOMAIN environment variable without a port number.
+      # - "80:80"
+      # - "443:443"
+      - "5173:5173"
+    volumes:
+      - ./data/caddy_data:/data
+      - ./data/caddy_config:/config
+    environment:
+      - API_ADDRESS=http://backend:8080
+      - CADDY_EMAIL=${CADDY_EMAIL}
+      - CADDY_DOMAIN=${CADDY_DOMAIN:-"http://localhost:5173"}

@@ -1,0 +1,5 @@
+session_https_only: false
+session_cookie: session
+session_secret_key: "notasecret"
+meilisearch_url: http://localhost:7700
+meilisearch_api_key: "1234567890"
