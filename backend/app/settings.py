@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     # Logging
     log_level: Literal["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"] = "INFO"
 
+    # Site URL
+    base_url: str = "http://localhost"
+
     # CORS
     cors_origins: list[str] = []
 
@@ -80,6 +83,10 @@ else:
 config.setdefault("icon_file_path", "./icon.svg")
 
 settings = Settings(**config)
+
+# Trim the base URL to ensure it does not end with a slash
+if settings.base_url.endswith("/"):
+    settings.base_url = settings.base_url.rstrip("/")
 
 TORTOISE_ORM = {
     "connections": {

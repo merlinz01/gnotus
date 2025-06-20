@@ -11,6 +11,7 @@ services:
     depends_on:
       - search
     environment:
+      - GNOTUS_BASE_URL=http://localhost:5173
       - GNOTUS_DB_URL=sqlite:/data/gnotus.db
       - GNOTUS_LOG_LEVEL=DEBUG
       - GNOTUS_SESSION_COOKIE=session

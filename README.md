@@ -64,6 +64,9 @@ The recommended way to install Gnotus is with Docker Compose.
    # The email address to use for Let's Encrypt registration.
    # This is required for the Caddy service to obtain SSL certificates.
    CADDY_EMAIL=me@example.com
+   # GNOTUS_BASE_URL is the base URL of your Gnotus instance.
+   # If you are serving Gnotus on a public domain, set this to your domain name.
+   GNOTUS_BASE_URL=https://my.domain.com
    # The secret key for the backend service.
    # This must be changed a long, securely generated random string.
    GNOTUS_SECRET_KEY=your-secret-key

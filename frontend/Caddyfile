@@ -42,12 +42,10 @@
 			window 1m
 		}
 	}
+	rewrite /robots.txt /api/robots.txt
+	rewrite /sitemap.xml /api/sitemap.xml
 	handle /api/* {
 		reverse_proxy {$API_ADDRESS}
-	}
-	handle /robots.txt {
-		header Content-Type text/plain
-		respond "User-agent: *\nAllow: /\n" 200
 	}
 	handle {
 		try_files {path} /index.html
