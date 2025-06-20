@@ -156,9 +156,11 @@ describe('DocEditorPage', () => {
     vi.mocked(axios.post).mockResolvedValueOnce({ data: {} })
     render(<DocEditorPage />)
     fireEvent.click(await screen.findByTitle('Move document up'))
-    await waitFor(() => expect(axios.post).toHaveBeenCalledWith('/api/docs/123/move_up'))
+    await waitFor(() => expect(axios.post).toHaveBeenCalledWith('/api/docs/123/move?direction=up'))
     fireEvent.click(screen.getByTitle('Move document down'))
-    await waitFor(() => expect(axios.post).toHaveBeenCalledWith('/api/docs/123/move_down'))
+    await waitFor(() =>
+      expect(axios.post).toHaveBeenCalledWith('/api/docs/123/move?direction=down')
+    )
   })
 
   it('shows error if move fails', async () => {

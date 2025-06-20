@@ -228,8 +228,8 @@ describe('Sidebar', () => {
         <Sidebar />
       </MemoryRouter>
     )
-    expect(await screen.findByText('Child 1')).toHaveClass('text-primary')
-    expect(screen.queryByText('Child 2')).not.toHaveClass('text-primary')
-    expect(screen.queryByText('Grandchild')).not.toHaveClass('text-primary')
+    expect((await screen.findByText('Child 1')).parentElement).toHaveClass('active')
+    expect(screen.queryByText('Child 2')?.parentElement).not.toHaveClass('active')
+    expect(screen.queryByText('Grandchild')?.parentElement).not.toHaveClass('active')
   })
 })
