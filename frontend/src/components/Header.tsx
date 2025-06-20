@@ -28,13 +28,7 @@ export default function Header() {
       </button>
       <div className="flex grow items-center gap-2">
         <Link to="/">
-          <img
-            src="/api/icon.svg"
-            alt="Site logo"
-            className="mr-2 h-6 sm:h-8"
-            width="6"
-            height="6"
-          />
+          <img src="/api/icon.svg" alt="Site logo" className="mr-2 h-6 sm:h-8" />
         </Link>
         <h1 className="me-auto overflow-hidden text-lg font-bold text-ellipsis whitespace-nowrap sm:text-xl">
           {config.site_name}
