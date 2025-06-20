@@ -4,10 +4,14 @@ from pathlib import Path
 from pytest import MonkeyPatch
 
 
-def test_load_settings():
+def test_load_settings(monkeypatch: MonkeyPatch):
     """
     Sanity check to ensure settings can be loaded.
     """
+    sys.modules.pop("app.settings", None)
+    monkeypatch.delenv("GNOTUS_CONFIG_FILE", raising=False)
+    monkeypatch.delenv("GNOTUS_MEILISEARCH_API_KEY", raising=False)
+
     from app.settings import settings
 
     assert settings.meilisearch_api_key.get_secret_value() == "changeme"
