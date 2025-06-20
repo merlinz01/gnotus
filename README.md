@@ -14,10 +14,11 @@ for both public and internal documentation.
 
 ## Features
 
-- Light-weight web UI with caching for fast page loads
+- Light-weight single-page application built with React and FastAPI.
+- Document caching for fast page loads
 - In-app document creation and editing
 - Markdown document format
-- Document revisions
+- Automatically saves document revisions
 - Public and private documents
 - Full-text search, including in private documents
 - In-app user management with various user roles
@@ -94,7 +95,30 @@ The recommended way to install Gnotus is with Docker Compose.
 
 ## Development
 
-### Backend Setup
+### (Recommended) With Docker Compose
+
+If you want to develop Gnotus, the recommended way is to use Docker Compose to set up the development environment for both the backend and frontend.
+Simply run the following command in the root directory of the project:
+
+```bash
+docker compose -f compose-dev.yml up --build
+# Add the `-d` flag to run in the background
+```
+
+This will start the backend and frontend services in development mode, with hot-reloading enabled for both.
+If you want to override settings, you can set them as environment variables in a `.env` file in the `backend` directory.
+
+If you need to run commands in the backend service, you can use the following command:
+
+```bash
+docker compose -f compose.dev.yml exec backend <command>
+```
+
+### Without Docker Compose
+
+You can also set up the development environment without Docker Compose, but this requires more manual setup.
+
+#### Backend Setup
 
 1. **Install Python dependencies**
 
@@ -146,7 +170,7 @@ The recommended way to install Gnotus is with Docker Compose.
    ```
    The API will be available at `http://localhost:8000` and will auto-reload when you modify backend code.
 
-### Frontend Setup
+#### Frontend Setup
 
 1. **Install Node.js dependencies**
 

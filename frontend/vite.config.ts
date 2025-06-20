@@ -16,9 +16,11 @@ export default defineConfig({
     assetsDir: '_static',
   },
   server: {
+    host: process.env.VITE_HOST || 'localhost',
+    port: parseInt(process.env.VITE_PORT || '5173', 10),
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: process.env.API_ADDRESS || 'http://localhost:8000',
         changeOrigin: true,
         secure: false,
       },

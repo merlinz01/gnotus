@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 set -e
 # Activate the virtual environment
-source .venv/bin/activate
+source /venv/.venv/bin/activate
 # Run the database migrations
 aerich upgrade
 # Create the index for the document search

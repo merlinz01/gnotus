@@ -1,0 +1,44 @@
+name: gnotus-dev
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "127.0.0.1:8000:8000"
+    init: true
+    depends_on:
+      - search
+    environment:
+      - GNOTUS_DB_URL=sqlite:/data/gnotus.db
+      - GNOTUS_LOG_LEVEL=DEBUG
+      - GNOTUS_SESSION_COOKIE=session
+      - GNOTUS_SESSION_SECRET_KEY=dev_session_secret_key
+      - GNOTUS_SESSION_HTTPS_ONLY=False
+      - GNOTUS_CSRF_SECRET_KEY=dev_csrf_secret_key
+      - GNOTUS_MEILISEARCH_URL=http://search:7700
+      - GNOTUS_MEILISEARCH_API_KEY=dev_meilisearch_api_key
+    volumes:
+      - ./data:/data
+      - ./backend:/app
+
+  search:
+    image: getmeili/meilisearch:v1.15
+    environment:
+      - MEILI_MASTER_KEY=dev_meilisearch_api_key
+    volumes:
+      - ./data/meilisearch:/data.ms
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "127.0.0.1:5173:5173"
+    volumes:
+      - ./frontend:/app
+    environment:
+      - API_ADDRESS=http://backend:8000
+      - VITE_HOST=0.0.0.0
+      - VITE_PORT=5173
