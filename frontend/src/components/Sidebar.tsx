@@ -52,7 +52,7 @@ export default function Sidebar() {
     }
   })
   return (
-    <div className="flex h-full w-64 flex-col p-2">
+    <div className="flex h-full w-64 flex-col overflow-y-auto p-2">
       <ul className="menu w-full">
         <li>
           <HighlightedLink to="/">Home</HighlightedLink>
