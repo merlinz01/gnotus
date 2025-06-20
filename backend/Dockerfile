@@ -7,6 +7,6 @@ RUN uv sync --link-mode=copy
 WORKDIR /app
 COPY ./app ./app
 COPY ./migrations ./migrations
-COPY ./entrypoint.sh ./manage.sh ./
+COPY ./entrypoint.sh ./manage.sh pyproject.toml ./
 EXPOSE 8080
 CMD ["./entrypoint.sh"]
