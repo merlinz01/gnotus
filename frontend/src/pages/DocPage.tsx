@@ -149,7 +149,7 @@ export default function DocPage() {
       {error && <div className="alert alert-error m-4">{error}</div>}
       {doc && (
         <div className="flex h-full items-start justify-center">
-          <div className="mx-0 flex min-h-full max-w-200 grow flex-col p-4 sm:mx-2 md:mx-4 lg:mx-8">
+          <div className="mx-0 flex min-h-full w-full max-w-200 grow flex-col p-4 sm:mx-2 md:mx-4 lg:mx-8">
             <nav className="breadcrumbs text-sm" aria-label="Breadcrumbs">
               <ul className="flex-wrap">
                 <li>
