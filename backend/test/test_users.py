@@ -1,8 +1,7 @@
-from fastapi import status
-from utils import TestClient
-
 from app.models.user import User
 from app.schemas.role import Role
+from fastapi import status
+from utils import TestClient
 
 
 async def test_create_user(api_client: TestClient, user_admin: User):
@@ -26,6 +25,7 @@ async def test_create_user(api_client: TestClient, user_admin: User):
         "role": Role.USER,
         "created_at": data["created_at"],
         "updated_at": data["updated_at"],
+        "is_active": True,
     }
     await User.get(id=data["id"])
 
@@ -64,6 +64,27 @@ async def test_create_user_username_exists(api_client: TestClient, user_admin: U
     assert response.json() == {"detail": "Username already exists"}
 
 
+async def test_create_user_with_inactive(api_client: TestClient, user_admin: User):
+    """
+    Test creating a new user with is_active False.
+    """
+    api_client.set_session_user(user_admin)
+    response = api_client.post(
+        "/api/users/",
+        json={
+            "username": "inactiveuser",
+            "password": "newpassword",
+            "role": Role.USER,
+            "is_active": False,
+        },
+    )
+    assert response.status_code == status.HTTP_201_CREATED
+    data = response.json()
+    assert data["is_active"] is False
+    user = await User.get(id=data["id"])
+    assert user.is_active is False
+
+
 async def test_get_user(api_client: TestClient, user_admin: User, user_user: User):
     """
     Test getting a user by ID.
@@ -78,6 +99,7 @@ async def test_get_user(api_client: TestClient, user_admin: User, user_user: Use
         "role": user_user.role,
         "created_at": data["created_at"],
         "updated_at": data["updated_at"],
+        "is_active": user_user.is_active,
     }
 
 
@@ -101,6 +123,7 @@ async def test_update_user(api_client: TestClient, user_admin: User, user_user: 
         json={
             "username": "updateduser",
             "role": Role.ADMIN,
+            "is_active": False,
         },
     )
     assert response.status_code == status.HTTP_200_OK
@@ -111,6 +134,7 @@ async def test_update_user(api_client: TestClient, user_admin: User, user_user: 
         "role": Role.ADMIN,
         "created_at": data["created_at"],
         "updated_at": data["updated_at"],
+        "is_active": False,
     }
     updated_user = await User.get(id=user_user.id)
     assert updated_user.username == "updateduser"
@@ -200,6 +224,23 @@ async def test_update_username_unauthorized(
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert response.json() == {"detail": "Only admins can update other users"}
+
+
+async def test_update_user_is_active_unauthorized(
+    api_client: TestClient, user_user: User
+):
+    """
+    Test updating a user's is_active status as a non-admin user.
+    """
+    api_client.set_session_user(user_user)
+    response = api_client.put(
+        f"/api/users/{user_user.id}",
+        json={
+            "is_active": False,
+        },
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.json() == {"detail": "Only admins can change user active status"}
 
 
 async def test_delete_user(api_client: TestClient, user_admin: User, user_user: User):
@@ -364,6 +405,7 @@ async def test_list_users(api_client: TestClient, user_admin: User, user_user: U
                 "role": Role.USER,
                 "created_at": data["items"][0]["created_at"],
                 "updated_at": data["items"][0]["updated_at"],
+                "is_active": True,
             },
             {
                 "id": user4.id,
@@ -371,6 +413,7 @@ async def test_list_users(api_client: TestClient, user_admin: User, user_user: U
                 "role": Role.USER,
                 "created_at": data["items"][1]["created_at"],
                 "updated_at": data["items"][1]["updated_at"],
+                "is_active": True,
             },
         ],
         "size": 2,

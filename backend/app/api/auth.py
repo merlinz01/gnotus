@@ -26,6 +26,8 @@ async def login(
     start = time.monotonic()
     try:
         user = await User.get(username=login_request.username)
+        if not user.is_active:
+            raise ValueError("User account is deactivated")
         if not await check_password(user, login_request.password):
             raise ValueError("Invalid password")
         request.session.clear()

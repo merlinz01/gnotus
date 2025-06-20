@@ -36,6 +36,7 @@ async def create_user(
         username=user_create.username,
         password_hash=hash_password(user_create.password),
         role=user_create.role,
+        is_active=user_create.is_active,
     )
     logger.info(f"User {user.username} created by {current_user.username}.")
     return UserResponse.from_user(user)
@@ -96,6 +97,13 @@ async def update_user(
                 detail="Only admins can change user roles",
             )
         user.role = user_update.role
+    if user_update.is_active is not None:
+        if current_user.role != Role.ADMIN:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only admins can change user active status",
+            )
+        user.is_active = user_update.is_active
     await user.save()
     logger.info(f"User {user.username} updated by {current_user.username}.")
     return UserResponse.from_user(user)
@@ -173,16 +181,7 @@ async def list_users(
     users = pagination.apply(users)
 
     return PaginatedResponse(
-        items=[
-            UserResponse(
-                id=user.id,
-                username=user.username,
-                role=user.role,
-                created_at=user.created_at,
-                updated_at=user.updated_at,
-            )
-            async for user in users
-        ],
+        items=[UserResponse.from_user(user) async for user in users],
         size=pagination.size,
         page=pagination.page,
         total=total,

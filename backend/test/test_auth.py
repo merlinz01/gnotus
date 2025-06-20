@@ -1,7 +1,6 @@
+from app.models import User
 from fastapi import status
 from utils import TestClient
-
-from app.models import User
 
 
 async def test_auth_user(api_client: TestClient, user_user: User):
@@ -74,6 +73,20 @@ async def test_auth_login_invalid_password(api_client: TestClient, user_user: Us
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json() == {"detail": "Invalid credentials"}
     assert settings.session_cookie not in api_client.cookies
+
+
+async def test_login_inactive_user(api_client: TestClient, user_admin: User):
+    """
+    Test that an inactive user cannot log in.
+    """
+    user_admin.is_active = False
+    await user_admin.save()
+    response = api_client.post(
+        "/api/auth/login",
+        json={"username": user_admin.username, "password": "admin_password"},
+    )
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+    assert response.json() == {"detail": "Invalid credentials"}
 
 
 async def test_auth_logout(api_client: TestClient, user_user: User):

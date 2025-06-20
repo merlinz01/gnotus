@@ -33,6 +33,7 @@ const mockUsers = [
     role: Role.ADMIN,
     created_at: '2023-01-01T00:00:00Z',
     updated_at: '2023-01-01T00:00:00Z',
+    is_active: true,
   },
   {
     id: 2,
@@ -40,6 +41,7 @@ const mockUsers = [
     role: Role.USER,
     created_at: '2023-01-02T00:00:00Z',
     updated_at: '2023-01-02T00:00:00Z',
+    is_active: false,
   },
 ]
 
@@ -54,6 +56,7 @@ describe('UsersPage', () => {
         role: Role.ADMIN,
         created_at: '2023-01-01T00:00:00Z',
         updated_at: '2023-01-01T00:00:00Z',
+        is_active: true,
       },
       loaded: true,
     })
@@ -110,6 +113,7 @@ describe('UsersPage', () => {
       username: 'newuser',
       role: Role.USER,
       password: 'password123',
+      is_active: true,
     })
   })
 
@@ -135,6 +139,7 @@ describe('UsersPage', () => {
     expect(axios.put).toHaveBeenCalledWith('/api/users/1', {
       username: 'admin2',
       role: Role.ADMIN,
+      is_active: true,
     })
   })
 
@@ -202,5 +207,34 @@ describe('UsersPage', () => {
     await waitFor(() => {
       expect(document.title).toBe('Users - Gnotus')
     })
+  })
+
+  it('shows inactive badge for deactivated users', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: { items: mockUsers } })
+    render(<UsersPage />)
+    await waitFor(() => screen.getByText('admin'))
+    expect(screen.getByText('Inactive')).toBeInTheDocument()
+  })
+
+  it('can deactivate a user', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({ data: { items: mockUsers } })
+    vi.mocked(axios.put).mockResolvedValueOnce({ data: { ...mockUsers[1], is_active: false } })
+    render(<UsersPage />)
+    await waitFor(() => screen.getByText('testuser'))
+    fireEvent.click(screen.getAllByRole('button', { name: /edit/i })[1])
+    const dialog = document.getElementById('user_edit_dialog') as HTMLDialogElement
+    expect(dialog?.open).toBe(true)
+    const activeToggle = screen.getByLabelText('Active') as HTMLInputElement
+    expect(activeToggle.checked).toBe(false)
+    fireEvent.click(activeToggle) // activate
+    fireEvent.click(activeToggle) // deactivate again
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    await waitFor(() => {
+      expect(dialog.open).toBe(false)
+    })
+    expect(axios.put).toHaveBeenCalledWith(
+      '/api/users/2',
+      expect.objectContaining({ is_active: false })
+    )
   })
 })

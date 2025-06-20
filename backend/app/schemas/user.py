@@ -19,6 +19,7 @@ class UserBase(BaseModel):
 
     username: str
     role: Role
+    is_active: bool = True
 
 
 class UserCreate(UserBase):
@@ -28,6 +29,7 @@ class UserCreate(UserBase):
 
     username: str = Field(min_length=USERNAME_MIN_LENGTH)
     password: str = Field(min_length=PASSWORD_MIN_LENGTH)
+    is_active: bool = True
 
 
 class UserUpdate(BaseModel):
@@ -37,6 +39,7 @@ class UserUpdate(BaseModel):
 
     username: str | None = Field(min_length=USERNAME_MIN_LENGTH, default=None)
     role: Role | None = None
+    is_active: bool | None = None
 
 
 class UserResponse(UserBase):
@@ -47,6 +50,7 @@ class UserResponse(UserBase):
     id: int
     created_at: datetime.datetime
     updated_at: datetime.datetime
+    is_active: bool = True
 
     @classmethod
     def from_user(cls, user: "User") -> "UserResponse":
@@ -59,6 +63,7 @@ class UserResponse(UserBase):
             role=user.role,
             created_at=user.created_at,
             updated_at=user.updated_at,
+            is_active=user.is_active,
         )
 
 

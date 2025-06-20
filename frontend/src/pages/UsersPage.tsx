@@ -25,6 +25,7 @@ export default function UsersPage() {
   const [editingUser, setEditingUser] = useState<Partial<User> | null>(null)
   const [newUsername, setNewUsername] = useState('')
   const [newRole, setNewRole] = useState(Role.USER)
+  const [newIsActive, setNewIsActive] = useState(true)
   const [isNewUser, setIsNewUser] = useState(false)
   const [deleting, setDeleting] = useState<Record<number, boolean>>({})
   const [settingPassword, setSettingPassword] = useState(false)
@@ -75,11 +76,13 @@ export default function UsersPage() {
           username: newUsername,
           role: newRole,
           password: (event.currentTarget.elements.namedItem('password')! as HTMLInputElement).value,
+          is_active: newIsActive,
         })
       } else {
         await axios.put(`/api/users/${editingUser.id}`, {
           username: newUsername,
           role: newRole,
+          is_active: newIsActive,
         })
       }
       fetchUsers(pagination)
@@ -137,9 +140,10 @@ export default function UsersPage() {
             className="btn btn-primary btn-sm"
             onClick={() => {
               setIsNewUser(true)
-              setEditingUser({ id: 0, username: '', role: Role.USER })
+              setEditingUser({ id: 0, username: '', role: Role.USER, is_active: true })
               setNewUsername('')
               setNewRole(Role.USER)
+              setNewIsActive(true)
               const dialog = document.getElementById('user_edit_dialog') as HTMLDialogElement | null
               if (dialog) dialog.showModal()
             }}
@@ -153,17 +157,25 @@ export default function UsersPage() {
               <tr>
                 <th>Username</th>
                 <th>Role</th>
+                <th>Status</th>
                 <th className="w-50 text-center">Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <TableSkeleton width={3} height={Math.max(pagination.size, 1)} />
+                <TableSkeleton width={4} height={Math.max(pagination.size, 1)} />
               ) : (
                 users.items.map((user) => (
-                  <tr key={user.id}>
+                  <tr key={user.id} className={user.is_active ? '' : 'opacity-50'}>
                     <td>{user.username}</td>
                     <td>{roleToString(user.role)}</td>
+                    <td>
+                      {user.is_active ? (
+                        <span className="badge badge-success">Active</span>
+                      ) : (
+                        <span className="badge bg-gray-500">Inactive</span>
+                      )}
+                    </td>
                     <td className="text-right">
                       <button
                         className="btn btn-xs btn-secondary"
@@ -172,6 +184,7 @@ export default function UsersPage() {
                           setEditingUser(user)
                           setNewUsername(user.username)
                           setNewRole(user.role)
+                          setNewIsActive(user.is_active)
                           const dialog = document.getElementById(
                             'user_edit_dialog'
                           ) as HTMLDialogElement | null
@@ -244,6 +257,17 @@ export default function UsersPage() {
                 </option>
               ))}
             </select>
+            <label className="label" htmlFor="user-edit-active">
+              <input
+                id="user-edit-active"
+                type="checkbox"
+                name="is_active"
+                checked={newIsActive}
+                onChange={(e) => setNewIsActive(e.target.checked)}
+                className="toggle toggle-primary"
+              />
+              Active
+            </label>
             {isNewUser && (
               <>
                 <label className="label" htmlFor="user-edit-password">
