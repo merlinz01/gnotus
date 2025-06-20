@@ -5,6 +5,31 @@
 {$CADDY_DOMAIN} {
 	root * /usr/share/caddy
 	encode gzip zstd
+	header {
+		# This means the site is only accessible over HTTPS for one year
+		# and allows browsers to preload the site in their HSTS lists.
+		Strict-Transport-Security "max-age=31536000; preload"
+		# This policy allows scripts and styles from the same origin,
+		# allows inline scripts and styles, and allows images from the same origin and data URIs.
+		# It also restricts connections to the same origin and disallows framing.
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+		# This policy sends no referrer information when navigating to a less secure page,
+		# but sends it when navigating to a more secure page.
+		Referrer-Policy no-referrer-when-downgrade
+		# This header prevents browsers from MIME-sniffing the content type,
+		# forcing them to use the declared content type.
+		X-Content-Type-Options nosniff
+		# This header prevents the page from being framed, mitigating clickjacking attacks.
+		X-Frame-Options DENY
+		# This header prevents Adobe Flash and Adobe Acrobat from loading cross-domain policies,
+		# which can be a security risk.
+		X-Permitted-Cross-Domain-Policies none
+		# This header prevents Internet Explorer from executing downloads in the context of the site,
+		# mitigating drive-by download attacks.
+		X-Download-Options noopen
+		# This header enables the XSS filter in browsers and instructs them to block the page if an XSS attack is detected.
+		X-XSS-Protection "1; mode=block"
+	}
 	rate_limit {
 		zone api {
 			match {
