@@ -184,7 +184,7 @@ export default function DocPage() {
             </h1>
             {doc.children.length > 0 && (
               <nav className="mx-4" aria-label="Contents">
-                <h3 className="text-lg">Contents</h3>
+                <h2 className="text-lg">Contents</h2>
                 <ul className="text-primary list-disc pl-6 font-semibold">
                   {doc.children.map((child) => (
                     <li key={child.id}>

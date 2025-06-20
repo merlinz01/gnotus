@@ -98,11 +98,10 @@ function OutlineNode({ node }: { node: DocTreeNode }) {
 
   return (
     <li className="flex flex-col">
-      <HighlightedLink to={'/' + node.urlpath} className="flex items-center justify-start gap-2">
-        {node.children.length > 0 ? (
+      <div className="has-[a.active]:bg-base-100 flex items-center gap-0 p-0">
+        {node.children.length > 0 && (
           <button
-            className="hover:text-secondary cursor-pointer"
-            style={{ marginLeft: '-0.5rem', marginRight: '-0.25rem' }}
+            className="hover:text-secondary cursor-pointer px-1 py-2"
             onClick={(event) => {
               event.preventDefault()
               setOpen(!open)
@@ -114,11 +113,15 @@ function OutlineNode({ node }: { node: DocTreeNode }) {
             />
             <span className="sr-only">Toggle children</span>
           </button>
-        ) : (
-          <span className="w-1"></span>
         )}
-        {node.title}
-      </HighlightedLink>
+        <HighlightedLink
+          to={'/' + node.urlpath}
+          className={`flex h-8 grow items-center ${node.children.length > 0 ? '' : 'pl-6'}`}
+          activeClassName="text-primary active"
+        >
+          <span>{node.title}</span>
+        </HighlightedLink>
+      </div>
       {node.children.length > 0 && (
         <ul
           className="menu border-base-300 ml-3 w-auto overflow-y-hidden border-l p-0 pl-2 before:hidden"
@@ -137,18 +140,18 @@ function HighlightedLink({
   to,
   children,
   className = '',
+  activeClassName = 'not-hover:bg-base-100 text-primary',
 }: {
   to: string
   children: React.ReactNode
   className?: string
+  activeClassName?: string
 }) {
   const location = useLocation()
   return (
     <Link
       to={to}
-      className={`${className} ${
-        location.pathname === to ? 'not-hover:bg-base-100 text-primary' : ''
-      }`}
+      className={`${className} ${location.pathname === to ? activeClassName : ''}`}
       onClick={closeDrawer}
     >
       {children}
