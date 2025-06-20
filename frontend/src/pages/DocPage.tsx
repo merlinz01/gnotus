@@ -94,7 +94,17 @@ export default function DocPage() {
           'The document you are looking for does not exist, or you do not have permission to view it.'
         )
         localStorage.removeItem(storageKey)
+        // Set meta robots to noindex to prevent search engines from indexing non-existent pages
+        const metaRobots = document.createElement('meta')
+        metaRobots.name = 'robots'
+        metaRobots.content = 'noindex'
+        document.head.appendChild(metaRobots)
+        document.title = 'Not Found'
         return
+      }
+      const existingMetaRobots = document.querySelector('meta[name="robots"]')
+      if (existingMetaRobots) {
+        existingMetaRobots.remove()
       }
       setDoc(response.data)
       localStorage.setItem(
