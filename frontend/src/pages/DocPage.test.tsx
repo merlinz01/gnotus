@@ -24,6 +24,7 @@ const mockUser = {
   role: Role.USER,
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
+  is_active: true,
 }
 const mockDoc = {
   id: 1,

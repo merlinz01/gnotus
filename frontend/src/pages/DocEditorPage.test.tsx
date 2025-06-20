@@ -36,6 +36,7 @@ const mockUser = {
   role: Role.ADMIN,
   created_at: '',
   updated_at: '',
+  is_active: true,
 }
 const mockDoc = {
   id: 123,

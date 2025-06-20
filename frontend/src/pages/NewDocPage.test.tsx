@@ -51,6 +51,7 @@ describe('NewDocPage', () => {
         role: Role.ADMIN,
         created_at: '',
         updated_at: '',
+        is_active: true,
       },
       storagePrefix: 'test:',
       loaded: true,

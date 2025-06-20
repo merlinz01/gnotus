@@ -13,6 +13,7 @@ const mockUser = {
   role: Role.USER,
   created_at: '2023-01-01T00:00:00Z',
   updated_at: '2023-01-02T00:00:00Z',
+  is_active: true,
 }
 const mockAdmin = {
   id: 2,
@@ -20,6 +21,7 @@ const mockAdmin = {
   role: Role.ADMIN,
   created_at: '2023-01-03T00:00:00Z',
   updated_at: '2023-01-04T00:00:00Z',
+  is_active: true,
 }
 const mockViewer = {
   id: 3,
@@ -27,6 +29,7 @@ const mockViewer = {
   role: Role.VIEWER,
   created_at: '2023-01-05T00:00:00Z',
   updated_at: '2023-01-06T00:00:00Z',
+  is_active: true,
 }
 
 const mockOutline = {

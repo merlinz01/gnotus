@@ -20,6 +20,7 @@ const mockUser = {
   role: Role.ADMIN,
   created_at: '',
   updated_at: '',
+  is_active: true,
 }
 vi.mock('../axios', () => ({
   default: { get: vi.fn() },
