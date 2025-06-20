@@ -113,6 +113,7 @@ export default function DocPage() {
     if (doc?.urlpath === location.pathname.slice(1)) {
       return
     }
+    setError(null)
     const storedDoc = fetchDocFromStorage()
     if (storedDoc) {
       setDoc(storedDoc)
