@@ -9,6 +9,14 @@ from ..settings import settings
 router = APIRouter()
 
 
+@router.head("/robots.txt")
+async def robots_txt_head() -> Response:
+    """
+    Returns the headers for the robots.txt file.
+    """
+    return Response(content="", media_type="text/plain")
+
+
 @router.get("/robots.txt")
 async def robots_txt() -> Response:
     """
@@ -22,6 +30,14 @@ async def robots_txt() -> Response:
         f"\nSitemap: {settings.base_url}/api/sitemap.xml\n"
     )
     return Response(content=content, media_type="text/plain")
+
+
+@router.head("/sitemap.xml")
+async def sitemap_head() -> Response:
+    """
+    Returns the headers for the sitemap.xml file.
+    """
+    return Response(content="", media_type="application/xml; charset=utf-8")
 
 
 @router.get("/sitemap.xml")

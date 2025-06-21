@@ -15,6 +15,9 @@ async def test_robots_txt(api_client: TestClient) -> None:
         "User-agent: *\nAllow: /api/sitemap.xml\nDisallow: /api/\nAllow: /\n"
         f"\nSitemap: {settings.base_url}/api/sitemap.xml\n"
     )
+    response = api_client.head("/api/robots.txt")
+    assert response.status_code == 200
+    assert response.headers["Content-Type"] == "text/plain; charset=utf-8"
 
 
 async def test_sitemap(api_client: TestClient) -> None:
@@ -58,3 +61,6 @@ async def test_sitemap(api_client: TestClient) -> None:
         "</url>"
         "</urlset>"
     )
+    response = api_client.head("/api/sitemap.xml")
+    assert response.status_code == 200
+    assert response.headers["Content-Type"] == "application/xml; charset=utf-8"

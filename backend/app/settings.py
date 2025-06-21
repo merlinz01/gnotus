@@ -85,7 +85,7 @@ config.setdefault("icon_file_path", "./icon.svg")
 settings = Settings(**config)
 
 # Trim the base URL to ensure it does not end with a slash
-if settings.base_url.endswith("/"):
+if settings.base_url.endswith("/"):  # pragma: no cover
     settings.base_url = settings.base_url.rstrip("/")
 
 TORTOISE_ORM = {
