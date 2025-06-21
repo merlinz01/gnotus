@@ -16,20 +16,19 @@ function App() {
   const [error, setError] = useState<string | null>(null)
   useEffect(() => {
     setError(null)
-    if (loaded) {
-      return
-    }
-    const fetchConfig = async () => {
-      try {
-        const response = await axios.get('/api/config.json')
-        setConfig(response.data)
-        localStorage.setItem('app_config', JSON.stringify(response.data))
-      } catch (error) {
-        console.error('Failed to fetch config:', error)
-        setError('Failed to load site configuration: ' + getErrorMessage(error))
+    if (!loaded) {
+      const fetchConfig = async () => {
+        try {
+          const response = await axios.get('/api/config.json')
+          setConfig(response.data)
+          localStorage.setItem('app_config', JSON.stringify(response.data))
+        } catch (error) {
+          console.error('Failed to fetch config:', error)
+          setError('Failed to load site configuration: ' + getErrorMessage(error))
+        }
       }
+      fetchConfig()
     }
-    fetchConfig()
   }, [loaded, setConfig])
   useEffect(() => {
     if (userLoaded) return
@@ -57,6 +56,13 @@ function App() {
       document.documentElement.style.setProperty('--color-primary', config.primary_color)
     if (config.secondary_color)
       document.documentElement.style.setProperty('--color-secondary', config.secondary_color)
+    let metaDescription = document.querySelector('meta[name="description"]')
+    if (!metaDescription) {
+      metaDescription = document.createElement('meta')
+      metaDescription.setAttribute('name', 'description')
+      document.head.appendChild(metaDescription)
+    }
+    metaDescription.setAttribute('content', config.site_description || '')
   }, [config])
 
   if (error) {
