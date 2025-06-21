@@ -15,10 +15,13 @@ for both public and internal documentation.
 ## Features
 
 - Light-weight single-page application built with React and FastAPI.
-- Document caching for fast page loads
+- Browser caching for fast page loads
 - In-app document creation and editing
 - Markdown document format
-- Automatically saves document revisions
+- Optimized for search engine indexing
+- Customizable site branding with colors and logo
+- Automatic table of contents generation
+- Document history with the ability to revert to previous versions
 - Public and private documents
 - Full-text search, including in private documents
 - In-app user management with various user roles
