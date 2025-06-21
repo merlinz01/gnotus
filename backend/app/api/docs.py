@@ -497,6 +497,9 @@ async def search_docs(
     results = await search_documents(
         query, public_only=current_user is None
     )  # pragma: no cover
+    logger.info(
+        f"User {current_user.username if current_user else 'anonymous'} searched for: {query}"
+    )  # pragma: no cover
 
     return DocSearchResponse(
         results=results,
