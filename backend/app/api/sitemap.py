@@ -15,7 +15,10 @@ async def robots_txt() -> Response:
     Returns the robots.txt file.
     """
     content = (
-        "User-agent: *\nDisallow: /api/\nAllow: /\n"
+        "User-agent: *\n"
+        "Allow: /api/sitemap.xml\n"
+        "Disallow: /api/\n"
+        "Allow: /\n"
         f"\nSitemap: {settings.base_url}/api/sitemap.xml\n"
     )
     return Response(content=content, media_type="text/plain")

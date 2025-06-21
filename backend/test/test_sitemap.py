@@ -12,7 +12,7 @@ async def test_robots_txt(api_client: TestClient) -> None:
     assert response.status_code == 200
     assert response.headers["Content-Type"] == "text/plain; charset=utf-8"
     assert response.text == (
-        "User-agent: *\nDisallow: /api/\nAllow: /\n"
+        "User-agent: *\nAllow: /api/sitemap.xml\nDisallow: /api/\nAllow: /\n"
         f"\nSitemap: {settings.base_url}/api/sitemap.xml\n"
     )
 
