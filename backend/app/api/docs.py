@@ -490,8 +490,10 @@ async def search_docs(
             detail="Search functionality is disabled",
         )
 
+    query = query.strip()
     if len(query) < 3:
         return DocSearchResponse(results=[], total=0)
+
     results = await search_documents(
         query, public_only=current_user is None
     )  # pragma: no cover
