@@ -49,7 +49,8 @@ export default function NewDocPage() {
     setSaving(true)
     try {
       const response = await axios.post('/api/docs/', {
-        parent_id: (event.currentTarget.elements.namedItem('parentId')! as HTMLInputElement).value,
+        parent_id:
+          (event.currentTarget.elements.namedItem('parentId')! as HTMLInputElement).value || null,
         title: (event.currentTarget.elements.namedItem('titleField')! as HTMLInputElement).value,
         urlpath: (event.currentTarget.elements.namedItem('path')! as HTMLInputElement).value,
         public:
