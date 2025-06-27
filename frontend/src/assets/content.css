@@ -227,7 +227,7 @@ SOFTWARE. */
 
 .gnotus-content code,
 .gnotus-content samp {
-  color: var(--color-accent-content);
+  color: var(--color-secondary);
   background-color: var(--color-base-300);
   border-radius: var(--border-radius);
   display: inline-block;
@@ -447,7 +447,7 @@ SOFTWARE. */
 }
 
 .gnotus-content table thead {
-  background-color: var(--color-accent);
+  background-color: var(--color-secondary);
   border-collapse: collapse;
   border-radius: var(--border-radius);
   color: var(--color-base-100);

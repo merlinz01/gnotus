@@ -51,6 +51,17 @@ The recommended way to install Gnotus is with Docker Compose.
      create and manage documentation.
    primary_color: "#654321"
    secondary_color: "#123456"
+   # Optionally, you can set the dark mode colors
+   primary_color_dark: "#987654"
+   secondary_color_dark: "#456789"
+   ```
+
+   If you want to use a custom logo, you can simply place an SVG file named `icon.svg` in the same directory as `compose.yml` and `config.yml`, and uncomment the line in the `compose.yml` file that mounts the icon file to the backend service:
+
+   ```yaml
+   backend:
+     volumes:
+       - ./icon.svg:/app/icon.svg
    ```
 
 1. **Configure the environment variables**

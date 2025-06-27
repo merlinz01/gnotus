@@ -69,6 +69,8 @@ class Settings(BaseSettings):
     site_description: str = ""
     primary_color: str = "#4A90E2"
     secondary_color: str = "#50E3C2"
+    primary_color_dark: str | None = None
+    secondary_color_dark: str | None = None
     icon_file_path: FilePath
 
 

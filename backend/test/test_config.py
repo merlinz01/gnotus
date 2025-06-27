@@ -11,6 +11,8 @@ def test_config(api_client: TestClient):
     settings.site_description = "An open-source knowledge-base software."
     settings.primary_color = "#4A90E2"
     settings.secondary_color = "#50E3C2"
+    settings.primary_color_dark = "#6B6Ef0"
+    settings.secondary_color_dark = "#8FBC8F"
 
     response = api_client.get("/api/config.json")
 
@@ -21,6 +23,8 @@ def test_config(api_client: TestClient):
         "site_description": "An open-source knowledge-base software.",
         "primary_color": "#4A90E2",
         "secondary_color": "#50E3C2",
+        "primary_color_dark": "#6B6Ef0",
+        "secondary_color_dark": "#8FBC8F",
     }
 
 

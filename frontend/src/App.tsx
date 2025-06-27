@@ -6,6 +6,7 @@ import useConfig from './stores/config'
 import { LoaderPinwheelIcon } from 'lucide-react'
 import axios, { getErrorMessage } from './axios'
 import useUser from './stores/user'
+import './App.css'
 
 function App() {
   const loaded = useConfig((state) => state.loaded)
@@ -53,9 +54,16 @@ function App() {
   })
   useEffect(() => {
     if (config.primary_color)
-      document.documentElement.style.setProperty('--color-primary', config.primary_color)
+      document.documentElement.style.setProperty('--gnotus-primary', config.primary_color)
     if (config.secondary_color)
-      document.documentElement.style.setProperty('--color-secondary', config.secondary_color)
+      document.documentElement.style.setProperty('--gnotus-secondary', config.secondary_color)
+    if (config.primary_color_dark)
+      document.documentElement.style.setProperty('--gnotus-primary-dark', config.primary_color_dark)
+    if (config.secondary_color_dark)
+      document.documentElement.style.setProperty(
+        '--gnotus-secondary-dark',
+        config.secondary_color_dark
+      )
     let metaDescription = document.querySelector('meta[name="description"]')
     if (!metaDescription) {
       metaDescription = document.createElement('meta')

@@ -1,0 +1,8 @@
+html {
+  --color-primary: var(--gnotus-primary);
+  --color-secondary: var(--gnotus-secondary);
+}
+html[data-theme='dark'] {
+  --color-primary: var(--gnotus-primary-dark, var(--gnotus-primary));
+  --color-secondary: var(--gnotus-secondary-dark, var(--gnotus-secondary));
+}
