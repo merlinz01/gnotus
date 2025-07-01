@@ -28,7 +28,7 @@ export default function Pagination({
     <div className="flex items-center justify-between p-4">
       <div>
         <span>
-          Page {params.page} of {totalPages} ({total} items)
+          Page {params.page} of {totalPages} ({total} item{total !== 1 ? 's' : ''})
         </span>
       </div>
       <div className="flex items-center space-x-2">
