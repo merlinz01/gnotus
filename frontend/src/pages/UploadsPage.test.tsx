@@ -34,7 +34,6 @@ const mockUploads = [
     created_at: '2023-01-01T00:00:00Z',
     updated_at: '2023-01-01T00:00:00Z',
     public: true,
-    download_url: '/uploads/testfile.txt',
   },
   {
     id: 2,
@@ -43,7 +42,6 @@ const mockUploads = [
     created_at: '2023-01-02T00:00:00Z',
     updated_at: '2023-01-02T00:00:00Z',
     public: false,
-    download_url: '/uploads/anotherfile.txt',
   },
 ]
 
@@ -157,11 +155,11 @@ describe('UploadsPage', () => {
     expect(await screen.findByTitle('Download')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'View' })).toHaveAttribute(
       'href',
-      '/uploads/testfile.txt?download=false'
+      '/api/uploads/1/download/testfile.txt?download=false'
     )
     expect(screen.getByRole('link', { name: 'Download' })).toHaveAttribute(
       'href',
-      '/uploads/testfile.txt'
+      '/api/uploads/1/download/testfile.txt'
     )
   })
 

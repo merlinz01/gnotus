@@ -9,6 +9,7 @@ import DOMPurify from 'dompurify'
 import '../assets/content.css'
 import { ChevronDownIcon, ChevronUpIcon, HistoryIcon, TrashIcon } from 'lucide-react'
 import useConfig from '../stores/config'
+import type Upload from '../types/upload'
 
 const md = markdownit({
   html: true,
@@ -235,7 +236,8 @@ export default function DocEditorPage() {
           'Content-Type': 'multipart/form-data',
         },
       })
-      return response.data.download_url
+      const upload = response.data as Upload
+      return `/api/uploads/${upload.id}/download`
     } finally {
       setUploadingFile(false)
     }

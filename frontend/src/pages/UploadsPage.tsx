@@ -198,7 +198,7 @@ export default function UploadsPage() {
                     <td className="text-right">{friendlySize(upload.size)}</td>
                     <td className="text-center">
                       <a
-                        href={upload.download_url + '?download=false'}
+                        href={`/api/uploads/${upload.id}/download/${upload.filename}?download=false`}
                         className="btn btn-primary btn-square btn-sm"
                         target="_blank"
                         title="View"
@@ -206,7 +206,7 @@ export default function UploadsPage() {
                         <EyeIcon />
                       </a>
                       <a
-                        href={upload.download_url}
+                        href={`/api/uploads/${upload.id}/download/${upload.filename}`}
                         className="btn btn-primary btn-square btn-sm ml-2"
                         title="Download"
                       >

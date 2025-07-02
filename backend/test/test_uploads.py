@@ -6,17 +6,11 @@ from fastapi import status
 from utils import TestClient
 
 
-async def test_create_upload(
-    api_client: TestClient, user_admin: User, uploads_dir: Path
-):
+async def test_create_upload(api_client: TestClient, user_admin: User):
     """
     Test creating a new upload.
     """
-    from app.settings import settings
-
     api_client.set_session_user(user_admin)
-    print(f"Uploads directory set to: {settings.uploads_dir}")
-    print(f"Temporary path: {uploads_dir}")
     response = api_client.post(
         "/api/uploads/",
         data={
@@ -38,7 +32,6 @@ async def test_create_upload(
         "created_by_id": user_admin.id,
         "created_at": data["created_at"],
         "updated_at": data["updated_at"],
-        "download_url": f"{settings.base_url}/api/uploads/{data['id']}/download/newupload.png",
     }
     await Upload.get(id=data["id"])
 
@@ -183,8 +176,6 @@ async def test_get_upload(api_client: TestClient, user_admin: User):
     """
     Test getting a upload by ID.
     """
-    from app.settings import settings
-
     api_client.set_session_user(user_admin)
     upload = await Upload.create(
         filename="testupload.png",
@@ -206,7 +197,6 @@ async def test_get_upload(api_client: TestClient, user_admin: User):
         "created_by_id": user_admin.id,
         "created_at": data["created_at"],
         "updated_at": data["updated_at"],
-        "download_url": f"{settings.base_url}/api/uploads/{upload.id}/download/testupload.png",
     }
 
 
@@ -482,8 +472,6 @@ async def test_list_uploads(api_client: TestClient, user_admin: User):
     """
     Test listing all uploads.
     """
-    from app.settings import settings
-
     upload1 = await Upload.create(
         filename="upload1.png",
         content_type="image/png",
@@ -515,7 +503,6 @@ async def test_list_uploads(api_client: TestClient, user_admin: User):
                 "created_by_id": user_admin.id,
                 "created_at": data["items"][0]["created_at"],
                 "updated_at": data["items"][0]["updated_at"],
-                "download_url": f"{settings.base_url}/api/uploads/{upload1.id}/download/upload1.png",
             },
             {
                 "id": upload2.id,
@@ -526,7 +513,6 @@ async def test_list_uploads(api_client: TestClient, user_admin: User):
                 "created_by_id": user_admin.id,
                 "created_at": data["items"][1]["created_at"],
                 "updated_at": data["items"][1]["updated_at"],
-                "download_url": f"{settings.base_url}/api/uploads/{upload2.id}/download/upload2.png",
             },
         ],
         "size": 2,

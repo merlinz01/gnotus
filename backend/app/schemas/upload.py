@@ -43,4 +43,3 @@ class UploadResponse(UploadBase):
     created_by_id: int
     created_at: datetime
     updated_at: datetime
-    download_url: str

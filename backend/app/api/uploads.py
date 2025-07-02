@@ -99,7 +99,6 @@ async def upload_file(
         created_by_id=upload.created_by_id,
         created_at=upload.created_at,
         updated_at=upload.updated_at,
-        download_url=upload.get_download_url(),
     )
 
 
@@ -126,7 +125,6 @@ async def list_uploads(
                 created_by_id=upload.created_by_id,
                 created_at=upload.created_at,
                 updated_at=upload.updated_at,
-                download_url=upload.get_download_url(),
             )
             async for upload in uploads
         ],
@@ -161,7 +159,6 @@ async def get_upload(
         created_by_id=upload.created_by_id,
         created_at=upload.created_at,
         updated_at=upload.updated_at,
-        download_url=upload.get_download_url(),
     )
 
 
@@ -217,7 +214,6 @@ async def update_upload(
         created_by_id=upload.created_by_id,
         created_at=upload.created_at,
         updated_at=upload.updated_at,
-        download_url=upload.get_download_url(),
     )
 
 

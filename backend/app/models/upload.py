@@ -3,7 +3,6 @@ import secrets
 
 from tortoise import Model, fields
 
-from ..settings import settings
 from .utils import TimestampMixin
 
 
@@ -43,9 +42,3 @@ class Upload(Model, TimestampMixin):
         Sanitize the filename.
         """
         return re.sub(r"[^\w\-_.]+", "-", filename)
-
-    def get_download_url(self) -> str:
-        """
-        Get the download URL for the upload.
-        """
-        return f"{settings.base_url}/api/uploads/{self.id}/download/{self.filename}"

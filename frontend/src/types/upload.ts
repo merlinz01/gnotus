@@ -5,5 +5,4 @@ export default interface Upload {
   size: number
   created_at: string
   updated_at: string
-  download_url: string
 }
