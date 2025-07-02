@@ -2,3 +2,5 @@
 /config.yml
 /icon.svg
 /data
+.*_cache/
+.ropeproject
