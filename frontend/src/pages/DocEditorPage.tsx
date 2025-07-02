@@ -227,7 +227,7 @@ export default function DocEditorPage() {
     const formData = new FormData()
     formData.append('file', file)
     formData.append('filename', file.name)
-    formData.append('public', 'false')
+    formData.append('public', isPublic ? 'true' : 'false')
     setUploadingFile(true)
     try {
       const response = await axios.post('/api/uploads/', formData, {
