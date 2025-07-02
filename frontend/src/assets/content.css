@@ -208,6 +208,12 @@ SOFTWARE. */
   padding: 0.2rem 0;
 }
 
+.gnotus-content ol li > p,
+.gnotus-content ul li > p {
+  display: inline;
+  margin: 0;
+}
+
 .gnotus-content p {
   margin: 0.75rem 0;
   padding: 0;
