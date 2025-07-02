@@ -31,6 +31,7 @@ async def robots_txt() -> Response:
         "Allow: /api/icon.svg\n"
         "Allow: /api/sitemap.xml\n"
         "Allow: /api/docs/\n"
+        "Allow: /api/uploads/\n"
         f"\nSitemap: {settings.base_url}/api/sitemap.xml\n"
     )
     return Response(content=content, media_type="text/plain")

@@ -20,6 +20,7 @@ async def test_robots_txt(api_client: TestClient) -> None:
         "Allow: /api/icon.svg\n"
         "Allow: /api/sitemap.xml\n"
         "Allow: /api/docs/\n"
+        "Allow: /api/uploads/\n"
         f"\nSitemap: {settings.base_url}/api/sitemap.xml\n"
     )
     response = api_client.head("/api/robots.txt")

@@ -332,6 +332,10 @@ SOFTWARE. */
 }
 
 /* Images */
+.gnotus-content img {
+  display: inline-block;
+}
+
 .gnotus-content figure {
   margin: 0;
   padding: 0;

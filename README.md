@@ -18,6 +18,7 @@ for both public and internal documentation.
 - Browser caching for fast page loads
 - In-app document creation and editing
 - Markdown document format
+- Upload management for images and other files
 - Optimized for search engine indexing
 - Customizable site branding with colors and logo
 - Automatic table of contents generation

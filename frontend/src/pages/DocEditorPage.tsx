@@ -1,6 +1,6 @@
 import { Link, useParams } from 'react-router-dom'
 import { useCallback, useEffect, useState } from 'react'
-import axios from '../axios'
+import axios, { getErrorMessage } from '../axios'
 import useUser from '../stores/user'
 import { useNavigate } from 'react-router-dom'
 import type Doc from '../types/doc'
@@ -32,6 +32,7 @@ export default function DocEditorPage() {
   const [content, setContent] = useState('')
   const [deleting, setDeleting] = useState(false)
   const config = useConfig((state) => state.config)
+  const [uploadingFile, setUploadingFile] = useState(false)
   useEffect(() => {
     if (doc) {
       document.title = `Editing ${doc.title} - ${config.site_name}`
@@ -155,6 +156,91 @@ export default function DocEditorPage() {
     }
   }, [doc, storagePrefix, navigate])
 
+  const textAreaKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Tab') {
+      event.preventDefault()
+      const textarea = event.target as HTMLTextAreaElement
+      insertTextAtCursor(textarea, '    ')
+    }
+  }
+
+  const textAreaPaste = (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const clipboardData = event.clipboardData
+    if (!clipboardData || !clipboardData.files || clipboardData.files.length == 0) return
+    event.preventDefault()
+    const textarea = event.currentTarget as HTMLTextAreaElement
+    textarea.focus()
+    for (const file of clipboardData.files) {
+      console.log('Pasted file:', file)
+      uploadFile(file)
+        .then((url) => {
+          const fileName = file.name
+          const text = file.type.startsWith('image/')
+            ? `![${fileName}](${url})`
+            : `[${fileName}](${url})`
+          insertTextAtCursor(textarea, text)
+        })
+        .catch((error) => {
+          console.error('Error uploading pasted file:', error)
+          alert('Failed to upload pasted file: ' + getErrorMessage(error))
+        })
+    }
+  }
+
+  const textAreaDrop = (event: React.DragEvent<HTMLTextAreaElement>) => {
+    const dataTransfer = event.dataTransfer
+    if (!dataTransfer || !dataTransfer.files || dataTransfer.files.length == 0) return
+    event.preventDefault()
+    const textarea = event.currentTarget as HTMLTextAreaElement
+    textarea.focus()
+    for (const file of dataTransfer.files) {
+      console.log('Dropped file:', file)
+      uploadFile(file)
+        .then((url) => {
+          const fileName = file.name
+          const text = file.type.startsWith('image/')
+            ? `![${fileName}](${url})`
+            : `[${fileName}](${url})`
+          insertTextAtCursor(textarea, text)
+        })
+        .catch((error) => {
+          console.error('Error uploading dropped file:', error)
+          alert('Failed to upload dropped file: ' + getErrorMessage(error))
+        })
+    }
+  }
+
+  const insertTextAtCursor = (textarea: HTMLTextAreaElement, text: string) => {
+    textarea.focus()
+    if (document.queryCommandSupported && document.queryCommandSupported('insertText')) {
+      document.execCommand('insertText', false, text)
+    } else {
+      const start = textarea.selectionStart
+      const end = textarea.selectionEnd
+      const value = textarea.value
+      textarea.value = value.slice(0, start) + text + value.slice(end)
+      textarea.setSelectionRange(start + text.length, start + text.length)
+    }
+  }
+
+  const uploadFile = async (file: File): Promise<string> => {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('filename', file.name)
+    formData.append('public', 'false')
+    setUploadingFile(true)
+    try {
+      const response = await axios.post('/api/uploads/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      return response.data.download_url
+    } finally {
+      setUploadingFile(false)
+    }
+  }
+
   return (
     <div className="card bg-base-200 m-4 shadow-lg">
       <form className="card-body flex flex-col gap-4" onSubmit={saveDoc}>
@@ -250,8 +336,11 @@ export default function DocEditorPage() {
               onChange={(e) => setContent(e.target.value)}
               disabled={loading || saving}
               onKeyDown={textAreaKeyDown}
+              onPaste={textAreaPaste}
+              onDrop={textAreaDrop}
               required
             ></textarea>
+            {uploadingFile && <progress className="progress max-w-200"></progress>}
             <div
               className="border-accent bg-base-100 gnotus-content max-h-100 min-h-50 w-1/2 max-w-200 min-w-75 grow overflow-auto rounded-lg border p-2"
               dangerouslySetInnerHTML={{
@@ -268,27 +357,4 @@ export default function DocEditorPage() {
       </form>
     </div>
   )
-}
-
-const textAreaKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-  if (event.key === 'Tab') {
-    event.preventDefault()
-    const textarea = event.target as HTMLTextAreaElement
-
-    const spaces = '    '
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-
-    // Use insertText command if supported
-    if (document.queryCommandSupported && document.queryCommandSupported('insertText')) {
-      // Fallback-safe: temporarily focus, select, then insert text
-      textarea.setSelectionRange(start, end)
-      document.execCommand('insertText', false, spaces)
-    } else {
-      // Fallback for environments where execCommand is deprecated/unsupported
-      const value = textarea.value
-      textarea.value = value.slice(0, start) + spaces + value.slice(end)
-      textarea.setSelectionRange(start + spaces.length, start + spaces.length)
-    }
-  }
 }

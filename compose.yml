@@ -11,6 +11,7 @@ services:
       - GNOTUS_CONFIG_FILE=/app/config.yml
       - GNOTUS_BASE_URL=${GNOTUS_BASE_URL:-http://localhost}
       - GNOTUS_DB_URL=sqlite:/data/gnotus.db
+      - GNOTUS_UPLOADS_DIR=/data/uploads
       - GNOTUS_LOG_LEVEL=INFO
       - GNOTUS_SESSION_SECRET_KEY=${SECRET_KEY}
       - GNOTUS_CSRF_SECRET_KEY=${SECRET_KEY}

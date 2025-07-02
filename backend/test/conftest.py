@@ -2,6 +2,7 @@ import os
 import sys
 
 import pytest
+from pytest import TempPathFactory
 from utils import TestClient
 
 os.environ["GNOTUS_DB_URL"] = "sqlite://:memory:"
@@ -27,9 +28,8 @@ async def reset_db(api_client):
     """
     Fixture to reset the database before each test.
     """
-    from tortoise import Tortoise
-
     from app.settings import TORTOISE_ORM
+    from tortoise import Tortoise
 
     await Tortoise._drop_databases()
     await Tortoise.init(config=TORTOISE_ORM)
@@ -117,3 +117,14 @@ async def user_viewer(api_client):
         role=Role.VIEWER,
     )
     return user
+
+
+@pytest.fixture(autouse=True, scope="session")
+def uploads_dir(tmp_path_factory: TempPathFactory):
+    """
+    Fixture to set the uploads directory to a temporary path.
+    """
+    from app.settings import settings
+
+    settings.uploads_dir = tmp_path_factory.mktemp("uploads")
+    return settings.uploads_dir

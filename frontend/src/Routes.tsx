@@ -9,6 +9,7 @@ const NewDocPage = lazy(() => import('./pages/NewDocPage'))
 const DocEditorPage = lazy(() => import('./pages/DocEditorPage'))
 const UsersPage = lazy(() => import('./pages/UsersPage'))
 const RevisionsPage = lazy(() => import('./pages/RevisionsPage'))
+const UploadsPage = lazy(() => import('./pages/UploadsPage'))
 
 export default function Routes() {
   return (
@@ -20,6 +21,7 @@ export default function Routes() {
       <Route path="/_edit/:docId" element={<DocEditorPage />} />
       <Route path="/_revisions/:docId" element={<RevisionsPage />} />
       <Route path="/_users" element={<UsersPage />} />
+      <Route path="/_uploads" element={<UploadsPage />} />
       <Route path="/*" element={<DocPage />} />
     </ReactRoutes>
   )

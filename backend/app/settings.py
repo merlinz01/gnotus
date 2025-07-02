@@ -2,6 +2,7 @@
 
 import os
 import secrets
+from pathlib import Path
 from typing import Literal
 
 import yaml
@@ -63,6 +64,22 @@ class Settings(BaseSettings):
         default_factory=lambda: SecretStr("changeme")
     )
     meilisearch_index_name: str = "docs"
+
+    # Uploads
+    uploads_dir: Path = Path("./uploads")
+    max_upload_size: int = 10 * 1024 * 1024  # 10 MB
+    max_upload_filename_length: int = 64
+    allowed_upload_filename_extensions: list[str] = [
+        "jpg",
+        "jpeg",
+        "png",
+        "gif",
+        "bmp",
+        "webp",
+        "mp4",
+        "pdf",
+        "txt",
+    ]
 
     # Site config
     site_name: str = "Gnotus"

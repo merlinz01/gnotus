@@ -297,6 +297,7 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "aerich" },
+    { name = "aiofiles" },
     { name = "argon2-cffi" },
     { name = "beautifulsoup4" },
     { name = "click" },
@@ -326,6 +327,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aerich", specifier = ">=0.9.0" },
+    { name = "aiofiles", specifier = ">=24.1.0" },
     { name = "argon2-cffi", specifier = ">=25.1.0" },
     { name = "beautifulsoup4", specifier = ">=4.13.4" },
     { name = "click", specifier = ">=8.2.1" },

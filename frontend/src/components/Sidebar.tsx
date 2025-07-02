@@ -59,11 +59,18 @@ export default function Sidebar() {
         </li>
         {outline && outline.children.map((node) => <OutlineNode key={node.id} node={node} />)}
         {user && (user.role === Role.ADMIN || user.role === Role.USER) && (
-          <li>
-            <HighlightedLink to="/_new" className="opacity-75">
-              <span>Create new document</span>
-            </HighlightedLink>
-          </li>
+          <>
+            <li>
+              <HighlightedLink to="/_new" className="opacity-75">
+                <span>Create new document</span>
+              </HighlightedLink>
+            </li>
+            <li>
+              <HighlightedLink to="/_uploads" className="opacity-75">
+                <span>Manage uploads</span>
+              </HighlightedLink>
+            </li>
+          </>
         )}
         {user && user.role === Role.ADMIN && (
           <li>
