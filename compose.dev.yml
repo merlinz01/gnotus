@@ -25,7 +25,6 @@ services:
     volumes:
       - ./data:/data
       - ./backend:/app
-      - ./config.yml:/app/config.yml
 
   search:
     image: getmeili/meilisearch:v1.15
