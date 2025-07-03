@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import axios from '../axios'
 import { LoaderPinwheelIcon, PencilIcon } from 'lucide-react'
 import useUser from '../stores/user'
@@ -18,6 +18,7 @@ export default function DocPage() {
   const location = useLocation()
   const config = useConfig((state) => state.config)
   const storageKey = `${storagePrefix}doc:${location.pathname.slice(1)}`
+  const navigate = useNavigate()
 
   // Update document title based on the current document
   useEffect(() => {
@@ -147,6 +148,19 @@ export default function DocPage() {
     }
   }, [location.hash, doc])
 
+  function handleLinkClicks(event: React.MouseEvent<HTMLDivElement>) {
+    const target = event.target as HTMLAnchorElement
+    if (target.tagName === 'A' && target.href) {
+      if (target.href.startsWith(window.location.origin)) {
+        event.preventDefault()
+        const path = target.pathname + target.search + target.hash
+        if (path !== location.pathname + location.search + location.hash) {
+          navigate(path)
+        }
+      }
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -206,6 +220,7 @@ export default function DocPage() {
             )}
             <div className="gnotus-content">
               <div
+                onClick={handleLinkClicks}
                 dangerouslySetInnerHTML={{
                   __html: DomPurify.sanitize(doc?.html || ''),
                 }}
