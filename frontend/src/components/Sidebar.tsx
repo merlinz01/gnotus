@@ -96,6 +96,12 @@ export default function Sidebar() {
           </Link>
         )}
       </div>
+      <div className="text-sm text-gray-500">
+        Powered by{' '}
+        <a href="https://github.com/merlinz01/gnotus" target="_blank" rel="noopener noreferrer">
+          Gnotus
+        </a>
+      </div>
     </div>
   )
 }
