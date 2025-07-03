@@ -114,6 +114,7 @@ export default function DocPage() {
       )
     } catch (error) {
       console.error('Error fetching document:', error)
+      setDoc(null)
       setError('Failed to load document. Please try again later.')
     } finally {
       setLoading(false)
@@ -170,7 +171,7 @@ export default function DocPage() {
   }
   return (
     <>
-      {error && <div className="alert alert-error m-4">{error}</div>}
+      {error && <div className="alert alert-error mt-6 max-w-100 self-center">{error}</div>}
       {doc && (
         <div className="flex h-full items-start justify-center">
           <div className="mx-0 flex min-h-full w-full max-w-200 grow flex-col p-4 sm:mx-2 md:mx-4 lg:mx-8">
