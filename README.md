@@ -111,6 +111,51 @@ The recommended way to install Gnotus is with Docker Compose.
 
    You can log in with the admin user you just created.
 
+1. (Optional) **Configure IPv6**
+
+   If your server is reachable via IPv6, it is recommended to configure IPv6 in Docker
+   so that logging and rate limiting work correctly.
+   (If you don't do this, the Caddy service will see all IPv6 requests as coming
+   from the internal Docker gateway, which will mean that all IPv6 requests
+   will be rate-limited as if they were all from the same IP address.)
+
+   To do this, add the following line to your Docker daemon configuration file (usually located at `/etc/docker/daemon.json`):
+
+   ```json
+   {
+     "ip6tables": true
+   }
+   ```
+
+   Then restart the Docker service (you may want to stop the Docker Compose services first):
+
+   ```bash
+   sudo systemctl restart docker
+   ```
+
+   Create a new file `compose.override.yml` in the same directory as `compose.yml` with the following content:
+
+   ```yaml
+   networks:
+     default:
+       enable_ipv6: true
+       ipam:
+         config:
+           - subnet: <your_ipv6_subnet>
+             # e.g. "2001:db8:1::/64"
+   ```
+
+   Replace `<your_ipv6_subnet>` with your actual IPv6 subnet.
+
+   Finally, restart the Docker Compose services:
+
+   ```bash
+   docker compose down
+   docker compose up -d
+   ```
+
+   Now the Caddy service should be able to correctly log and rate limit IPv6 requests.
+
 ## Development
 
 ### (Recommended) With Docker Compose
@@ -149,7 +194,7 @@ You can also set up the development environment without Docker Compose, but this
 
 1. **Configure environment**
 
-   - You can use the provided `config-dev.yml` or create your own `config-custom.yml` to customize the site title and appearance.
+   You can use the provided `config-dev.yml` or create your own `config-custom.yml` to customize the site title and appearance.
 
 1. **Activate the virtual environment**
 
