@@ -13,4 +13,5 @@ uvicorn \
     --workers 3 \
     --access-log \
     --proxy-headers \
+    --forwarded-allow-ips "172.18.0.0/16" \
     app.main:app
