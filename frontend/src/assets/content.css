@@ -208,8 +208,8 @@ SOFTWARE. */
   padding: 0.2rem 0;
 }
 
-.gnotus-content ol li > *:only-child,
-.gnotus-content ul li > *:only-child {
+.gnotus-content ol li > *:first-child,
+.gnotus-content ul li > *:first-child {
   display: inline;
 }
 
