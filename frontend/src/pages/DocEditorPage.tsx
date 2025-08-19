@@ -1,5 +1,5 @@
 import { Link, useParams } from 'react-router-dom'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import axios, { getErrorMessage } from '../axios'
 import useUser from '../stores/user'
 import { useNavigate } from 'react-router-dom'
@@ -10,6 +10,7 @@ import '../assets/content.css'
 import { ChevronDownIcon, ChevronUpIcon, HistoryIcon, TrashIcon } from 'lucide-react'
 import useConfig from '../stores/config'
 import type Upload from '../types/upload'
+import OverType, { type Editor, setDebugMode } from 'overtype'
 
 const md = markdownit({
   html: true,
@@ -34,6 +35,9 @@ export default function DocEditorPage() {
   const [deleting, setDeleting] = useState(false)
   const config = useConfig((state) => state.config)
   const [uploadingFile, setUploadingFile] = useState(false)
+  const editorRef = useRef<Editor>(null)
+  const editorElement = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     if (doc) {
       document.title = `Editing ${doc.title} - ${config.site_name}`
@@ -243,6 +247,53 @@ export default function DocEditorPage() {
     }
   }
 
+  useEffect(() => {
+    if (editorRef.current || !editorElement.current) return
+    setDebugMode(true)
+    const [editor] = OverType.init(editorElement.current, {
+      fontSize: '16px',
+      toolbar: false,
+      placeholder: 'Write your document content here...',
+      showStats: false,
+      padding: '0',
+      value: content,
+      onChange: (value) => {
+        setContent(value)
+      },
+      theme: {
+        name: 'gnotus',
+        colors: {
+          bgPrimary: 'var(--color-base-200)',
+          bgSecondary: 'var(--color-base-100)',
+          text: 'var(--color-base-content)',
+          link: 'var(--color-primary)',
+          strong: 'var(--color-base-content)',
+          cursor: 'var(--color-base-content)',
+          syntaxMarker: '#808080',
+          h1: 'var(--color-base-content)',
+          h2: 'var(--color-base-content)',
+          h3: 'var(--color-base-content)',
+          blockquote: 'var(--color-base-content)',
+          code: 'var(--color-secondary)',
+          codeBg: 'var(--color-base-300)',
+          em: 'var(--color-base-content)',
+          selection: 'var(--color-base-100)',
+          hr: 'var(--color-base-300)',
+        },
+      },
+    })
+    editorRef.current = editor
+    // editor.textarea.addEventListener('paste', textAreaPaste)
+    // editor.textarea.addEventListener('drop', textAreaDrop)
+    return () => editor.destroy()
+  })
+
+  useEffect(() => {
+    if (editorRef.current && content !== editorRef.current.getValue()) {
+      editorRef.current.setValue(content)
+    }
+  }, [content])
+
   return (
     <div className="card bg-base-200 m-4 shadow-lg">
       <form className="card-body flex flex-col gap-4" onSubmit={saveDoc}>
@@ -330,18 +381,10 @@ export default function DocEditorPage() {
           </label>
           <label className="label">Document content</label>
           <div className="flex w-full flex-wrap justify-center gap-2">
-            <textarea
-              name="content"
+            <div
+              ref={editorElement}
               className="textarea textarea-bordered min-h-50 w-1/2 max-w-200 min-w-75 grow"
-              placeholder="Write your document content here..."
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              disabled={loading || saving}
-              onKeyDown={textAreaKeyDown}
-              onPaste={textAreaPaste}
-              onDrop={textAreaDrop}
-              required
-            ></textarea>
+            ></div>
             {uploadingFile && <progress className="progress max-w-200"></progress>}
             <div
               className="border-accent bg-base-100 gnotus-content max-h-100 min-h-50 w-1/2 max-w-200 min-w-75 grow overflow-auto rounded-lg border p-2"
