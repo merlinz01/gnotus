@@ -277,7 +277,7 @@ async def test_delete_user_not_found(api_client: TestClient, user_admin: User):
 
 
 async def test_change_user_password_admin(
-    api_client: TestClient, user_admin: User, user_user: User
+    api_client: TestClient, user_admin: User, user_user_with_password: User
 ):
     """
     Test changing a user's password.
@@ -286,7 +286,7 @@ async def test_change_user_password_admin(
 
     api_client.set_session_user(user_admin)
     response = api_client.post(
-        f"/api/users/{user_user.id}/change-password",
+        f"/api/users/{user_user_with_password.id}/change-password",
         json={
             "old_password": "",
             "new_password": "newpassword123",
@@ -295,19 +295,21 @@ async def test_change_user_password_admin(
     assert response.status_code == status.HTTP_204_NO_CONTENT, response.text
 
     # Verify the password change
-    updated_user = await User.get(id=user_user.id)
+    updated_user = await User.get(id=user_user_with_password.id)
     assert await check_password(updated_user, "newpassword123")
 
 
-async def test_change_user_password_self(api_client: TestClient, user_user: User):
+async def test_change_user_password_self(
+    api_client: TestClient, user_user_with_password: User
+):
     """
     Test changing own password.
     """
     from app.auth.passwords import check_password
 
-    api_client.set_session_user(user_user)
+    api_client.set_session_user(user_user_with_password)
     response = api_client.post(
-        f"/api/users/{user_user.id}/change-password",
+        f"/api/users/{user_user_with_password.id}/change-password",
         json={
             "old_password": "user_password",
             "new_password": "newpassword123",
@@ -316,19 +318,19 @@ async def test_change_user_password_self(api_client: TestClient, user_user: User
     assert response.status_code == status.HTTP_204_NO_CONTENT, response.text
 
     # Verify the password change
-    updated_user = await User.get(id=user_user.id)
+    updated_user = await User.get(id=user_user_with_password.id)
     assert await check_password(updated_user, "newpassword123")
 
 
 async def test_change_user_password_unauthorized(
-    api_client: TestClient, user_user: User, user_admin: User
+    api_client: TestClient, user_user: User, user_admin_with_password: User
 ):
     """
     Test changing another user's password as a non-admin user.
     """
     api_client.set_session_user(user_user)
     response = api_client.post(
-        f"/api/users/{user_admin.id}/change-password",
+        f"/api/users/{user_admin_with_password.id}/change-password",
         json={
             "old_password": "",
             "new_password": "newpassword123",
@@ -357,14 +359,14 @@ async def test_change_user_password_not_found(api_client: TestClient, user_admin
 
 
 async def test_change_user_password_invalid_old_password(
-    api_client: TestClient, user_user: User
+    api_client: TestClient, user_user_with_password: User
 ):
     """
     Test changing own password with an invalid old password.
     """
-    api_client.set_session_user(user_user)
+    api_client.set_session_user(user_user_with_password)
     response = api_client.post(
-        f"/api/users/{user_user.id}/change-password",
+        f"/api/users/{user_user_with_password.id}/change-password",
         json={
             "old_password": "wrongpassword",
             "new_password": "newpassword123",

@@ -3,20 +3,20 @@ from fastapi import status
 from utils import TestClient
 
 
-async def test_auth_user(api_client: TestClient, user_user: User):
+async def test_auth_user(api_client: TestClient, user_user_with_password: User):
     """
     Test that the auth user endpoint returns the expected user data.
     """
-    api_client.set_session_user(user_user)
+    api_client.set_session_user(user_user_with_password)
     response = api_client.get("/api/auth/user")
 
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
-    assert data["id"] == user_user.id
-    assert data["username"] == user_user.username
+    assert data["id"] == user_user_with_password.id
+    assert data["username"] == user_user_with_password.username
 
 
-async def test_auth_login(api_client: TestClient, user_user: User):
+async def test_auth_login(api_client: TestClient, user_user_with_password: User):
     """
     Test that the auth login endpoint returns the expected user data.
     """
@@ -25,15 +25,15 @@ async def test_auth_login(api_client: TestClient, user_user: User):
     response = api_client.post(
         "/api/auth/login",
         json={
-            "username": user_user.username,
+            "username": user_user_with_password.username,
             "password": "user_password",
         },
     )
 
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
-    assert data["user"]["id"] == user_user.id
-    assert data["user"]["username"] == user_user.username
+    assert data["user"]["id"] == user_user_with_password.id
+    assert data["user"]["username"] == user_user_with_password.username
     assert settings.session_cookie in api_client.cookies
 
 
@@ -56,7 +56,9 @@ async def test_auth_login_invalid_user(api_client: TestClient):
     assert settings.session_cookie not in api_client.cookies
 
 
-async def test_auth_login_invalid_password(api_client: TestClient, user_user: User):
+async def test_auth_login_invalid_password(
+    api_client: TestClient, user_user_with_password: User
+):
     """
     Test that the auth login endpoint returns 401 for invalid password.
     """
@@ -65,7 +67,7 @@ async def test_auth_login_invalid_password(api_client: TestClient, user_user: Us
     response = api_client.post(
         "/api/auth/login",
         json={
-            "username": user_user.username,
+            "username": user_user_with_password.username,
             "password": "wrong_password",
         },
     )
@@ -75,27 +77,32 @@ async def test_auth_login_invalid_password(api_client: TestClient, user_user: Us
     assert settings.session_cookie not in api_client.cookies
 
 
-async def test_login_inactive_user(api_client: TestClient, user_admin: User):
+async def test_login_inactive_user(
+    api_client: TestClient, user_admin_with_password: User
+):
     """
     Test that an inactive user cannot log in.
     """
-    user_admin.is_active = False
-    await user_admin.save()
+    user_admin_with_password.is_active = False
+    await user_admin_with_password.save()
     response = api_client.post(
         "/api/auth/login",
-        json={"username": user_admin.username, "password": "admin_password"},
+        json={
+            "username": user_admin_with_password.username,
+            "password": "admin_password",
+        },
     )
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json() == {"detail": "Invalid credentials"}
 
 
-async def test_auth_logout(api_client: TestClient, user_user: User):
+async def test_auth_logout(api_client: TestClient, user_user_with_password: User):
     """
     Test that the auth logout endpoint clears the session.
     """
     from app.settings import settings
 
-    api_client.set_session_user(user_user)
+    api_client.set_session_user(user_user_with_password)
     response = api_client.post("/api/auth/logout")
 
     assert response.status_code == status.HTTP_204_NO_CONTENT

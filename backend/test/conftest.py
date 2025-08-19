@@ -69,9 +69,9 @@ async def cookies(api_client: TestClient):
 
 
 @pytest.fixture
-async def user_admin(api_client):
+async def user_admin_with_password(api_client):
     """
-    Fixture to create an admin user for the tests.
+    Fixture to create an admin user for the tests with a hashed password.
     """
     from app.auth.passwords import hash_password
     from app.models import User
@@ -86,9 +86,9 @@ async def user_admin(api_client):
 
 
 @pytest.fixture
-async def user_user(api_client):
+async def user_user_with_password(api_client):
     """
-    Fixture to create a regular user for the tests.
+    Fixture to create a regular user for the tests with a hashed password.
     """
     from app.auth.passwords import hash_password
     from app.models import User
@@ -103,9 +103,9 @@ async def user_user(api_client):
 
 
 @pytest.fixture
-async def user_viewer(api_client):
+async def user_viewer_with_password(api_client):
     """
-    Fixture to create a viewer user for the tests.
+    Fixture to create a viewer user for the tests with a hashed password.
     """
     from app.auth.passwords import hash_password
     from app.models import User
@@ -114,6 +114,54 @@ async def user_viewer(api_client):
     user = await User.create(
         username="viewer",
         password_hash=hash_password("viewer_password"),
+        role=Role.VIEWER,
+    )
+    return user
+
+
+@pytest.fixture
+async def user_admin(api_client):
+    """
+    Fixture to create an admin user for the tests with a hashed password.
+    """
+    from app.models import User
+    from app.schemas.role import Role
+
+    user = await User.create(
+        username="admin",
+        password_hash="admin_password",
+        role=Role.ADMIN,
+    )
+    return user
+
+
+@pytest.fixture
+async def user_user(api_client):
+    """
+    Fixture to create a regular user for the tests.
+    """
+    from app.models import User
+    from app.schemas.role import Role
+
+    user = await User.create(
+        username="user",
+        password_hash="user_password",
+        role=Role.USER,
+    )
+    return user
+
+
+@pytest.fixture
+async def user_viewer(api_client):
+    """
+    Fixture to create a viewer user for the tests.
+    """
+    from app.models import User
+    from app.schemas.role import Role
+
+    user = await User.create(
+        username="viewer",
+        password_hash="viewer_password",
         role=Role.VIEWER,
     )
     return user
