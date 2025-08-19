@@ -37,7 +37,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: backend
-          push: true
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
           tags: merlinz01/gnotus-backend:latest
           cache-from: type=registry,ref=merlinz01/gnotus-backend:latest
           cache-to: type=inline
@@ -70,7 +70,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: frontend
-          push: true
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
           tags: merlinz01/gnotus-frontend:latest
           cache-from: type=registry,ref=merlinz01/gnotus-frontend:latest
           cache-to: type=inline
