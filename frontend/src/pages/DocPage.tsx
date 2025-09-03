@@ -173,8 +173,8 @@ export default function DocPage() {
     <>
       {error && <div className="alert alert-error mt-6 max-w-100 self-center">{error}</div>}
       {doc && (
-        <div className="flex h-full items-start justify-center">
-          <div className="mx-0 flex min-h-full w-full max-w-200 grow flex-col p-4 sm:mx-2 md:mx-4 lg:mx-8">
+        <div className="flex grow items-start justify-center">
+          <div className="mx-0 flex min-h-full max-w-200 shrink grow flex-col overflow-hidden p-4 sm:mx-2 md:mx-4 lg:mx-8">
             <nav className="breadcrumbs text-sm" aria-label="Breadcrumbs">
               <ul className="flex-wrap">
                 <li>
@@ -251,7 +251,7 @@ export default function DocPage() {
               </li>
             </ul>
           </div>
-          <aside className="border-base-300 hidden w-50 shrink-0 border-l p-4 lg:block">
+          <aside className="border-base-300 sticky top-0 me-[-8px] hidden max-h-[calc(100vh-4em)] w-50 shrink-0 overflow-y-auto border-l p-4 lg:block">
             <h2 className="text-md text-secondary mb-2 font-semibold">In this page</h2>
             <ul className="list-none pl-4 text-gray-500">
               {doc.metadata.subtitles.map((heading) => (
