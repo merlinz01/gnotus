@@ -244,7 +244,7 @@ export default function DocEditorPage() {
   }
 
   return (
-    <div className="card bg-base-200 m-4 shadow-lg">
+    <div className="card bg-base-200 m-4 max-h-full overflow-y-auto shadow-lg">
       <form className="card-body flex flex-col gap-4" onSubmit={saveDoc}>
         <div className="card-title">
           <h2 className="text-2xl font-bold">Edit document</h2>
