@@ -89,7 +89,7 @@ function App() {
     )
   } else {
     return (
-      <div className="bg-base-100 flex h-screen w-screen flex-col">
+      <div className="bg-base-100 flex h-screen w-screen flex-col print:h-auto">
         <Header />
         <SidebarHolder>
           <Routes />
@@ -140,9 +140,10 @@ function SidebarHolder({ children }: { children: React.ReactNode }) {
       />
       <div
         className={
-          isMobile
+          'print:hidden ' +
+          (isMobile
             ? `drawer-side z-30 ${showDrawer ? 'drawer-open' : ''}`
-            : 'border-base-300 transition-width flex w-64 shrink-0 flex-col overflow-hidden border-r duration-300 ease-out'
+            : 'border-base-300 transition-width flex w-64 shrink-0 flex-col overflow-hidden border-r duration-300 ease-out')
         }
         style={{ width: showDrawer ? undefined : 0 }}
       >
@@ -151,12 +152,7 @@ function SidebarHolder({ children }: { children: React.ReactNode }) {
           <Sidebar />
         </div>
       </div>
-      <div
-        className="drawer-content flex grow flex-col overflow-auto p-2"
-        style={{ scrollbarGutter: 'stable' }}
-      >
-        {children}
-      </div>
+      <div className="drawer-content flex grow flex-col">{children}</div>
     </div>
   )
 }

@@ -13,7 +13,7 @@ export default function Header() {
   const config = useConfig((state) => state.config)
 
   return (
-    <header className="navbar bg-base-300 z-20 flex min-h-12 w-screen max-w-screen items-center p-1 shadow-lg">
+    <header className="navbar bg-base-300 z-20 flex min-h-12 w-screen max-w-screen items-center p-1 shadow-md print:hidden">
       <button
         className="btn btn-ghost btn-square me-2"
         title="Toggle drawer"

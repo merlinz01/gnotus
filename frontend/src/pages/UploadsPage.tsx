@@ -130,7 +130,7 @@ export default function UploadsPage() {
     }
   }
   return (
-    <div className="card border-base-300 bg-base-200 m-4 shadow-lg">
+    <div className="card border-base-300 bg-base-200 m-4 max-h-full overflow-y-auto shadow-lg">
       <div className="card-body">
         <div className="mb-4 flex items-center justify-between">
           <h1 className="card-title">Uploads</h1>

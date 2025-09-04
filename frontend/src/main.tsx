@@ -16,7 +16,7 @@ if (configJSON) {
   }
 }
 
-createRoot(document.getElementById('root')!).render(
+createRoot(document.body).render(
   <StrictMode>
     <Router>
       <App />

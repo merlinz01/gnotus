@@ -132,7 +132,7 @@ export default function UsersPage() {
     }
   }
   return (
-    <div className="card border-base-300 bg-base-200 m-4 border shadow-lg">
+    <div className="card border-base-300 bg-base-200 m-4 max-h-full overflow-y-auto border shadow-lg">
       <div className="card-body">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="card-title text-2xl">Users</h2>
