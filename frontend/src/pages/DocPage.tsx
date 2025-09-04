@@ -175,86 +175,94 @@ export default function DocPage() {
       {error && <div className="alert alert-error mt-6 max-w-100 self-center">{error}</div>}
       {doc && (
         <div className="flex grow items-start overflow-hidden">
-          <div className="mx-auto flex h-full min-h-full max-w-200 grow flex-col overflow-y-auto px-4 pt-2 pb-8 sm:px-4 md:px-8 lg:px-12 print:px-4">
-            <nav className="breadcrumbs shrink-0 text-sm" aria-label="Breadcrumbs">
-              <ul className="flex-wrap">
-                <li>
-                  <Link to="/">Home</Link>
-                </li>
-                {doc.parents
-                  ?.map((parent) => (
-                    <li key={parent.id}>
-                      <Link to={`/${parent.urlpath}`}>{parent.title}</Link>
-                    </li>
-                  ))
-                  .reverse()}
-                <li>{doc.title}</li>
-              </ul>
-            </nav>
-            <h1 className="text-primary my-2 flex flex-wrap items-center text-3xl font-bold">
-              {doc.title}
-              {user && (
-                <>
-                  {user.role !== Role.VIEWER && (
-                    <Link to={`/_edit/${doc.id}`} className="ml-2" title="Edit document">
-                      <PencilIcon className="h-5 w-5" />
-                    </Link>
-                  )}
-                  {doc.public ? (
-                    <span className="badge-primary badge badge-lg ml-auto text-sm">Public</span>
-                  ) : (
-                    <span className="badge-accent badge badge-lg ml-auto text-sm">Private</span>
-                  )}
-                </>
-              )}
-            </h1>
-            {doc.children.length > 0 && (
-              <nav className="mx-4" aria-label="Contents">
-                <h2 className="text-lg">Contents</h2>
-                <ul className="text-primary list-disc pl-6 font-semibold">
-                  {doc.children.map((child) => (
-                    <li key={child.id}>
-                      <Link to={`/${child.urlpath}`}>{child.title}</Link>
-                    </li>
-                  ))}
+          <div
+            className="flex h-full min-h-full grow flex-col overflow-y-auto"
+            style={{ scrollbarGutter: 'stable' }}
+          >
+            <div className="mx-auto flex w-full max-w-175 flex-col px-4 pt-2 pb-8 sm:px-4 md:px-8 lg:px-12 print:px-4">
+              <nav className="breadcrumbs shrink-0 text-sm" aria-label="Breadcrumbs">
+                <ul className="flex-wrap">
+                  <li>
+                    <Link to="/">Home</Link>
+                  </li>
+                  {doc.parents
+                    ?.map((parent) => (
+                      <li key={parent.id}>
+                        <Link to={`/${parent.urlpath}`}>{parent.title}</Link>
+                      </li>
+                    ))
+                    .reverse()}
+                  <li>{doc.title}</li>
                 </ul>
               </nav>
-            )}
-            <div className="gnotus-content">
-              <div
-                onClick={handleLinkClicks}
-                dangerouslySetInnerHTML={{
-                  __html: DomPurify.sanitize(doc?.html || ''),
-                }}
-              />
+              <h1 className="text-primary my-2 flex flex-wrap items-center text-3xl font-bold">
+                {doc.title}
+                {user && (
+                  <>
+                    {user.role !== Role.VIEWER && (
+                      <Link to={`/_edit/${doc.id}`} className="ml-2" title="Edit document">
+                        <PencilIcon className="h-5 w-5" />
+                      </Link>
+                    )}
+                    {doc.public ? (
+                      <span className="badge-primary badge badge-lg ml-auto text-sm">Public</span>
+                    ) : (
+                      <span className="badge-accent badge badge-lg ml-auto text-sm">Private</span>
+                    )}
+                  </>
+                )}
+              </h1>
+              {doc.children.length > 0 && (
+                <nav className="mx-4" aria-label="Contents">
+                  <h2 className="text-lg">Contents</h2>
+                  <ul className="text-primary list-disc pl-6 font-semibold">
+                    {doc.children.map((child) => (
+                      <li key={child.id}>
+                        <Link to={`/${child.urlpath}`}>{child.title}</Link>
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
+              )}
+              <div className="gnotus-content">
+                <div
+                  onClick={handleLinkClicks}
+                  dangerouslySetInnerHTML={{
+                    __html: DomPurify.sanitize(doc?.html || ''),
+                  }}
+                />
+              </div>
+              <div className="grow"></div>
+              <ul className="mt-2 list-none text-sm text-gray-600">
+                <li>
+                  <span>
+                    Last updated:{' '}
+                    {new Date(doc.updated_at).toLocaleDateString(undefined, {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </span>
+                </li>
+                <li>
+                  <span>
+                    Created:{' '}
+                    {new Date(doc.created_at).toLocaleDateString(undefined, {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </span>
+                </li>
+              </ul>
             </div>
-            <div className="grow"></div>
-            <ul className="list-none text-sm text-gray-600">
-              <li>
-                <span>
-                  Last updated:{' '}
-                  {new Date(doc.updated_at).toLocaleDateString(undefined, {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </span>
-              </li>
-              <li>
-                <span>
-                  Created:{' '}
-                  {new Date(doc.created_at).toLocaleDateString(undefined, {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </span>
-              </li>
-            </ul>
           </div>
-          <aside className="border-base-300 hidden max-h-full w-50 shrink-0 overflow-y-auto border-l p-4 lg:block print:hidden">
+          <aside
+            className="border-base-300 hidden max-h-full w-50 shrink-0 overflow-y-auto border-l py-4 ps-2 lg:block print:hidden"
+            style={{ scrollbarGutter: 'stable' }}
+          >
             <h2 className="text-md text-secondary mb-2 font-semibold">In this page</h2>
-            <ul className="list-none pl-4 text-gray-500">
+            <ul className="list-none pl-3 text-sm text-gray-500">
               {doc.metadata.subtitles.map((heading) => (
                 <li key={heading.hash}>
                   <Link to={`#${heading.hash}`}>{heading.title}</Link>
