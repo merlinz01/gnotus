@@ -1,9 +1,23 @@
-![logo](/backend/icon.svg)
-
 # Gnotus
+
+![logo](/backend/icon.svg)
 
 Gnotus is an open-source, permissively licensed, and self-hosted knowledge-base software
 for both public and internal documentation.
+
+![License](https://img.shields.io/github/license/merlinz01/gnotus)
+![Contributors](https://img.shields.io/github/contributors/merlinz01/gnotus)
+![Repo Size](https://img.shields.io/github/repo-size/merlinz01/gnotus)
+![Top Language](https://img.shields.io/github/languages/top/merlinz01/gnotus)
+
+![CI Build](https://img.shields.io/github/actions/workflow/status/merlinz01/gnotus/build.yml?branch=main)
+![GitHub Issues](https://img.shields.io/github/issues/merlinz01/gnotus)
+![GitHub Closed Pull Requests](https://img.shields.io/github/issues-pr-closed/merlinz01/gnotus)
+![Last Commit](https://img.shields.io/github/last-commit/merlinz01/gnotus)
+
+![Docker Pulls](https://img.shields.io/docker/pulls/merlinz01/gnotus-frontend)
+![GitHub Stars](https://img.shields.io/github/stars/merlinz01/gnotus?style=flat)
+![GitHub Forks](https://img.shields.io/github/forks/merlinz01/gnotus?style=flat)
 
 ## Table of Contents
 
@@ -20,6 +34,8 @@ for both public and internal documentation.
 - Markdown document format
 - Upload management for images and other files
 - Optimized for search engine indexing
+- Supports both light and dark mode
+- Responsive design for mobile, desktop, and print
 - Customizable site branding with colors and logo
 - Automatic table of contents generation
 - Document history with the ability to revert to previous versions
@@ -228,9 +244,11 @@ You can also set up the development environment without Docker Compose, but this
    ```
 
 1. **Run the backend server**
+
    ```bash
    GNOTUS_CONFIG_FILE=config-dev.yml fastapi dev
    ```
+
    The API will be available at `http://localhost:8000` and will auto-reload when you modify backend code.
 
 #### Frontend Setup
@@ -243,9 +261,11 @@ You can also set up the development environment without Docker Compose, but this
    ```
 
 2. **Run the frontend development server**
+
    ```bash
    npm run dev
    ```
+
    The app will be available at `http://localhost:5173` and will hot-reload when you modify frontend code.
 
 ## License
