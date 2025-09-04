@@ -86,7 +86,7 @@ class Doc(Model, TimestampMixin):
         subtitles = []
         for tag in soup.find_all(["h1", "h2", "h3", "h4", "h5", "h6"]):
             if isinstance(tag, Tag):
-                text = tag.get_text(strip=True)
+                text = tag.get_text()
                 if not text:
                     continue  # pragma: no cover
                 hash = str(tag.get("id", "") or slugify(text))
