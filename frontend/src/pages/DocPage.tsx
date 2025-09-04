@@ -142,7 +142,9 @@ export default function DocPage() {
     if (hash && doc) {
       const element = document.getElementById(hash.slice(1))
       if (element) {
-        const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        const smooth = !(
+          window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        )
         element.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto' })
       } else {
         console.warn(`Element with ID ${hash.slice(1)} not found.`)
