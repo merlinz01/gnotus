@@ -1,11 +1,17 @@
 <!doctype html>
-<html lang="en" style="background: #808080">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/api/icon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="" />
     <title>Loading...</title>
+    <script>
+      document.documentElement.setAttribute(
+        'data-theme',
+        localStorage.getItem('color-mode') || 'light'
+      )
+    </script>
   </head>
   <body>
     <div id="root"></div>

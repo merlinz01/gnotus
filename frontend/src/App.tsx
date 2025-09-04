@@ -6,7 +6,6 @@ import useConfig from './stores/config'
 import { LoaderPinwheelIcon } from 'lucide-react'
 import axios, { getErrorMessage } from './axios'
 import useUser from './stores/user'
-import './App.css'
 
 function App() {
   const loaded = useConfig((state) => state.loaded)
