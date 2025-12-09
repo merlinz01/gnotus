@@ -180,7 +180,7 @@ If you want to develop Gnotus, the recommended way is to use Docker Compose to s
 Simply run the following command in the root directory of the project:
 
 ```bash
-docker compose -f compose-dev.yml up --build
+docker compose -f compose.dev.yml up --build
 # Add the `-d` flag to run in the background
 ```
 
