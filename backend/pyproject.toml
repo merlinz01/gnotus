@@ -36,7 +36,7 @@ dev = [
 [tool.aerich]
 tortoise_orm = "app.settings.TORTOISE_ORM"
 location = "./migrations"
-src_folder = "./."
+src_folder = "."
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

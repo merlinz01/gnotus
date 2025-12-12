@@ -5,10 +5,10 @@ import nh3
 from bs4 import BeautifulSoup
 from bs4.element import Tag
 from fastapi import HTTPException
-from tortoise import Model, fields
+from tortoise import fields
 
 from ..schemas.doc import DocSubtitle
-from .utils import TimestampMixin
+from .utils import TimestampedModel
 
 if TYPE_CHECKING:  # pragma: no cover
     from .revision import Revision
@@ -25,7 +25,7 @@ def slugify(text: str) -> str:
     return text[:50]
 
 
-class Doc(Model, TimestampMixin):
+class Doc(TimestampedModel):
     """
     Model representing a document.
     """

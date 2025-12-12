@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import axios from '../axios'
-import { LoaderPinwheelIcon, PencilIcon } from 'lucide-react'
+import { LoaderPinwheelIcon, PencilIcon, Share2Icon, CheckIcon } from 'lucide-react'
 import useUser from '../stores/user'
 import type Doc from '../types/doc'
 import '../assets/content.css'
 import DomPurify from 'dompurify'
 import useConfig from '../stores/config'
 import Role from '../types/role'
+import ShareDialog from '../components/ShareDialog'
 
 export default function DocPage() {
   const [doc, setDoc] = useState<Doc | null>(null)
@@ -15,6 +16,7 @@ export default function DocPage() {
   const user = useUser((state) => state.user)
   const storagePrefix = useUser((state) => state.storagePrefix)
   const [error, setError] = useState<string | null>(null)
+  const [linkCopied, setLinkCopied] = useState(false)
   const location = useLocation()
   const config = useConfig((state) => state.config)
   const storageKey = `${storagePrefix}doc:${location.pathname.slice(1)}`
@@ -165,6 +167,46 @@ export default function DocPage() {
     }
   }
 
+  const handleShare = async () => {
+    // If user is logged in with edit permissions, show the share dialog
+    if (user && user.role !== Role.VIEWER) {
+      const dialog = document.getElementById('share_dialog') as HTMLDialogElement | null
+      if (dialog) {
+        dialog.showModal()
+        return
+      }
+    }
+
+    // For guests/viewers, just copy or share the current URL
+    const shareUrl = window.location.href
+
+    // Try Web Share API first (for mobile devices)
+    if (navigator.share && doc) {
+      try {
+        await navigator.share({
+          title: doc.title,
+          text: `Check out this documentation: ${doc.title}`,
+          url: shareUrl,
+        })
+        return
+      } catch (err) {
+        // User cancelled share or API not supported, fall through to clipboard
+        if ((err as Error).name !== 'AbortError') {
+          console.warn('Share API failed:', err)
+        }
+      }
+    }
+
+    // Fallback to clipboard
+    try {
+      await navigator.clipboard.writeText(shareUrl)
+      setLinkCopied(true)
+      setTimeout(() => setLinkCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy link:', err)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
@@ -199,13 +241,30 @@ export default function DocPage() {
               </nav>
               <h1 className="text-primary my-2 flex flex-wrap items-center text-3xl font-bold">
                 {doc.title}
+                {user && user.role !== Role.VIEWER && (
+                  <Link to={`/_edit/${doc.id}`} className="ml-2" title="Edit document">
+                    <PencilIcon className="h-5 w-5" />
+                  </Link>
+                )}
+                <div
+                  className={linkCopied ? 'tooltip tooltip-right tooltip-open' : ''}
+                  data-tip={linkCopied ? 'Link copied!' : undefined}
+                >
+                  <button
+                    onClick={handleShare}
+                    className="ml-2"
+                    title={!linkCopied ? 'Copy link to clipboard' : undefined}
+                    aria-label={linkCopied ? 'Link copied!' : 'Copy link to clipboard'}
+                  >
+                    {linkCopied ? (
+                      <CheckIcon className="h-5 w-5 text-success" />
+                    ) : (
+                      <Share2Icon className="h-5 w-5" />
+                    )}
+                  </button>
+                </div>
                 {user && (
                   <>
-                    {user.role !== Role.VIEWER && (
-                      <Link to={`/_edit/${doc.id}`} className="ml-2" title="Edit document">
-                        <PencilIcon className="h-5 w-5" />
-                      </Link>
-                    )}
                     {doc.public ? (
                       <span className="badge-primary badge badge-lg ml-auto text-sm">Public</span>
                     ) : (
@@ -273,6 +332,9 @@ export default function DocPage() {
             </ul>
           </aside>
         </div>
+      )}
+      {doc && user && user.role !== Role.VIEWER && (
+        <ShareDialog docId={doc.id} docTitle={doc.title} />
       )}
     </>
   )

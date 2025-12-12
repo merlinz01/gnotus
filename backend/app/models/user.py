@@ -1,10 +1,10 @@
-from tortoise import Model, fields
+from tortoise import fields
 
 from ..schemas.role import Role
-from .utils import TimestampMixin
+from .utils import TimestampedModel
 
 
-class User(Model, TimestampMixin):
+class User(TimestampedModel):
     """
     Model representing a user in the system.
     """

@@ -1,12 +1,12 @@
 import re
 import secrets
 
-from tortoise import Model, fields
+from tortoise import fields
 
-from .utils import TimestampMixin
+from .utils import TimestampedModel
 
 
-class Upload(Model, TimestampMixin):
+class Upload(TimestampedModel):
     """
     Model representing an uploaded file.
     """
