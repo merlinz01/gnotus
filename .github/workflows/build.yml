@@ -55,7 +55,9 @@ jobs:
         uses: docker/setup-compose-action@v1
 
       - name: Run tests
-        run: docker compose -f compose.dev.yml run --rm --build frontend bash -c "npm install && npm run test run"
+        run: >
+          docker compose -f compose.dev.yml run --rm --build frontend
+          bash -c "npm install --frozen --ignore-scripts && npm run test run"
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v2

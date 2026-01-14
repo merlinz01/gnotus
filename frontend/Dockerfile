@@ -2,7 +2,7 @@
 FROM node:20 AS builder
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm install
+RUN npm install --frozen --ignore-scripts
 COPY index.html vite.config.ts tsconfig*.json ./
 COPY src ./src
 RUN npm run build
