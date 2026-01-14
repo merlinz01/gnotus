@@ -18,15 +18,14 @@ vi.mock('../axios', () => ({
 const navigate = vi.fn()
 
 function renderWithRouter() {
-  const router = createMemoryRouter(
-    [{ path: '/_edit/:docId', element: <DocEditorPage /> }],
-    { initialEntries: ['/_edit/123'] }
-  )
+  const router = createMemoryRouter([{ path: '/_edit/:docId', element: <DocEditorPage /> }], {
+    initialEntries: ['/_edit/123'],
+  })
   // Spy on router.navigate
   const originalNavigate = router.navigate.bind(router)
-  router.navigate = vi.fn((...args) => {
-    navigate(...args)
-    return originalNavigate(...args)
+  router.navigate = vi.fn((to) => {
+    navigate(to)
+    return originalNavigate(to)
   }) as typeof router.navigate
   render(<RouterProvider router={router} />)
   return router
@@ -105,7 +104,7 @@ describe('DocEditorPage', () => {
   it('redirects to login if user is not present', async () => {
     useUser.setState({ user: null })
     renderWithRouter()
-    expect(navigate).toHaveBeenCalledWith('/login', expect.anything())
+    expect(navigate).toHaveBeenCalledWith('/login')
   })
 
   it('saves document on submit', async () => {
