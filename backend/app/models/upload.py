@@ -1,9 +1,13 @@
 import re
 import secrets
+from typing import TYPE_CHECKING
 
 from tortoise import fields
 
 from .utils import TimestampedModel
+
+if TYPE_CHECKING:
+    from .doc import Doc
 
 
 class Upload(TimestampedModel):
@@ -17,9 +21,16 @@ class Upload(TimestampedModel):
     size = fields.IntField()
     public = fields.BooleanField(default=False)
     storage_path = fields.CharField(max_length=256, unique=True)
-    created_by_id: fields.IntField
+    created_by_id: int | None
     created_by = fields.ForeignKeyField(
         "gnotus.User",
+        related_name="uploads",
+        on_delete=fields.SET_NULL,
+        null=True,
+    )
+    doc_id: int | None
+    doc: fields.ForeignKeyNullableRelation["Doc"] = fields.ForeignKeyField(
+        "gnotus.Doc",
         related_name="uploads",
         on_delete=fields.SET_NULL,
         null=True,

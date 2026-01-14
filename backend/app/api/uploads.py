@@ -1,13 +1,16 @@
 import mimetypes
+import re
 from logging import getLogger
 from typing import Annotated
 
 from aiofiles import open as aio_open
-from fastapi import APIRouter, Form, HTTPException, status
+from fastapi import APIRouter, Form, HTTPException, Request, status
 from fastapi.responses import FileResponse
 from tortoise.exceptions import DoesNotExist
 
 from ..auth.dependencies import LoggedInUser, OptionalUser
+from ..models.doc import Doc
+from ..models.sharelink import ShareableLink
 from ..models.upload import Upload
 from ..schemas.role import Role
 from ..schemas.upload import UploadCreate, UploadResponse, UploadUpdate
@@ -65,6 +68,26 @@ async def upload_file(
             detail=f"File size exceeds the maximum limit of {settings.max_upload_size / (1024 * 1024)} MB",
         )
 
+    # Validate doc_id if provided and inherit public status from document
+    doc = None
+    public = upload_create.public
+    if upload_create.doc_id is not None:
+        try:
+            doc = await Doc.get(id=upload_create.doc_id)
+        except DoesNotExist:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Document not found",
+            )
+        # Check user has permission to attach uploads to this document
+        if current_user.role != Role.ADMIN and current_user.role != Role.USER:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You do not have permission to attach uploads to this document",
+            )
+        # Inherit public status from the document
+        public = doc.public
+
     storage_path = Upload.generate_storage_path() + "." + extension
     filename = settings.uploads_dir / storage_path
     filename.unlink(missing_ok=True)
@@ -84,9 +107,10 @@ async def upload_file(
         filename=file.filename,
         content_type=file.content_type,
         size=file.size,
-        public=upload_create.public,
+        public=public,
         storage_path=storage_path,
         created_by=current_user,
+        doc=doc,
     )
     logger.info(f"File '{file.filename}' uploaded by user {current_user.id}.")
 
@@ -94,7 +118,8 @@ async def upload_file(
         filename=file.filename,
         content_type=file.content_type,
         size=file.size,
-        public=upload_create.public,
+        public=public,
+        doc_id=upload.doc_id,
         id=upload.id,
         created_by_id=upload.created_by_id,
         created_at=upload.created_at,
@@ -122,6 +147,7 @@ async def list_uploads(
                 content_type=upload.content_type,
                 size=upload.size,
                 public=upload.public,
+                doc_id=upload.doc_id,
                 created_by_id=upload.created_by_id,
                 created_at=upload.created_at,
                 updated_at=upload.updated_at,
@@ -156,6 +182,7 @@ async def get_upload(
         content_type=upload.content_type,
         size=upload.size,
         public=upload.public,
+        doc_id=upload.doc_id,
         created_by_id=upload.created_by_id,
         created_at=upload.created_at,
         updated_at=upload.updated_at,
@@ -202,6 +229,27 @@ async def update_upload(
                 detail="File extension cannot be changed",
             )
         upload.filename = upload_update.filename
+    if upload_update.doc_id is not None:
+        if upload_update.doc_id == 0:
+            # Special value to remove page association
+            upload.doc = None  # type: ignore
+        else:
+            try:
+                doc = await Doc.get(id=upload_update.doc_id)
+            except DoesNotExist:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Document not found",
+                )
+            # Check user has permission to attach uploads to this document
+            if current_user.role != Role.ADMIN and current_user.role != Role.USER:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="You do not have permission to attach uploads to this document",
+                )
+            upload.doc = doc
+            # Inherit public status from the document
+            upload.public = doc.public
     await upload.save()
     logger.info(f"Upload {upload_id} updated by user {current_user.id}.")
 
@@ -211,6 +259,7 @@ async def update_upload(
         content_type=upload.content_type,
         size=upload.size,
         public=upload.public,
+        doc_id=upload.doc_id,
         created_by_id=upload.created_by_id,
         created_at=upload.created_at,
         updated_at=upload.updated_at,
@@ -249,16 +298,24 @@ async def delete_upload(
 @router.get("/{upload_id}/download")
 @router.get("/{upload_id}/download/{filename}")
 async def download_upload(
+    request: Request,
     current_user: OptionalUser,
     upload_id: int,
     download: bool = True,
     filename: str | None = None,
+    share_token: str | None = None,
 ) -> FileResponse:
     """
     Download an upload.
+
+    Access is granted if:
+    - User is authenticated, OR
+    - Upload is explicitly public, OR
+    - Upload belongs to a public page, OR
+    - A valid share token for the upload's page is provided (via query param or Referer header)
     """
     try:
-        upload = await Upload.get(id=upload_id)
+        upload = await Upload.get(id=upload_id).prefetch_related("doc")
     except DoesNotExist:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -270,7 +327,37 @@ async def download_upload(
             detail="Incorrect filename",
         )
 
-    if not upload.public and not current_user:
+    # Try to extract share token from Referer header if not provided
+    if not share_token:
+        referer = request.headers.get("referer", "")
+        # Match /_share/TOKEN pattern in the Referer URL
+        match = re.search(r"/_share/([a-zA-Z0-9_-]+)", referer)
+        if match:
+            share_token = match.group(1)
+
+    # Enhanced access control logic
+    has_access = False
+
+    # 1. Authenticated users always have access
+    if current_user:
+        has_access = True
+    # 2. Upload is explicitly public
+    elif upload.public:
+        has_access = True
+    # 3. Upload belongs to a public page
+    elif upload.doc and upload.doc.public:
+        has_access = True
+    # 4. Valid share token for the upload's page
+    elif share_token and upload.doc:
+        try:
+            link = await ShareableLink.get(token=share_token, doc_id=upload.doc_id)
+            if not link.is_expired():
+                has_access = True
+                await link.record_access()
+        except DoesNotExist:
+            pass  # Invalid token, access denied
+
+    if not has_access:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Upload not found",
@@ -282,3 +369,62 @@ async def download_upload(
         media_type=upload.content_type,
         content_disposition_type="attachment" if download else "inline",
     )
+
+
+@router.get("/by-doc/{doc_id}")
+async def list_uploads_by_doc(
+    current_user: OptionalUser,
+    doc_id: int,
+    share_token: str | None = None,
+) -> list[UploadResponse]:
+    """
+    List all uploads associated with a specific document.
+
+    Access is granted if:
+    - User is authenticated, OR
+    - Document is public, OR
+    - A valid share token for the document is provided
+    """
+    try:
+        doc = await Doc.get(id=doc_id)
+    except DoesNotExist:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found",
+        )
+
+    # Check access to the document
+    has_access = False
+    if current_user:
+        has_access = True
+    elif doc.public:
+        has_access = True
+    elif share_token:
+        try:
+            link = await ShareableLink.get(token=share_token, doc_id=doc_id)
+            if not link.is_expired():
+                has_access = True
+        except DoesNotExist:
+            pass
+
+    if not has_access:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found",
+        )
+
+    uploads = await Upload.filter(doc_id=doc_id)
+    return [
+        UploadResponse(
+            id=upload.id,
+            filename=upload.filename,
+            content_type=upload.content_type,
+            size=upload.size,
+            public=upload.public,
+            doc_id=upload.doc_id,
+            created_by_id=upload.created_by_id,
+            created_at=upload.created_at,
+            updated_at=upload.updated_at,
+        )
+        for upload in uploads
+    ]

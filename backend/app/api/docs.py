@@ -4,11 +4,13 @@ from typing import Annotated, Literal
 
 from fastapi import APIRouter, Body, HTTPException, status
 from tortoise.exceptions import DoesNotExist
+from tortoise.transactions import in_transaction
 
 from ..auth.dependencies import LoggedInUser, OptionalUser
 from ..indexing import delete_document_from_index, index_document, search_documents
 from ..models.doc import Doc
 from ..models.revision import Revision
+from ..models.upload import Upload
 from ..schemas.doc import (
     DocCreate,
     DocInfo,
@@ -297,7 +299,11 @@ async def update_doc(
         doc.public = doc_update.public
     doc.updated_by_id = current_user.id
     await doc.update_content()
-    await doc.save()
+    async with in_transaction():
+        await doc.save()
+        # Sync public status to all attached uploads
+        if doc_update.public is not None:
+            await Upload.filter(doc_id=doc.id).update(public=doc.public)
     if create_revision:
         await Revision.create(
             doc=doc,

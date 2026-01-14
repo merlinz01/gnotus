@@ -1,4 +1,5 @@
 import type Upload from '../types/upload'
+import { type DocInfo } from '../types/doc'
 import { useEffect, useState } from 'react'
 import axios, { getErrorMessage } from '../axios'
 import useConfig from '../stores/config'
@@ -12,7 +13,8 @@ import useUser from '../stores/user'
 import Role from '../types/role'
 import { useNavigate } from 'react-router-dom'
 import Pagination from '../components/Pagination'
-import { DownloadIcon, EditIcon, EyeIcon, TrashIcon } from 'lucide-react'
+import { DownloadIcon, EditIcon, EyeIcon, FileTextIcon, TrashIcon } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 function friendlySize(size: number): string {
   if (size < 1024) return `${size} B`
@@ -35,12 +37,27 @@ export default function UploadsPage() {
   })
   const [newFilename, setNewFilename] = useState('')
   const [newPublic, setNewPublic] = useState(false)
+  const [newDocId, setNewDocId] = useState<string>('')
   const [saving, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [editingUpload, setEditingUpload] = useState<Upload | null>(null)
+  const [documents, setDocuments] = useState<DocInfo[]>([])
   useEffect(() => {
     document.title = `Uploads - ${config.site_name}`
   }, [config])
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        const response = await axios.get('/api/docs/')
+        setDocuments(response.data.items || [])
+      } catch (error) {
+        console.error('Error fetching documents:', error)
+      }
+    }
+    if (user) {
+      fetchDocuments()
+    }
+  }, [user])
   const fetchUploads = async (pagination: PaginationParams) => {
     setLoading(true)
     setFetchError(null)
@@ -105,12 +122,15 @@ export default function UploadsPage() {
     setUploadError(null)
     try {
       setUploading(true)
+      const docIdValue = newDocId.trim() === '' ? null : parseInt(newDocId, 10)
       const response = await axios.put(`/api/uploads/${editingUpload.id}`, {
         filename: newFilename,
         public: newPublic,
+        doc_id: docIdValue === null ? 0 : docIdValue, // 0 means remove association
       })
       setNewFilename('')
       setNewPublic(false)
+      setNewDocId('')
       setEditingUpload(null)
       const dialog = document.getElementById('edit-upload-dialog') as HTMLDialogElement | null
       if (dialog) {
@@ -157,6 +177,7 @@ export default function UploadsPage() {
             <thead>
               <tr>
                 <th>Filename</th>
+                <th className="w-30">Document</th>
                 <th className="w-25">Public</th>
                 <th className="w-25 text-center">Size</th>
                 <th className="w-50 text-center">Actions</th>
@@ -165,20 +186,20 @@ export default function UploadsPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={4} className="text-center">
+                  <td colSpan={5} className="text-center">
                     <span className="loading loading-spinner loading-lg" role="status"></span>
                     <span className="sr-only">Loading uploads...</span>
                   </td>
                 </tr>
               ) : fetchError ? (
                 <tr>
-                  <td colSpan={4} className="text-center text-red-500">
+                  <td colSpan={5} className="text-center text-red-500">
                     {fetchError}
                   </td>
                 </tr>
               ) : uploads.total === 0 ? (
                 <tr>
-                  <td colSpan={4} className="text-center text-gray-500">
+                  <td colSpan={5} className="text-center text-gray-500">
                     No uploads found.
                   </td>
                 </tr>
@@ -187,6 +208,23 @@ export default function UploadsPage() {
                   <tr key={upload.id}>
                     <td className="overflow-hidden text-nowrap overflow-ellipsis">
                       {upload.filename}
+                    </td>
+                    <td>
+                      {upload.doc_id ? (
+                        <Link
+                          to={`/_edit/${upload.doc_id}`}
+                          className="btn btn-ghost btn-xs gap-1"
+                          title={`Edit document`}
+                        >
+                          <FileTextIcon className="h-3 w-3" />
+                          <span className="max-w-20 truncate">
+                            {documents.find((d) => d.id === upload.doc_id)?.title ||
+                              `#${upload.doc_id}`}
+                          </span>
+                        </Link>
+                      ) : (
+                        <span className="text-base-content/50 text-xs">None</span>
+                      )}
                     </td>
                     <td>
                       {upload.public ? (
@@ -219,6 +257,7 @@ export default function UploadsPage() {
                           setEditingUpload(upload)
                           setNewFilename(upload.filename)
                           setNewPublic(upload.public)
+                          setNewDocId(upload.doc_id ? String(upload.doc_id) : '')
                           const dialog = document.getElementById(
                             'edit-upload-dialog'
                           ) as HTMLDialogElement | null
@@ -344,6 +383,31 @@ export default function UploadsPage() {
               value={newFilename}
               onChange={(e) => setNewFilename(e.target.value)}
             />
+            <label htmlFor="edit-upload-doc-id" className="label">
+              Document
+            </label>
+            <select
+              id="edit-upload-doc-id"
+              className="select w-full"
+              value={newDocId}
+              onChange={(e) => {
+                const docId = e.target.value
+                setNewDocId(docId)
+                if (docId) {
+                  const selectedDoc = documents.find((d) => String(d.id) === docId)
+                  if (selectedDoc?.public !== undefined) {
+                    setNewPublic(selectedDoc.public)
+                  }
+                }
+              }}
+            >
+              <option value="">None (not attached to any document)</option>
+              {documents.map((doc) => (
+                <option key={doc.id} value={String(doc.id)}>
+                  {doc.title}
+                </option>
+              ))}
+            </select>
             <label htmlFor="edit-upload-public" className="label">
               <input
                 id="edit-upload-public"
@@ -351,8 +415,14 @@ export default function UploadsPage() {
                 className="toggle toggle-primary"
                 checked={newPublic}
                 onChange={(e) => setNewPublic(e.target.checked)}
+                disabled={newDocId !== ''}
               />
               Public
+              {newDocId !== '' && (
+                <span className="text-base-content/60 ml-2 text-xs">
+                  (inherited from document)
+                </span>
+              )}
             </label>
           </fieldset>
           {uploadError && (

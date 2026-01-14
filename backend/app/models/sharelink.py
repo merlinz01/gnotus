@@ -17,7 +17,7 @@ class ShareableLink(TimestampedModel):
     """
 
     id = fields.IntField(primary_key=True)
-    token = fields.CharField(max_length=64, unique=True, index=True)
+    token = fields.CharField(max_length=64, unique=True, db_index=True)
     doc_id: int
     doc: fields.ForeignKeyRelation["Doc"] = fields.ForeignKeyField(
         "gnotus.Doc", related_name="shareable_links", on_delete=fields.CASCADE

@@ -12,6 +12,7 @@ from .utils import TimestampedModel
 
 if TYPE_CHECKING:  # pragma: no cover
     from .revision import Revision
+    from .upload import Upload
     from .user import User
 
 
@@ -49,6 +50,7 @@ class Doc(TimestampedModel):
 
     children: fields.ReverseRelation["Doc"]
     revisions: fields.ReverseRelation["Revision"]
+    uploads: fields.ReverseRelation["Upload"]
 
     class Meta:  # type: ignore
         table = "docs"

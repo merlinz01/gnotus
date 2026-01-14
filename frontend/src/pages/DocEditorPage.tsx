@@ -7,7 +7,15 @@ import type Doc from '../types/doc'
 import markdownit from 'markdown-it'
 import DOMPurify from 'dompurify'
 import '../assets/content.css'
-import { ChevronDownIcon, ChevronUpIcon, HistoryIcon, TrashIcon } from 'lucide-react'
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  DownloadIcon,
+  EyeIcon,
+  HistoryIcon,
+  Link2Icon,
+  TrashIcon,
+} from 'lucide-react'
 import useConfig from '../stores/config'
 import type Upload from '../types/upload'
 
@@ -34,6 +42,21 @@ export default function DocEditorPage() {
   const [deleting, setDeleting] = useState(false)
   const config = useConfig((state) => state.config)
   const [uploadingFile, setUploadingFile] = useState(false)
+  const [docUploads, setDocUploads] = useState<Upload[]>([])
+  const [loadingUploads, setLoadingUploads] = useState(false)
+
+  const fetchDocUploads = async (docId: number) => {
+    setLoadingUploads(true)
+    try {
+      const response = await axios.get(`/api/uploads/by-doc/${docId}`)
+      setDocUploads(response.data)
+    } catch (error) {
+      console.error('Error fetching document uploads:', error)
+    } finally {
+      setLoadingUploads(false)
+    }
+  }
+
   useEffect(() => {
     if (doc) {
       document.title = `Editing ${doc.title} - ${config.site_name}`
@@ -60,6 +83,8 @@ export default function DocEditorPage() {
         setUrlpath(response.data.urlpath)
         setIsPublic(response.data.public)
         setContent(response.data.markdown)
+        // Fetch uploads for this document
+        fetchDocUploads(response.data.id)
       } catch (error) {
         console.error('Error fetching document:', error)
         setError('Failed to load document. Please try again later.')
@@ -229,6 +254,9 @@ export default function DocEditorPage() {
     formData.append('file', file)
     formData.append('filename', file.name)
     formData.append('public', isPublic ? 'true' : 'false')
+    if (doc) {
+      formData.append('doc_id', String(doc.id))
+    }
     setUploadingFile(true)
     try {
       const response = await axios.post('/api/uploads/', formData, {
@@ -237,10 +265,55 @@ export default function DocEditorPage() {
         },
       })
       const upload = response.data as Upload
+      // Refresh the uploads list
+      if (doc) {
+        fetchDocUploads(doc.id)
+      }
       return `/api/uploads/${upload.id}/download`
     } finally {
       setUploadingFile(false)
     }
+  }
+
+  const deleteUpload = async (uploadId: number) => {
+    if (!window.confirm('Are you sure you want to delete this file? This action cannot be undone.')) {
+      return
+    }
+    try {
+      await axios.delete(`/api/uploads/${uploadId}`)
+      if (doc) {
+        fetchDocUploads(doc.id)
+      }
+    } catch (error) {
+      console.error('Error deleting upload:', error)
+      alert('Failed to delete file: ' + getErrorMessage(error))
+    }
+  }
+
+  const insertUploadLink = (upload: Upload) => {
+    const textarea = document.querySelector('textarea[name="content"]') as HTMLTextAreaElement | null
+    if (!textarea) return
+    const url = `/api/uploads/${upload.id}/download`
+    const text = upload.content_type.startsWith('image/')
+      ? `![${upload.filename}](${url})`
+      : `[${upload.filename}](${url})`
+    insertTextAtCursor(textarea, text)
+  }
+
+  const handleAttachmentUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (!files || files.length === 0) return
+
+    for (const file of files) {
+      try {
+        await uploadFile(file)
+      } catch (error) {
+        console.error('Error uploading attachment:', error)
+        alert('Failed to upload ' + file.name + ': ' + getErrorMessage(error))
+      }
+    }
+    // Clear the input so the same file can be uploaded again if needed
+    event.target.value = ''
   }
 
   return (
@@ -351,6 +424,96 @@ export default function DocEditorPage() {
             ></div>
           </div>
         </fieldset>
+
+        {/* Attachments Section */}
+        <div className="collapse collapse-arrow bg-base-100 rounded-lg">
+          <input type="checkbox" defaultChecked />
+          <div className="collapse-title font-medium">
+            Attachments ({docUploads.length})
+          </div>
+          <div className="collapse-content">
+            {loadingUploads ? (
+              <div className="flex justify-center p-4">
+                <span className="loading loading-spinner loading-md"></span>
+              </div>
+            ) : docUploads.length === 0 ? (
+              <p className="text-base-content/60 text-sm">
+                No attachments yet. Upload files by dragging them into the content area, pasting, or
+                using the button below.
+              </p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Filename</th>
+                      <th className="w-40 text-center">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {docUploads.map((upload) => (
+                      <tr key={upload.id}>
+                        <td className="overflow-hidden text-nowrap overflow-ellipsis">
+                          {upload.filename}
+                        </td>
+                        <td className="text-center">
+                          <button
+                            type="button"
+                            className="btn btn-ghost btn-xs"
+                            title="Insert link"
+                            onClick={() => insertUploadLink(upload)}
+                          >
+                            <Link2Icon className="h-4 w-4" />
+                          </button>
+                          <a
+                            href={`/api/uploads/${upload.id}/download/${upload.filename}?download=false`}
+                            className="btn btn-ghost btn-xs"
+                            target="_blank"
+                            title="View"
+                          >
+                            <EyeIcon className="h-4 w-4" />
+                          </a>
+                          <a
+                            href={`/api/uploads/${upload.id}/download/${upload.filename}`}
+                            className="btn btn-ghost btn-xs"
+                            title="Download"
+                          >
+                            <DownloadIcon className="h-4 w-4" />
+                          </a>
+                          <button
+                            type="button"
+                            className="btn btn-ghost btn-xs text-error"
+                            title="Delete"
+                            onClick={() => deleteUpload(upload.id)}
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <div className="mt-4">
+              <label className="btn btn-secondary btn-sm">
+                <input
+                  type="file"
+                  className="hidden"
+                  multiple
+                  onChange={handleAttachmentUpload}
+                  disabled={uploadingFile}
+                />
+                {uploadingFile ? (
+                  <span className="loading loading-spinner loading-sm"></span>
+                ) : (
+                  'Add Attachment'
+                )}
+              </label>
+            </div>
+          </div>
+        </div>
+
         <div className="card-actions">
           <button type="submit" className="btn btn-primary w-full" disabled={loading || saving}>
             {saving ? <span className="loading loading-spinner"></span> : 'Save Document'}

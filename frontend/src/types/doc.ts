@@ -18,4 +18,5 @@ export interface DocInfo {
   id: number
   title: string
   urlpath: string
+  public?: boolean
 }
