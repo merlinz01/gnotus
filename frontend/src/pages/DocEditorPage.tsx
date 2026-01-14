@@ -276,7 +276,9 @@ export default function DocEditorPage() {
   }
 
   const deleteUpload = async (uploadId: number) => {
-    if (!window.confirm('Are you sure you want to delete this file? This action cannot be undone.')) {
+    if (
+      !window.confirm('Are you sure you want to delete this file? This action cannot be undone.')
+    ) {
       return
     }
     try {
@@ -291,7 +293,9 @@ export default function DocEditorPage() {
   }
 
   const insertUploadLink = (upload: Upload) => {
-    const textarea = document.querySelector('textarea[name="content"]') as HTMLTextAreaElement | null
+    const textarea = document.querySelector(
+      'textarea[name="content"]'
+    ) as HTMLTextAreaElement | null
     if (!textarea) return
     const url = `/api/uploads/${upload.id}/download`
     const text = upload.content_type.startsWith('image/')
@@ -317,95 +321,126 @@ export default function DocEditorPage() {
   }
 
   return (
-    <div className="card bg-base-200 m-4 max-h-full overflow-y-auto shadow-lg">
-      <form className="card-body flex flex-col gap-4" onSubmit={saveDoc}>
-        <div className="card-title">
-          <h2 className="text-2xl font-bold">Edit document</h2>
-          {loading && <span className="loading loading-spinner loading-lg" role="status"></span>}
-          <div className="grow"></div>
-          <button
-            type="button"
-            className="btn btn-ghost btn-square text-secondary"
-            onClick={() => moveDoc('up')}
-            title="Move document up"
-          >
-            <ChevronUpIcon />
-          </button>
-          <button
-            type="button"
-            className="btn btn-ghost btn-square text-secondary"
-            onClick={() => moveDoc('down')}
-            title="Move document down"
-          >
-            <ChevronDownIcon />
-          </button>
-          <Link
-            to={`/_revisions/${doc?.id}`}
-            className="btn btn-ghost btn-square text-primary"
-            title="View document history"
-          >
-            <HistoryIcon />
-          </Link>
-          <button
-            type="button"
-            className="btn btn-ghost btn-square text-error"
-            onClick={deleteDoc}
-            title="Delete document"
-          >
-            {deleting ? <span className="loading loading-spinner"></span> : <TrashIcon />}
-          </button>
+    <div className="flex h-full flex-col overflow-hidden p-4">
+      <form className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={saveDoc}>
+        {/* Header and metadata */}
+        <div className="bg-base-200 flex flex-col gap-3 rounded-lg p-3 shadow">
+          {/* Row 1: Title and actions */}
+          <div className="flex items-center gap-2">
+            <h2 className="text-xl font-bold">Edit document</h2>
+            {loading && <span className="loading loading-spinner loading-md" role="status"></span>}
+            <div className="grow"></div>
+            <button type="submit" className="btn btn-primary" disabled={loading || saving}>
+              {saving ? <span className="loading loading-spinner loading-sm"></span> : 'Save'}
+            </button>
+            <button
+              type="button"
+              className="btn"
+              disabled={loading || saving}
+              onClick={() => navigate(`/${doc?.urlpath || ''}`)}
+            >
+              Discard
+            </button>
+            <Link
+              to={`/_revisions/${doc?.id}`}
+              className="btn btn-square text-primary"
+              title="View document history"
+            >
+              <HistoryIcon className="h-5 w-5" />
+            </Link>
+            <button
+              type="button"
+              className="btn btn-square text-secondary"
+              onClick={() => moveDoc('up')}
+              title="Move document up"
+            >
+              <ChevronUpIcon className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              className="btn btn-square text-secondary"
+              onClick={() => moveDoc('down')}
+              title="Move document down"
+            >
+              <ChevronDownIcon className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              className="btn btn-square text-error"
+              onClick={deleteDoc}
+              title="Delete document"
+            >
+              {deleting ? (
+                <span className="loading loading-spinner loading-sm"></span>
+              ) : (
+                <TrashIcon className="h-5 w-5" />
+              )}
+            </button>
+          </div>
+          {/* Row 2: Metadata fields */}
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="min-w-48 flex-1">
+              <label className="label text-sm" htmlFor="doc-edit-title">
+                Title
+              </label>
+              <input
+                type="text"
+                id="doc-edit-title"
+                name="doctitle"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="input input-bordered w-full"
+                disabled={loading || saving}
+                required
+              />
+            </div>
+            <div className="min-w-48 flex-1">
+              <label className="label text-sm" htmlFor="doc-edit-urlpath">
+                URL path
+              </label>
+              <input
+                type="text"
+                id="doc-edit-urlpath"
+                name="urlpath"
+                value={urlpath}
+                onChange={(e) => setUrlpath(e.target.value)}
+                className="input input-bordered w-full"
+                disabled={loading || saving}
+                required
+              />
+            </div>
+            <label
+              htmlFor="doc-edit-public"
+              className="flex cursor-pointer items-center gap-2 pb-2"
+            >
+              <input
+                type="checkbox"
+                name="public"
+                id="doc-edit-public"
+                className="toggle toggle-primary"
+                checked={isPublic}
+                onChange={(e) => setIsPublic(e.target.checked)}
+                disabled={loading || saving}
+              />
+              <span className="text-sm">Public</span>
+            </label>
+          </div>
         </div>
+
         {error && (
           <div className="alert alert-error shadow-lg">
-            <div>
-              <span>{error}</span>
-            </div>
+            <span>{error}</span>
           </div>
         )}
-        <fieldset className="fieldset">
-          <label className="label" htmlFor="doc-edit-title">
-            Document title
-          </label>
-          <input
-            type="text"
-            id="doc-edit-title"
-            name="doctitle"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="input input-bordered w-full"
-            disabled={loading || saving}
-            required
-          />
-          <label className="label" htmlFor="doc-edit-urlpath">
-            Document URL path
-          </label>
-          <input
-            type="text"
-            id="doc-edit-urlpath"
-            name="urlpath"
-            value={urlpath}
-            onChange={(e) => setUrlpath(e.target.value)}
-            className="input input-bordered w-full"
-            disabled={loading || saving}
-            required
-          />
-          <label htmlFor="doc-edit-public" className="label">
-            <input
-              type="checkbox"
-              name="public"
-              id="doc-edit-public"
-              className="toggle toggle-primary"
-              checked={isPublic}
-              onChange={(e) => setIsPublic(e.target.checked)}
-              disabled={loading || saving}
-            />
-            <span className="label-text">Public document</span>
-          </label>
-          <label className="label">Document content</label>
-          <div className="flex w-full flex-wrap justify-center gap-2">
+
+        {/* Editor and Preview - side by side */}
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 md:grid-cols-2">
+          {/* Editor */}
+          <div className="flex min-h-64 flex-col">
+            <label className="label py-1 text-sm font-medium">Markdown</label>
             <textarea
               name="content"
-              className="textarea textarea-bordered min-h-50 w-1/2 max-w-200 min-w-75 grow"
+              className="textarea textarea-bordered min-h-0 w-full flex-1 resize-none font-mono text-sm"
               placeholder="Write your document content here..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
@@ -415,87 +450,79 @@ export default function DocEditorPage() {
               onDrop={textAreaDrop}
               required
             ></textarea>
-            {uploadingFile && <progress className="progress max-w-200"></progress>}
+            {uploadingFile && <progress className="progress progress-primary mt-2"></progress>}
+          </div>
+
+          {/* Preview */}
+          <div className="flex min-h-64 flex-col">
+            <label className="label py-1 text-sm font-medium">Preview</label>
             <div
-              className="border-accent bg-base-100 gnotus-content max-h-100 min-h-50 w-1/2 max-w-200 min-w-75 grow overflow-auto rounded-lg border p-2"
+              className="border-base-300 bg-base-100 gnotus-content min-h-0 flex-1 overflow-auto rounded-lg border p-4"
               dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(md.render(content)),
               }}
             ></div>
           </div>
-        </fieldset>
+        </div>
 
         {/* Attachments Section */}
-        <div className="collapse collapse-arrow bg-base-100 rounded-lg">
-          <input type="checkbox" defaultChecked />
-          <div className="collapse-title font-medium">
+        <details className="bg-base-200 rounded-lg shadow">
+          <summary className="cursor-pointer p-3 font-medium">
             Attachments ({docUploads.length})
-          </div>
-          <div className="collapse-content">
+          </summary>
+          <div className="border-base-300 border-t p-3">
             {loadingUploads ? (
               <div className="flex justify-center p-4">
                 <span className="loading loading-spinner loading-md"></span>
               </div>
             ) : docUploads.length === 0 ? (
               <p className="text-base-content/60 text-sm">
-                No attachments yet. Upload files by dragging them into the content area, pasting, or
-                using the button below.
+                No attachments yet. Drag files into the editor, paste, or use the button below.
               </p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="table table-sm">
-                  <thead>
-                    <tr>
-                      <th>Filename</th>
-                      <th className="w-40 text-center">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {docUploads.map((upload) => (
-                      <tr key={upload.id}>
-                        <td className="overflow-hidden text-nowrap overflow-ellipsis">
-                          {upload.filename}
-                        </td>
-                        <td className="text-center">
-                          <button
-                            type="button"
-                            className="btn btn-ghost btn-xs"
-                            title="Insert link"
-                            onClick={() => insertUploadLink(upload)}
-                          >
-                            <Link2Icon className="h-4 w-4" />
-                          </button>
-                          <a
-                            href={`/api/uploads/${upload.id}/download/${upload.filename}?download=false`}
-                            className="btn btn-ghost btn-xs"
-                            target="_blank"
-                            title="View"
-                          >
-                            <EyeIcon className="h-4 w-4" />
-                          </a>
-                          <a
-                            href={`/api/uploads/${upload.id}/download/${upload.filename}`}
-                            className="btn btn-ghost btn-xs"
-                            title="Download"
-                          >
-                            <DownloadIcon className="h-4 w-4" />
-                          </a>
-                          <button
-                            type="button"
-                            className="btn btn-ghost btn-xs text-error"
-                            title="Delete"
-                            onClick={() => deleteUpload(upload.id)}
-                          >
-                            <TrashIcon className="h-4 w-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="flex flex-wrap gap-2">
+                {docUploads.map((upload) => (
+                  <div
+                    key={upload.id}
+                    className="bg-base-100 flex items-center gap-1 rounded-lg px-2 py-1 text-sm"
+                  >
+                    <span className="max-w-32 truncate">{upload.filename}</span>
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-xs"
+                      title="Insert link"
+                      onClick={() => insertUploadLink(upload)}
+                    >
+                      <Link2Icon className="h-3 w-3" />
+                    </button>
+                    <a
+                      href={`/api/uploads/${upload.id}/download/${upload.filename}?download=false`}
+                      className="btn btn-ghost btn-xs"
+                      target="_blank"
+                      title="View"
+                    >
+                      <EyeIcon className="h-3 w-3" />
+                    </a>
+                    <a
+                      href={`/api/uploads/${upload.id}/download/${upload.filename}`}
+                      className="btn btn-ghost btn-xs"
+                      title="Download"
+                    >
+                      <DownloadIcon className="h-3 w-3" />
+                    </a>
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-xs text-error"
+                      title="Delete"
+                      onClick={() => deleteUpload(upload.id)}
+                    >
+                      <TrashIcon className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
-            <div className="mt-4">
+            <div className="mt-3">
               <label className="btn btn-secondary btn-sm">
                 <input
                   type="file"
@@ -512,13 +539,7 @@ export default function DocEditorPage() {
               </label>
             </div>
           </div>
-        </div>
-
-        <div className="card-actions">
-          <button type="submit" className="btn btn-primary w-full" disabled={loading || saving}>
-            {saving ? <span className="loading loading-spinner"></span> : 'Save Document'}
-          </button>
-        </div>
+        </details>
       </form>
     </div>
   )

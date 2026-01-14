@@ -88,9 +88,9 @@ describe('DocEditorPage', () => {
     vi.mocked(axios.get).mockResolvedValueOnce({ data: mockDoc })
     render(<DocEditorPage />)
     expect(await screen.findByDisplayValue('Test Doc')).toBeInTheDocument()
-    expect(screen.getByLabelText('Document title')).toHaveValue('Test Doc')
-    expect(screen.getByLabelText('Document URL path')).toHaveValue('test-doc')
-    expect(screen.getByLabelText('Public document')).toBeChecked()
+    expect(screen.getByLabelText('Title')).toHaveValue('Test Doc')
+    expect(screen.getByLabelText('URL path')).toHaveValue('test-doc')
+    expect(screen.getByLabelText('Public')).toBeChecked()
     expect(screen.getByPlaceholderText(/Write your document content here/i)).toHaveValue('# Hello')
   })
 
@@ -125,11 +125,11 @@ describe('DocEditorPage', () => {
     fireEvent.change(screen.getByPlaceholderText(/Write your document content here/i), {
       target: { value: '# Changed' },
     })
-    fireEvent.change(screen.getByLabelText('Document URL path'), {
+    fireEvent.change(screen.getByLabelText('URL path'), {
       target: { value: 'changed-doc' },
     })
-    fireEvent.click(screen.getByLabelText('Public document'))
-    fireEvent.click(screen.getByText('Save Document'))
+    fireEvent.click(screen.getByLabelText('Public'))
+    fireEvent.click(screen.getByText('Save'))
     waitFor(() =>
       expect(axios.put).toHaveBeenCalledWith('/api/docs/123', {
         title: 'Changed Title',
@@ -146,7 +146,7 @@ describe('DocEditorPage', () => {
     vi.mocked(axios.put).mockRejectedValueOnce(new Error('fail'))
     vi.spyOn(console, 'error').mockImplementation(() => {})
     render(<DocEditorPage />)
-    fireEvent.click(await screen.findByText('Save Document'))
+    fireEvent.click(await screen.findByText('Save'))
     expect(await screen.findByText(/Failed to update document/i)).toBeInTheDocument()
   })
 
