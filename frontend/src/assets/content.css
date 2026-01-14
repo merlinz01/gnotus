@@ -192,9 +192,16 @@ SOFTWARE. */
 
 .gnotus-content ol,
 .gnotus-content ul {
-  list-style-position: inside;
+  list-style-position: outside;
   margin: 0.5rem 0;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1rem 0.5rem 2.5rem;
+}
+.gnotus-content ol ol,
+.gnotus-content ol ul,
+.gnotus-content ul ol,
+.gnotus-content ul ul {
+  margin: 0.25rem 0;
+  padding-left: 2rem;
 }
 .gnotus-content ol {
   list-style-type: decimal;
@@ -208,8 +215,8 @@ SOFTWARE. */
   padding: 0.2rem 0;
 }
 
-.gnotus-content ol li > *:first-child,
-.gnotus-content ul li > *:first-child {
+.gnotus-content ol li > *:first-child:not(ul):not(ol),
+.gnotus-content ul li > *:first-child:not(ul):not(ol) {
   display: inline;
 }
 
