@@ -1,4 +1,4 @@
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useBlocker, useBeforeUnload } from 'react-router-dom'
 import { useCallback, useEffect, useState } from 'react'
 import axios, { getErrorMessage } from '../axios'
 import useUser from '../stores/user'
@@ -44,6 +44,29 @@ export default function DocEditorPage() {
   const [uploadingFile, setUploadingFile] = useState(false)
   const [docUploads, setDocUploads] = useState<Upload[]>([])
   const [loadingUploads, setLoadingUploads] = useState(false)
+  // Track original values to detect unsaved changes
+  const [originalValues, setOriginalValues] = useState({ title: '', urlpath: '', isPublic: false, content: '' })
+
+  const hasUnsavedChanges = useCallback(() => {
+    return (
+      title !== originalValues.title ||
+      urlpath !== originalValues.urlpath ||
+      isPublic !== originalValues.isPublic ||
+      content !== originalValues.content
+    )
+  }, [title, urlpath, isPublic, content, originalValues])
+
+  // Block navigation when there are unsaved changes
+  const blocker = useBlocker(hasUnsavedChanges)
+  useEffect(() => {
+    if (blocker.state === 'blocked') {
+      if (window.confirm('You have unsaved changes. Discard them?')) {
+        blocker.proceed()
+      } else {
+        blocker.reset()
+      }
+    }
+  }, [blocker])
 
   const fetchDocUploads = async (docId: number) => {
     setLoadingUploads(true)
@@ -83,6 +106,12 @@ export default function DocEditorPage() {
         setUrlpath(response.data.urlpath)
         setIsPublic(response.data.public)
         setContent(response.data.markdown)
+        setOriginalValues({
+          title: response.data.title,
+          urlpath: response.data.urlpath,
+          isPublic: response.data.public,
+          content: response.data.markdown,
+        })
         // Fetch uploads for this document
         fetchDocUploads(response.data.id)
       } catch (error) {
@@ -109,6 +138,18 @@ export default function DocEditorPage() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
+
+  // Warn about unsaved changes on page close/refresh
+  useBeforeUnload(
+    useCallback(
+      (e) => {
+        if (hasUnsavedChanges()) {
+          e.preventDefault()
+        }
+      },
+      [hasUnsavedChanges]
+    )
+  )
 
   const saveDoc = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
@@ -344,18 +385,16 @@ export default function DocEditorPage() {
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-bold">Edit document</h2>
             {loading && <span className="loading loading-spinner loading-md" role="status"></span>}
+            {!loading && hasUnsavedChanges() && (
+              <span className="badge badge-warning badge-sm">Unsaved</span>
+            )}
             <div className="grow"></div>
             <button type="submit" className="btn btn-primary" disabled={loading || saving}>
               {saving ? <span className="loading loading-spinner loading-sm"></span> : 'Save'}
             </button>
-            <button
-              type="button"
-              className="btn"
-              disabled={loading || saving}
-              onClick={() => navigate(`/${doc?.urlpath || ''}`)}
-            >
+            <Link to={`/${doc?.urlpath || ''}`} className="btn">
               Discard
-            </button>
+            </Link>
             <Link
               to={`/_revisions/${doc?.id}`}
               className="btn btn-square text-primary"
