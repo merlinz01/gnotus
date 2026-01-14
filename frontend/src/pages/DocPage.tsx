@@ -223,7 +223,7 @@ export default function DocPage() {
             className="flex h-full min-h-full grow flex-col overflow-y-auto"
             style={{ scrollbarGutter: 'stable' }}
           >
-            <div className="mx-auto flex w-full max-w-175 flex-col px-4 pt-2 pb-8 sm:px-4 md:px-8 lg:px-12 print:px-4">
+            <div className="mx-auto flex w-full max-w-200 flex-col px-4 pt-2 pb-8 sm:px-4 md:px-8 lg:px-12 print:px-4">
               <nav className="breadcrumbs shrink-0 text-sm" aria-label="Breadcrumbs">
                 <ul className="flex-wrap">
                   <li>
@@ -257,7 +257,7 @@ export default function DocPage() {
                     aria-label={linkCopied ? 'Link copied!' : 'Copy link to clipboard'}
                   >
                     {linkCopied ? (
-                      <CheckIcon className="h-5 w-5 text-success" />
+                      <CheckIcon className="text-success h-5 w-5" />
                     ) : (
                       <Share2Icon className="h-5 w-5" />
                     )}
