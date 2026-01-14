@@ -23,7 +23,7 @@ const md = markdownit({
   html: true,
   linkify: true,
   typographer: true,
-})
+}).disable('code')
 
 export default function DocEditorPage() {
   const { docId } = useParams()

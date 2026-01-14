@@ -83,7 +83,9 @@ class Doc(TimestampedModel):
         """
         from markdown_it import MarkdownIt
 
-        self.html = nh3.clean(MarkdownIt("gfm-like").render(self.markdown))
+        self.html = nh3.clean(
+            MarkdownIt("gfm-like").disable("code").render(self.markdown)
+        )
         soup = BeautifulSoup(self.html, "html.parser")
         subtitles = []
         for tag in soup.find_all(["h1", "h2", "h3", "h4", "h5", "h6"]):
