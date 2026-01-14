@@ -1,9 +1,9 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import App from './App.tsx'
-import { BrowserRouter as Router } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import useConfig from './stores/config.ts'
+import routes from './Routes.tsx'
 
 const configJSON = localStorage.getItem('app_config')
 if (configJSON) {
@@ -16,10 +16,10 @@ if (configJSON) {
   }
 }
 
+const router = createBrowserRouter(routes)
+
 createRoot(document.body).render(
   <StrictMode>
-    <Router>
-      <App />
-    </Router>
+    <RouterProvider router={router} />
   </StrictMode>
 )

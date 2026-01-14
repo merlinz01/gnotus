@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import Routes from './Routes'
+import { Outlet } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import useConfig from './stores/config'
@@ -91,7 +91,7 @@ function App() {
       <div className="bg-base-100 flex h-screen w-screen flex-col print:h-auto">
         <Header />
         <SidebarHolder>
-          <Routes />
+          <Outlet />
         </SidebarHolder>
       </div>
     )
