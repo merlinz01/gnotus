@@ -242,9 +242,11 @@ SOFTWARE. */
   color: var(--color-secondary);
   background-color: var(--color-base-300);
   border-radius: var(--border-radius);
-  display: inline-block;
+  display: inline;
   margin: 0 0.1rem;
-  padding: 0 0.3rem;
+  padding: 0.1rem 0.3rem;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 
 .gnotus-content pre code,
