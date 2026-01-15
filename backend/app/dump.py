@@ -1,7 +1,9 @@
 import os
+import shutil
 import zipfile
 
 from .models.doc import Doc
+from .settings import settings
 
 
 def _generate_doc_content(doc) -> str:
@@ -48,7 +50,10 @@ def _generate_revision_content(revision) -> str:
 
 
 async def dump_to_dir(
-    directory: str, include_revisions: bool = False, public_only: bool = False
+    directory: str,
+    include_revisions: bool = False,
+    public_only: bool = False,
+    include_attachments: bool = False,
 ) -> None:
     """Dump documents to Markdown files."""
 
@@ -59,10 +64,12 @@ async def dump_to_dir(
     docs = Doc.all()
     if public_only:
         docs = docs.filter(public=True)
+    prefetch = ["updated_by"]
     if include_revisions:
-        docs = docs.prefetch_related("updated_by", "revisions", "revisions__created_by")
-    else:
-        docs = docs.prefetch_related("updated_by")
+        prefetch.extend(["revisions", "revisions__created_by"])
+    if include_attachments:
+        prefetch.append("uploads")
+    docs = docs.prefetch_related(*prefetch)
 
     async for doc in docs:
         file_path = os.path.join(directory, f"{doc.urlpath}.md")
@@ -78,10 +85,22 @@ async def dump_to_dir(
                 os.makedirs(os.path.dirname(revision_file_path), exist_ok=True)
                 with open(revision_file_path, "w", encoding="utf-8") as rf:
                     rf.write(_generate_revision_content(revision))
+        if include_attachments:
+            for upload in doc.uploads:
+                attachment_path = os.path.join(
+                    directory,
+                    f"{doc.urlpath}__attachments/{upload.filename}",
+                )
+                os.makedirs(os.path.dirname(attachment_path), exist_ok=True)
+                source_path = settings.uploads_dir / upload.storage_path
+                shutil.copy2(source_path, attachment_path)
 
 
 async def dump_to_zip(
-    zip_path: str, include_revisions: bool = False, public_only: bool = False
+    zip_path: str,
+    include_revisions: bool = False,
+    public_only: bool = False,
+    include_attachments: bool = False,
 ) -> None:
     """Dump documents to a zip file containing Markdown files."""
 
@@ -89,10 +108,12 @@ async def dump_to_zip(
     docs = Doc.all()
     if public_only:
         docs = docs.filter(public=True)
+    prefetch = ["updated_by"]
     if include_revisions:
-        docs = docs.prefetch_related("updated_by", "revisions", "revisions__created_by")
-    else:
-        docs = docs.prefetch_related("updated_by")
+        prefetch.extend(["revisions", "revisions__created_by"])
+    if include_attachments:
+        prefetch.append("uploads")
+    docs = docs.prefetch_related(*prefetch)
 
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
         async for doc in docs:
@@ -104,3 +125,8 @@ async def dump_to_zip(
                     zf.writestr(
                         revision_file_path, _generate_revision_content(revision)
                     )
+            if include_attachments:
+                for upload in doc.uploads:
+                    attachment_path = f"{doc.urlpath}__attachments/{upload.filename}"
+                    source_path = settings.uploads_dir / upload.storage_path
+                    zf.write(source_path, attachment_path)

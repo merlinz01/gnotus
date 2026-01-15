@@ -69,10 +69,15 @@ async def create_user(admin: bool, username: str, password: str) -> None:
 @click.option("--zip", "zip_path", help="Zip file path to output Markdown files.")
 @click.option("--revisions", is_flag=True, help="Include revisions in the dump.")
 @click.option("--public", is_flag=True, help="Only dump public documents.")
+@click.option("--attachments", is_flag=True, help="Include attachments in the dump.")
 @async_command
 @with_tortoise
 async def dump(
-    output_dir: str | None, zip_path: str | None, revisions: bool, public: bool
+    output_dir: str | None,
+    zip_path: str | None,
+    revisions: bool,
+    public: bool,
+    attachments: bool,
 ) -> None:
     """Dump the database to Markdown files."""
     if output_dir and zip_path:
@@ -80,12 +85,22 @@ async def dump(
     if zip_path:
         from .dump import dump_to_zip
 
-        await dump_to_zip(zip_path, include_revisions=revisions, public_only=public)
+        await dump_to_zip(
+            zip_path,
+            include_revisions=revisions,
+            public_only=public,
+            include_attachments=attachments,
+        )
         print(f"Database dumped to {zip_path}.")
     elif output_dir:
         from .dump import dump_to_dir
 
-        await dump_to_dir(output_dir, include_revisions=revisions, public_only=public)
+        await dump_to_dir(
+            output_dir,
+            include_revisions=revisions,
+            public_only=public,
+            include_attachments=attachments,
+        )
         print(f"Database dumped to {output_dir}.")
     else:
         raise click.UsageError("Must specify either --dir or --zip.")

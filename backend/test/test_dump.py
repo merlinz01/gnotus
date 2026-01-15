@@ -5,7 +5,9 @@ from pathlib import Path
 from app.dump import dump_to_dir, dump_to_zip
 from app.models.doc import Doc
 from app.models.revision import Revision
+from app.models.upload import Upload
 from app.models.user import User
+from app.settings import settings
 
 
 async def test_dump_docs(api_client, tmpdir: Path, user_admin: User):
@@ -365,3 +367,68 @@ order: 0
 
 This is a public document."""
         )
+
+
+async def test_dump_docs_with_attachments(api_client, tmpdir: Path, user_admin: User):
+    """Test dumping docs with attachments to a directory."""
+    doc1 = await Doc.create(
+        title="Test Doc",
+        slug="test-doc",
+        urlpath="test-doc",
+        public=True,
+        markdown="This is a test document.",
+        html="",
+        metadata={},
+    )
+    # Create upload directory and file
+    settings.uploads_dir.mkdir(parents=True, exist_ok=True)
+    storage_path = "test_attachment.png"
+    (settings.uploads_dir / storage_path).write_bytes(b"fake image content")
+    await Upload.create(
+        filename="image.png",
+        content_type="image/png",
+        size=len(b"fake image content"),
+        public=True,
+        storage_path=storage_path,
+        created_by=user_admin,
+        doc=doc1,
+    )
+    await dump_to_dir(str(tmpdir), include_attachments=True)
+    assert (tmpdir / "test-doc.md").exists()
+    assert (tmpdir / "test-doc__attachments/image.png").exists()
+    assert (tmpdir / "test-doc__attachments/image.png").read_binary() == b"fake image content"
+
+
+async def test_dump_docs_to_zip_with_attachments(
+    api_client, tmpdir: Path, user_admin: User
+):
+    """Test dumping docs with attachments to a zip file."""
+    doc1 = await Doc.create(
+        title="Test Doc",
+        slug="test-doc",
+        urlpath="test-doc",
+        public=True,
+        markdown="This is a test document.",
+        html="",
+        metadata={},
+    )
+    # Create upload directory and file
+    settings.uploads_dir.mkdir(parents=True, exist_ok=True)
+    storage_path = "test_attachment_zip.png"
+    (settings.uploads_dir / storage_path).write_bytes(b"fake image content for zip")
+    await Upload.create(
+        filename="image.png",
+        content_type="image/png",
+        size=len(b"fake image content for zip"),
+        public=True,
+        storage_path=storage_path,
+        created_by=user_admin,
+        doc=doc1,
+    )
+    zip_path = tmpdir / "dump.zip"
+    await dump_to_zip(str(zip_path), include_attachments=True)
+    assert zip_path.exists()
+    with zipfile.ZipFile(zip_path, "r") as zf:
+        assert "test-doc.md" in zf.namelist()
+        assert "test-doc__attachments/image.png" in zf.namelist()
+        assert zf.read("test-doc__attachments/image.png") == b"fake image content for zip"
