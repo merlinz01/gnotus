@@ -47,7 +47,9 @@ def _generate_revision_content(revision) -> str:
     return "".join(lines)
 
 
-async def dump_to_dir(directory: str, include_revisions: bool = False) -> None:
+async def dump_to_dir(
+    directory: str, include_revisions: bool = False, public_only: bool = False
+) -> None:
     """Dump documents to Markdown files."""
 
     # Ensure the directory exists
@@ -55,6 +57,8 @@ async def dump_to_dir(directory: str, include_revisions: bool = False) -> None:
 
     # Fetch all documents
     docs = Doc.all()
+    if public_only:
+        docs = docs.filter(public=True)
     if include_revisions:
         docs = docs.prefetch_related("updated_by", "revisions", "revisions__created_by")
     else:
@@ -76,11 +80,15 @@ async def dump_to_dir(directory: str, include_revisions: bool = False) -> None:
                     rf.write(_generate_revision_content(revision))
 
 
-async def dump_to_zip(zip_path: str, include_revisions: bool = False) -> None:
+async def dump_to_zip(
+    zip_path: str, include_revisions: bool = False, public_only: bool = False
+) -> None:
     """Dump documents to a zip file containing Markdown files."""
 
     # Fetch all documents
     docs = Doc.all()
+    if public_only:
+        docs = docs.filter(public=True)
     if include_revisions:
         docs = docs.prefetch_related("updated_by", "revisions", "revisions__created_by")
     else:

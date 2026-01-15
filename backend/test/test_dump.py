@@ -272,3 +272,96 @@ created_by_username: "{user_admin.username}"
 
 This is a test revision."""
         )
+
+
+async def test_dump_docs_public_only(api_client, tmpdir: Path, user_admin: User):
+    """Test dumping only public docs to a directory."""
+    doc1 = await Doc.create(
+        title="Public Doc",
+        slug="public-doc",
+        urlpath="public-doc",
+        public=True,
+        markdown="This is a public document.",
+        html="",
+        metadata={},
+    )
+    await Doc.create(
+        title="Private Doc",
+        slug="private-doc",
+        urlpath="private-doc",
+        public=False,
+        markdown="This is a private document.",
+        html="",
+        metadata={},
+    )
+    await dump_to_dir(str(tmpdir), public_only=True)
+    assert (tmpdir / "public-doc.md").exists()
+    assert not (tmpdir / "private-doc.md").exists()
+    assert (
+        (tmpdir / "public-doc.md").read_text("utf-8")
+        == f"""---
+id: {doc1.id}
+title: "Public Doc"
+slug: public-doc
+urlpath: public-doc
+public: True
+parent_id:
+created_at: {doc1.created_at.isoformat()}
+updated_at: {doc1.updated_at.isoformat()}
+updated_by_id:
+updated_by_username: ""
+order: 0
+---
+
+# Public Doc
+
+This is a public document."""
+    )
+
+
+async def test_dump_docs_to_zip_public_only(api_client, tmpdir: Path, user_admin: User):
+    """Test dumping only public docs to a zip file."""
+    doc1 = await Doc.create(
+        title="Public Doc",
+        slug="public-doc",
+        urlpath="public-doc",
+        public=True,
+        markdown="This is a public document.",
+        html="",
+        metadata={},
+    )
+    await Doc.create(
+        title="Private Doc",
+        slug="private-doc",
+        urlpath="private-doc",
+        public=False,
+        markdown="This is a private document.",
+        html="",
+        metadata={},
+    )
+    zip_path = tmpdir / "dump.zip"
+    await dump_to_zip(str(zip_path), public_only=True)
+    assert zip_path.exists()
+    with zipfile.ZipFile(zip_path, "r") as zf:
+        assert "public-doc.md" in zf.namelist()
+        assert "private-doc.md" not in zf.namelist()
+        assert (
+            zf.read("public-doc.md").decode("utf-8")
+            == f"""---
+id: {doc1.id}
+title: "Public Doc"
+slug: public-doc
+urlpath: public-doc
+public: True
+parent_id:
+created_at: {doc1.created_at.isoformat()}
+updated_at: {doc1.updated_at.isoformat()}
+updated_by_id:
+updated_by_username: ""
+order: 0
+---
+
+# Public Doc
+
+This is a public document."""
+        )
