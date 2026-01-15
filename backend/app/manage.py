@@ -65,16 +65,27 @@ async def create_user(admin: bool, username: str, password: str) -> None:
 
 
 @cli.command()
-@click.option("--dir", prompt=True, help="Directory to output Markdown dump.")
+@click.option("--dir", "output_dir", help="Directory to output Markdown files.")
+@click.option("--zip", "zip_path", help="Zip file path to output Markdown files.")
 @click.option("--revisions", is_flag=True, help="Include revisions in the dump.")
 @async_command
 @with_tortoise
-async def dump(dir: str, revisions: bool) -> None:
+async def dump(output_dir: str | None, zip_path: str | None, revisions: bool) -> None:
     """Dump the database to Markdown files."""
-    from .dump import dump_to_markdown
+    if output_dir and zip_path:
+        raise click.UsageError("Cannot specify both --dir and --zip.")
+    if zip_path:
+        from .dump import dump_to_zip
 
-    await dump_to_markdown(dir, include_revisions=revisions)
-    print(f"Database dumped to {dir}.")
+        await dump_to_zip(zip_path, include_revisions=revisions)
+        print(f"Database dumped to {zip_path}.")
+    elif output_dir:
+        from .dump import dump_to_dir
+
+        await dump_to_dir(output_dir, include_revisions=revisions)
+        print(f"Database dumped to {output_dir}.")
+    else:
+        raise click.UsageError("Must specify either --dir or --zip.")
 
 
 @cli.command()
