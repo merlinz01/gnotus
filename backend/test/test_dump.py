@@ -396,7 +396,9 @@ async def test_dump_docs_with_attachments(api_client, tmpdir: Path, user_admin: 
     await dump_to_dir(str(tmpdir), include_attachments=True)
     assert (tmpdir / "test-doc.md").exists()
     assert (tmpdir / "test-doc__attachments/image.png").exists()
-    assert (tmpdir / "test-doc__attachments/image.png").read_binary() == b"fake image content"
+    assert (tmpdir / "test-doc__attachments/image.png").read_text(
+        "utf-8"
+    ) == "fake image content"
 
 
 async def test_dump_docs_to_zip_with_attachments(
@@ -431,4 +433,6 @@ async def test_dump_docs_to_zip_with_attachments(
     with zipfile.ZipFile(zip_path, "r") as zf:
         assert "test-doc.md" in zf.namelist()
         assert "test-doc__attachments/image.png" in zf.namelist()
-        assert zf.read("test-doc__attachments/image.png") == b"fake image content for zip"
+        assert (
+            zf.read("test-doc__attachments/image.png") == b"fake image content for zip"
+        )
