@@ -85,6 +85,8 @@ async def dump(
     options = [output_dir, zip_path, single_file]
     if sum(1 for opt in options if opt) > 1:
         raise click.UsageError("Cannot specify more than one of --dir, --zip, or --single-file.")
+    if single_file and (attachments or revisions):
+        raise click.UsageError("--attachments and --revisions are not supported with --single-file.")
     if single_file:
         from .dump import dump_to_single_file
 
