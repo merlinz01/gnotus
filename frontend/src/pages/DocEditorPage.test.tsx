@@ -18,9 +18,13 @@ vi.mock('../axios', () => ({
 const navigate = vi.fn()
 
 function renderWithRouter() {
-  const router = createMemoryRouter([{ path: '/_edit/:docId', element: <DocEditorPage /> }], {
-    initialEntries: ['/_edit/123'],
-  })
+  const router = createMemoryRouter(
+    [
+      { path: '/_edit/:docId', element: <DocEditorPage /> },
+      { path: '/*', element: <div>Other page</div> },
+    ],
+    { initialEntries: ['/_edit/123'] }
+  )
   // Spy on router.navigate
   const originalNavigate = router.navigate.bind(router)
   router.navigate = vi.fn((to) => {
@@ -72,11 +76,13 @@ describe('DocEditorPage', () => {
 
   it('renders loading spinner while loading', async () => {
     let resolvePromise: (r: unknown) => void
-    vi.mocked(axios.get).mockImplementationOnce(() => {
-      return new Promise((res) => {
-        resolvePromise = res
+    vi.mocked(axios.get)
+      .mockImplementationOnce(() => {
+        return new Promise((res) => {
+          resolvePromise = res
+        })
       })
-    })
+      .mockResolvedValueOnce({ data: [] }) // uploads
     renderWithRouter()
     expect(screen.getByText(/Edit document/i)).toBeInTheDocument()
     expect(screen.getByRole('status')).toBeInTheDocument()
@@ -85,7 +91,9 @@ describe('DocEditorPage', () => {
   })
 
   it('renders document fields after loading', async () => {
-    vi.mocked(axios.get).mockResolvedValueOnce({ data: mockDoc })
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({ data: mockDoc })
+      .mockResolvedValueOnce({ data: [] }) // uploads
     renderWithRouter()
     expect(await screen.findByDisplayValue('Test Doc')).toBeInTheDocument()
     expect(screen.getByLabelText('Title')).toHaveValue('Test Doc')
@@ -142,11 +150,15 @@ describe('DocEditorPage', () => {
   })
 
   it('shows error if save fails', async () => {
-    vi.mocked(axios.get).mockResolvedValueOnce({ data: mockDoc })
+    vi.mocked(axios.get)
+      .mockResolvedValueOnce({ data: mockDoc })
+      .mockResolvedValueOnce({ data: [] }) // uploads
     vi.mocked(axios.put).mockRejectedValueOnce(new Error('fail'))
     vi.spyOn(console, 'error').mockImplementation(() => {})
     renderWithRouter()
-    fireEvent.click(await screen.findByText('Save'))
+    // Wait for document to load before clicking Save
+    await screen.findByDisplayValue('Test Doc')
+    fireEvent.click(screen.getByText('Save'))
     expect(await screen.findByText(/Failed to update document/i)).toBeInTheDocument()
   })
 

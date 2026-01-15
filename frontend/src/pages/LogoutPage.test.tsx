@@ -20,9 +20,11 @@ describe('LogoutPage', () => {
     document.title = ''
   })
 
-  it('sets document title on mount', () => {
+  it('sets document title on mount', async () => {
+    vi.mocked(axios.post).mockResolvedValue({ data: {} })
     render(<LogoutPage />)
     expect(document.title).toBe('Logging out - Gnotus')
+    await waitFor(() => expect(axios.post).toHaveBeenCalled())
   })
 
   it('calls logout API and navigates on success', async () => {

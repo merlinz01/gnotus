@@ -94,6 +94,8 @@ describe('NewDocPage', () => {
       data: { items: mockParentDocs },
     })
     renderPage()
+    // Wait for docs to load
+    await waitFor(() => expect(axios.get).toHaveBeenCalled())
     const titleInput = screen.getByLabelText('Document title')
     const urlpathInput = screen.getByLabelText('Document URL path')
     fireEvent.change(titleInput, { target: { value: 'New Widget Guide' } })

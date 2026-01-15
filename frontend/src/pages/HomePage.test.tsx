@@ -43,22 +43,24 @@ describe('HomePage', () => {
     document.title = ''
   })
 
-  it('renders site name and description', () => {
+  it('renders site name and description', async () => {
     useConfig.setState({ config: mockConfig, loaded: true })
     useUser.setState({ user: mockUser, loaded: true, storagePrefix: 'test-' })
     vi.mocked(axios.get).mockResolvedValue({ data: { children: [] } })
     render(<HomePage />)
     expect(screen.getByText(/Welcome to TestSite/)).toBeInTheDocument()
     expect(screen.getByText(/Test description/)).toBeInTheDocument()
+    await waitFor(() => expect(axios.get).toHaveBeenCalled())
   })
 
-  it('sets document title on mount', () => {
+  it('sets document title on mount', async () => {
     useConfig.setState({ config: mockConfig, loaded: true })
     useUser.setState({ user: mockUser, loaded: true, storagePrefix: 'test-' })
     vi.mocked(axios.get).mockResolvedValue({ data: { children: [] } })
     document.title = ''
     render(<HomePage />)
     expect(document.title).toBe('Home - TestSite')
+    await waitFor(() => expect(axios.get).toHaveBeenCalled())
   })
 
   it('fetches outline if not in localStorage and displays it', async () => {

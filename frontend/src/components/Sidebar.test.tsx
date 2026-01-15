@@ -131,6 +131,8 @@ describe('Sidebar', () => {
         <Sidebar />
       </MemoryRouter>
     )
+    // Wait for outline to load
+    await screen.findByText('Child 1')
     expect(screen.queryByText('Create new document')).not.toBeInTheDocument()
     expect(screen.queryByText('Manage users')).not.toBeInTheDocument()
   })
