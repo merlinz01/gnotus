@@ -3,6 +3,7 @@ from logging import getLogger
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Body, HTTPException, status
+from fastapi.responses import PlainTextResponse
 from tortoise.exceptions import DoesNotExist
 from tortoise.transactions import in_transaction
 
@@ -208,6 +209,44 @@ async def get_doc(
             async for child in children
         ],
     )
+
+
+@router.get("/markdown/{path:path}", response_class=PlainTextResponse)
+async def get_doc_markdown(
+    current_user: OptionalUser,
+    path: str,
+) -> str:
+    """
+    Get document content as plain Markdown with title and child links.
+    """
+    try:
+        doc = await Doc.get(urlpath=path.removesuffix(".md"))
+    except DoesNotExist:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Document not found"
+        )
+
+    if not doc.public and not current_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Document not found"
+        )
+
+    children = doc.children
+    if not current_user:
+        children = children.filter(public=True)
+
+    lines = []
+    lines.append(f"# {doc.title}\n")
+
+    child_list = [child async for child in children]
+    if child_list:
+        lines.append("\n")
+        for child in child_list:
+            lines.append(f"- [{child.title}](/{child.urlpath})\n")
+
+    lines.append(f"\n{doc.markdown}")
+
+    return "".join(lines)
 
 
 @router.get("/{doc_id}/revisions")

@@ -44,6 +44,8 @@
 	}
 	rewrite /robots.txt /api/robots.txt
 	rewrite /sitemap.xml /api/sitemap.xml
+	@markdown path *.md
+	rewrite @markdown /api/docs/markdown{path}
 	handle /api/* {
 		reverse_proxy {$API_ADDRESS}
 	}

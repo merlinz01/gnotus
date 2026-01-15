@@ -1265,3 +1265,113 @@ async def test_search_docs_disabled(api_client: "TestClient", user_admin: "User"
     assert response.status_code == status.HTTP_503_SERVICE_UNAVAILABLE, response.text
     data = response.json()
     assert data["detail"] == "Search functionality is disabled"
+
+
+async def test_get_doc_markdown(api_client: "TestClient", user_admin: "User"):
+    """
+    Test getting document as markdown.
+    """
+    api_client.set_session_user(user_admin)
+    doc = await Doc.create(
+        title="Test Document",
+        slug="test-doc",
+        urlpath="test-doc",
+        public=True,
+        metadata={},
+        markdown="This is the content.",
+        html="",
+    )
+    response = api_client.get(f"/api/docs/markdown/{doc.urlpath}")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.headers["content-type"] == "text/plain; charset=utf-8"
+    assert response.text == "# Test Document\n\nThis is the content."
+
+
+async def test_get_doc_markdown_with_children(
+    api_client: "TestClient", user_admin: "User"
+):
+    """
+    Test getting document as markdown with child links.
+    """
+    api_client.set_session_user(user_admin)
+    parent = await Doc.create(
+        title="Parent Document",
+        slug="parent",
+        urlpath="parent",
+        public=True,
+        metadata={},
+        markdown="Parent content.",
+        html="",
+    )
+    await Doc.create(
+        title="Child One",
+        slug="child-one",
+        urlpath="parent/child-one",
+        parent_id=parent.id,
+        public=True,
+        metadata={},
+        markdown="",
+        html="",
+    )
+    await Doc.create(
+        title="Child Two",
+        slug="child-two",
+        urlpath="parent/child-two",
+        parent_id=parent.id,
+        public=True,
+        metadata={},
+        markdown="",
+        html="",
+    )
+    response = api_client.get("/api/docs/markdown/parent")
+    assert response.status_code == status.HTTP_200_OK
+    text = response.text
+    assert "# Parent Document\n" in text
+    assert "- [Child One](/parent/child-one)" in text
+    assert "- [Child Two](/parent/child-two)" in text
+    assert "Parent content." in text
+
+
+async def test_get_doc_markdown_not_found(api_client: "TestClient", user_admin: "User"):
+    """
+    Test getting markdown for non-existent document.
+    """
+    api_client.set_session_user(user_admin)
+    response = api_client.get("/api/docs/markdown/non-existent")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+async def test_get_doc_markdown_private_anonymous(api_client: "TestClient"):
+    """
+    Test that anonymous users cannot access private document markdown.
+    """
+    await Doc.create(
+        title="Private Document",
+        slug="private-doc",
+        urlpath="private-doc",
+        public=False,
+        metadata={},
+        markdown="Secret content.",
+        html="",
+    )
+    response = api_client.get("/api/docs/markdown/private-doc")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+async def test_get_doc_markdown_public_anonymous(api_client: "TestClient"):
+    """
+    Test that anonymous users can access public document markdown.
+    """
+    await Doc.create(
+        title="Public Document",
+        slug="public-doc",
+        urlpath="public-doc",
+        public=True,
+        metadata={},
+        markdown="Public content.",
+        html="",
+    )
+    response = api_client.get("/api/docs/markdown/public-doc")
+    assert response.status_code == status.HTTP_200_OK
+    assert "# Public Document" in response.text
+    assert "Public content." in response.text
