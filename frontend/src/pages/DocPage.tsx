@@ -240,19 +240,28 @@ export default function DocPage() {
                 </ul>
               </nav>
               <h1 className="text-primary my-2 flex flex-wrap items-center text-3xl font-bold">
-                {doc.title}
+                <div className="me-auto">{doc.title}</div>
+                {user && (
+                  <>
+                    {doc.public ? (
+                      <span className="badge-primary badge badge-lg text-sm">Public</span>
+                    ) : (
+                      <span className="badge-accent badge badge-lg text-sm">Private</span>
+                    )}
+                  </>
+                )}
                 {user && user.role !== Role.VIEWER && (
                   <Link to={`/_edit/${doc.id}`} className="ml-2" title="Edit document">
                     <PencilIcon className="h-5 w-5" />
                   </Link>
                 )}
                 <div
-                  className={linkCopied ? 'tooltip tooltip-right tooltip-open' : ''}
+                  className={linkCopied ? 'tooltip tooltip-left tooltip-open' : ''}
                   data-tip={linkCopied ? 'Link copied!' : undefined}
                 >
                   <button
                     onClick={handleShare}
-                    className="ml-2"
+                    className="ml-2 cursor-pointer"
                     title={!linkCopied ? 'Copy link to clipboard' : undefined}
                     aria-label={linkCopied ? 'Link copied!' : 'Copy link to clipboard'}
                   >
@@ -263,15 +272,6 @@ export default function DocPage() {
                     )}
                   </button>
                 </div>
-                {user && (
-                  <>
-                    {doc.public ? (
-                      <span className="badge-primary badge badge-lg ml-auto text-sm">Public</span>
-                    ) : (
-                      <span className="badge-accent badge badge-lg ml-auto text-sm">Private</span>
-                    )}
-                  </>
-                )}
               </h1>
               {doc.children.length > 0 && (
                 <nav className="mx-4" aria-label="Contents">
