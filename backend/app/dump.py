@@ -23,12 +23,15 @@ async def dump_to_markdown(directory: str, include_revisions: bool = False) -> N
             f.write("---\n")
             f.write(f"id: {doc.id}\n")
             f.write(f'title: "{doc.title}"\n')
+            f.write(f"slug: {doc.slug}\n")
             f.write(f"urlpath: {doc.urlpath}\n")
             f.write(f"public: {doc.public}\n")
-            f.write(f"parent_id: {doc.parent_id if doc.parent else ''}\n")
+            parent_id_str = f" {doc.parent_id}" if doc.parent else ""
+            f.write(f"parent_id:{parent_id_str}\n")
             f.write(f"created_at: {doc.created_at.isoformat()}\n")
             f.write(f"updated_at: {doc.updated_at.isoformat()}\n")
-            f.write(f"updated_by_id: {doc.updated_by.id if doc.updated_by else ''}\n")
+            updated_by_id_str = f" {doc.updated_by.id}" if doc.updated_by else ""
+            f.write(f"updated_by_id:{updated_by_id_str}\n")
             f.write(
                 f'updated_by_username: "{doc.updated_by.username if doc.updated_by else ""}"\n'
             )

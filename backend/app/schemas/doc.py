@@ -10,7 +10,7 @@ class DocBase(BaseModel):
 
     parent_id: int | None
     title: str
-    urlpath: str
+    slug: str
     public: bool
 
 
@@ -30,7 +30,7 @@ class DocUpdate(BaseModel):
 
     parent_id: int | None = None
     title: str | None = None
-    urlpath: str | None = None
+    slug: str | None = None
     markdown: str | None = None
     public: bool | None = None
 
@@ -51,6 +51,7 @@ class DocResponse(DocBase):
     """
 
     id: int
+    urlpath: str
     created_at: datetime.datetime
     updated_at: datetime.datetime
     updated_by_id: int | None

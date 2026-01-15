@@ -37,6 +37,7 @@ class Doc(TimestampedModel):
         "gnotus.Doc", null=True, related_name="children", on_delete=fields.CASCADE
     )
     title = fields.CharField(max_length=255)
+    slug = fields.CharField(max_length=100)
     urlpath = fields.CharField(max_length=255, unique=True)
     public = fields.BooleanField(default=False)
     metadata = fields.JSONField()
@@ -55,13 +56,19 @@ class Doc(TimestampedModel):
     class Meta:  # type: ignore
         table = "docs"
         ordering = ["order", "title"]
+        unique_together = [("parent_id", "slug")]
 
     @staticmethod
-    def validate_urlpath(urlpath: str) -> None:
-        if not urlpath or not re.match(r"^([a-zA-Z0-9-_]+(/|$))+$", urlpath):
+    def validate_slug(slug: str) -> None:
+        if not slug or not re.match(r"^[a-zA-Z0-9-_]+$", slug):
             raise HTTPException(
                 status_code=400,
-                detail="Invalid URL path",
+                detail="Invalid URL slug. Only alphanumeric characters, hyphens, and underscores allowed.",
+            )
+        if len(slug) > 100:
+            raise HTTPException(
+                status_code=400,
+                detail="URL slug must be 100 characters or less.",
             )
 
     async def parents(self) -> AsyncGenerator["Doc", None]:
@@ -74,6 +81,41 @@ class Doc(TimestampedModel):
             yield current
             await current.fetch_related("parent")
             current = current.parent
+
+    async def compute_urlpath(self) -> str:
+        """
+        Compute the full URL path by traversing parent hierarchy.
+        Uses parent_id directly to handle in-memory changes that haven't been committed.
+        """
+        segments = [self.slug]
+        current_parent_id = self.parent_id
+        while current_parent_id is not None:
+            parent = await Doc.get(id=current_parent_id)
+            segments.append(parent.slug)
+            current_parent_id = parent.parent_id
+        return "/".join(reversed(segments))
+
+    async def update_urlpath(self, cascade: bool = True, reindex: bool = True) -> None:
+        """
+        Update the urlpath based on current slug and parent hierarchy.
+        If cascade is True, also updates all descendant documents.
+        If reindex is True, also updates the search index.
+        """
+        self.urlpath = await self.compute_urlpath()
+        await self.save(update_fields=["urlpath"])
+
+        if reindex:
+            # Lazy import to avoid circular dependency
+            from ..indexing import index_document
+            from ..settings import settings
+
+            if not settings.disable_search:
+                await index_document(self)
+
+        if cascade:
+            await self.fetch_related("children")
+            for child in self.children:
+                await child.update_urlpath(cascade=True, reindex=reindex)
 
     async def update_content(self) -> None:
         """

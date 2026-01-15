@@ -1,5 +1,5 @@
 import { Link, useParams, useBlocker, useBeforeUnload } from 'react-router-dom'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import axios, { getErrorMessage } from '../axios'
 import useUser from '../stores/user'
 import { useNavigate } from 'react-router-dom'
@@ -25,6 +25,24 @@ const md = markdownit({
   typographer: true,
 }).disable('code')
 
+/**
+ * Get all descendant IDs of a document by traversing the parent_id relationships.
+ */
+function getDescendantIds(documents: Doc[], parentId: number): Set<number> {
+  const descendants = new Set<number>()
+  const queue = [parentId]
+  while (queue.length > 0) {
+    const currentId = queue.shift()!
+    for (const doc of documents) {
+      if (doc.parent_id === currentId && !descendants.has(doc.id)) {
+        descendants.add(doc.id)
+        queue.push(doc.id)
+      }
+    }
+  }
+  return descendants
+}
+
 export default function DocEditorPage() {
   const { docId } = useParams()
   const [doc, setDoc] = useState<Doc | null>(null)
@@ -36,7 +54,10 @@ export default function DocEditorPage() {
   const navigate = useNavigate()
   const [error, setError] = useState<string | null>(null)
   const [title, setTitle] = useState('')
-  const [urlpath, setUrlpath] = useState('')
+  const [slug, setSlug] = useState('')
+  const [parentId, setParentId] = useState<string>('')
+  const [documents, setDocuments] = useState<Doc[]>([])
+  const [loadingDocs, setLoadingDocs] = useState(false)
   const [isPublic, setIsPublic] = useState(false)
   const [content, setContent] = useState('')
   const [deleting, setDeleting] = useState(false)
@@ -45,16 +66,20 @@ export default function DocEditorPage() {
   const [docUploads, setDocUploads] = useState<Upload[]>([])
   const [loadingUploads, setLoadingUploads] = useState(false)
   // Track original values to detect unsaved changes
-  const [originalValues, setOriginalValues] = useState({ title: '', urlpath: '', isPublic: false, content: '' })
+  const [originalValues, setOriginalValues] = useState({ title: '', slug: '', parentId: '', isPublic: false, content: '' })
+  // Ref to bypass blocker after successful save
+  const skipBlockerRef = useRef(false)
 
   const hasUnsavedChanges = useCallback(() => {
+    if (skipBlockerRef.current) return false
     return (
       title !== originalValues.title ||
-      urlpath !== originalValues.urlpath ||
+      slug !== originalValues.slug ||
+      parentId !== originalValues.parentId ||
       isPublic !== originalValues.isPublic ||
       content !== originalValues.content
     )
-  }, [title, urlpath, isPublic, content, originalValues])
+  }, [title, slug, parentId, isPublic, content, originalValues])
 
   // Block navigation when there are unsaved changes
   const blocker = useBlocker(hasUnsavedChanges)
@@ -103,12 +128,16 @@ export default function DocEditorPage() {
         const response = await axios.get(`/api/docs/${docId}?include_source=true`)
         setDoc(response.data)
         setTitle(response.data.title)
-        setUrlpath(response.data.urlpath)
+        setSlug(response.data.slug)
+        // First parent in the array is the immediate parent
+        const currentParentId = response.data.parents.length > 0 ? String(response.data.parents[0].id) : ''
+        setParentId(currentParentId)
         setIsPublic(response.data.public)
         setContent(response.data.markdown)
         setOriginalValues({
           title: response.data.title,
-          urlpath: response.data.urlpath,
+          slug: response.data.slug,
+          parentId: currentParentId,
           isPublic: response.data.public,
           content: response.data.markdown,
         })
@@ -121,7 +150,19 @@ export default function DocEditorPage() {
         setLoading(false)
       }
     }
+    const fetchDocuments = async () => {
+      setLoadingDocs(true)
+      try {
+        const response = await axios.get('/api/docs/')
+        setDocuments(response.data.items)
+      } catch (error) {
+        console.error('Error fetching documents:', error)
+      } finally {
+        setLoadingDocs(false)
+      }
+    }
     fetchDoc()
+    fetchDocuments()
   }, [docId, user, userLoaded, navigate])
 
   // Ctrl+S to save
@@ -160,11 +201,14 @@ export default function DocEditorPage() {
       try {
         const response = await axios.put(`/api/docs/${doc.id}`, {
           title: title,
-          urlpath: urlpath,
+          slug: slug,
+          parent_id: parentId ? parseInt(parentId, 10) : 0,
           public: isPublic,
           markdown: content,
         })
         setDoc(response.data)
+        // Skip blocker for this navigation since we just saved
+        skipBlockerRef.current = true
         localStorage.removeItem(`${storagePrefix}doc:${response.data.urlpath}`)
         for (const parent of response.data.parents) {
           localStorage.removeItem(`${storagePrefix}doc:${parent.urlpath}`)
@@ -181,7 +225,7 @@ export default function DocEditorPage() {
         setSaving(false)
       }
     },
-    [doc, storagePrefix, isPublic, content, navigate, title, urlpath]
+    [doc, storagePrefix, isPublic, content, navigate, title, slug, parentId]
   )
 
   const moveDoc = useCallback(
@@ -221,6 +265,8 @@ export default function DocEditorPage() {
     setDeleting(true)
     try {
       await axios.delete(`/api/docs/${doc.id}`)
+      // Skip blocker for this navigation since we just deleted
+      skipBlockerRef.current = true
       localStorage.removeItem(`${storagePrefix}doc:${doc.urlpath}`)
       for (const parent of doc.parents) {
         localStorage.removeItem(`${storagePrefix}doc:${parent.urlpath}`)
@@ -431,7 +477,56 @@ export default function DocEditorPage() {
               )}
             </button>
           </div>
-          {/* Row 2: Metadata fields */}
+          {/* Row 2: Parent and URL slug */}
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="min-w-48 flex-1">
+              <label className="label text-sm" htmlFor="doc-edit-parent">
+                Parent
+              </label>
+              <select
+                id="doc-edit-parent"
+                name="parentId"
+                className="select select-bordered w-full"
+                value={parentId}
+                onChange={(e) => setParentId(e.target.value)}
+                disabled={loading || saving || loadingDocs}
+              >
+                <option value="">(Top-level document)</option>
+                {(() => {
+                  if (loadingDocs) {
+                    return <option disabled>Loading documents...</option>
+                  }
+                  // Compute excluded IDs once: self + all descendants
+                  const excludeIds = doc
+                    ? new Set([doc.id, ...getDescendantIds(documents, doc.id)])
+                    : new Set<number>()
+                  return documents
+                    .filter((d) => !excludeIds.has(d.id))
+                    .map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.title}
+                      </option>
+                    ))
+                })()}
+              </select>
+            </div>
+            <div className="min-w-48 flex-1">
+              <label className="label text-sm" htmlFor="doc-edit-slug">
+                URL slug
+              </label>
+              <input
+                type="text"
+                id="doc-edit-slug"
+                name="slug"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                className="input input-bordered w-full"
+                disabled={loading || saving}
+                required
+              />
+            </div>
+          </div>
+          {/* Row 3: Title and Public */}
           <div className="flex flex-wrap items-end gap-4">
             <div className="min-w-48 flex-1">
               <label className="label text-sm" htmlFor="doc-edit-title">
@@ -443,21 +538,6 @@ export default function DocEditorPage() {
                 name="doctitle"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="input input-bordered w-full"
-                disabled={loading || saving}
-                required
-              />
-            </div>
-            <div className="min-w-48 flex-1">
-              <label className="label text-sm" htmlFor="doc-edit-urlpath">
-                URL path
-              </label>
-              <input
-                type="text"
-                id="doc-edit-urlpath"
-                name="urlpath"
-                value={urlpath}
-                onChange={(e) => setUrlpath(e.target.value)}
                 className="input input-bordered w-full"
                 disabled={loading || saving}
                 required

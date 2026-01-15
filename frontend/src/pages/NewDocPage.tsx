@@ -16,7 +16,7 @@ export default function NewDocPage() {
   const storagePrefix = useUser((state) => state.storagePrefix)
   const config = useConfig((state) => state.config)
   const [parentId, setParentId] = useState('')
-  const [urlpath, setUrlpath] = useState('/')
+  const [slug, setSlug] = useState('')
   const [title, setTitle] = useState('')
   useEffect(() => {
     document.title = `New Document - ${config.site_name}`
@@ -52,7 +52,7 @@ export default function NewDocPage() {
         parent_id:
           (event.currentTarget.elements.namedItem('parentId')! as HTMLInputElement).value || null,
         title: (event.currentTarget.elements.namedItem('titleField')! as HTMLInputElement).value,
-        urlpath: (event.currentTarget.elements.namedItem('path')! as HTMLInputElement).value,
+        slug: (event.currentTarget.elements.namedItem('slug')! as HTMLInputElement).value,
         public:
           documents.find((doc) => doc.id === parseInt(event.currentTarget.parentId.value, 10))
             ?.public || false,
@@ -78,17 +78,13 @@ export default function NewDocPage() {
   }
 
   useEffect(() => {
-    let prefix = '/'
-    if (parentId !== '') {
-      const parentIdNum = parseInt(parentId, 10)
-      prefix = documents.find((doc) => doc.id === parentIdNum)?.urlpath || ''
-    }
-    const slug = title
+    const computedSlug = title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '')
-    setUrlpath(`${prefix}/${slug}`.replace(/\/+/g, '/').replace(/^\//, ''))
-  }, [parentId, documents, title])
+      .slice(0, 100)
+    setSlug(computedSlug)
+  }, [title])
 
   return (
     <div className="card bg-base-200 m-4 max-h-full overflow-y-auto shadow-lg">
@@ -131,17 +127,17 @@ export default function NewDocPage() {
             onChange={(e) => setTitle(e.target.value)}
             required
           />
-          <label className="label" htmlFor="new-doc-urlpath">
-            Document URL path
+          <label className="label" htmlFor="new-doc-slug">
+            URL slug
           </label>
           <input
-            id="new-doc-urlpath"
+            id="new-doc-slug"
             type="text"
-            name="path"
-            placeholder="widgets/how-to-make-a-widget"
+            name="slug"
+            placeholder="how-to-make-a-widget"
             className="input input-bordered w-full"
-            value={urlpath}
-            onChange={(e) => setUrlpath(e.target.value)}
+            value={slug}
+            onChange={(e) => setSlug(e.target.value)}
             required
           />
         </fieldset>

@@ -29,6 +29,14 @@ logger = getLogger(__name__)
 router = APIRouter(prefix="/docs", tags=["docs"])
 
 
+async def _reindex_subtree(doc: Doc) -> None:  # pragma: no cover
+    """Recursively re-index a document and all its descendants."""
+    await index_document(doc)
+    await doc.fetch_related("children")
+    for child in doc.children:
+        await _reindex_subtree(child)
+
+
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_doc(
     current_user: LoggedInUser,
@@ -53,19 +61,25 @@ async def create_doc(
         parent_id = parent.id
     else:
         parent_id = None
-    Doc.validate_urlpath(doc_create.urlpath)
-    try:
-        await Doc.get(urlpath=doc_create.urlpath)
+        parent = None
+    Doc.validate_slug(doc_create.slug)
+    # Check for duplicate slug among siblings
+    existing = await Doc.get_or_none(parent_id=parent_id, slug=doc_create.slug)
+    if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"A document with URL path '{doc_create.urlpath}' already exists",
+            detail=f"A sibling document with slug '{doc_create.slug}' already exists",
         )
-    except DoesNotExist:
-        pass
+    # Compute urlpath from parent path + slug
+    if parent:
+        urlpath = f"{parent.urlpath}/{doc_create.slug}"
+    else:
+        urlpath = doc_create.slug
     doc = await Doc.create(
         parent_id=parent_id,
         title=doc_create.title,
-        urlpath=doc_create.urlpath,
+        slug=doc_create.slug,
+        urlpath=urlpath,
         markdown="",
         html="",
         public=doc_create.public,
@@ -80,6 +94,7 @@ async def create_doc(
         id=doc.id,
         parent_id=doc.parent_id,
         title=doc.title,
+        slug=doc.slug,
         urlpath=doc.urlpath,
         markdown=doc.markdown,
         html=doc.html,
@@ -167,6 +182,7 @@ async def get_doc(
         id=doc.id,
         parent_id=doc.parent_id,
         title=doc.title,
+        slug=doc.slug,
         urlpath=doc.urlpath,
         markdown=doc.markdown if include_source else "",
         html=doc.html,
@@ -262,13 +278,15 @@ async def update_doc(
             detail="You do not have permission to update this document",
         )
 
+    needs_urlpath_update = False
+    old_parent_id = doc.parent_id
     if doc_update.parent_id is not None:
         if doc_update.parent_id == 0:
-            doc.parent = None  # type: ignore
+            doc.parent_id = None
         else:
             try:
                 parent_doc = await Doc.get(id=doc_update.parent_id)
-                doc.parent = parent_doc
+                doc.parent_id = parent_doc.id
             except DoesNotExist:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
@@ -285,11 +303,22 @@ async def update_doc(
                         status_code=status.HTTP_400_BAD_REQUEST,
                         detail="Cannot set a document as a child of its own descendant",
                     )
+        if doc.parent_id != old_parent_id:
+            needs_urlpath_update = True
     if doc_update.title is not None:
         doc.title = doc_update.title
-    if doc_update.urlpath is not None:
-        Doc.validate_urlpath(doc_update.urlpath)
-        doc.urlpath = doc_update.urlpath
+    if doc_update.slug is not None:
+        Doc.validate_slug(doc_update.slug)
+        # Check for duplicate slug among siblings
+        existing = await Doc.get_or_none(parent_id=doc.parent_id, slug=doc_update.slug)
+        if existing and existing.id != doc.id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"A sibling document with slug '{doc_update.slug}' already exists",
+            )
+        if doc_update.slug != doc.slug:
+            doc.slug = doc_update.slug
+            needs_urlpath_update = True
     if doc_update.markdown is not None:
         doc.markdown = doc_update.markdown
         create_revision = True
@@ -301,23 +330,33 @@ async def update_doc(
     await doc.update_content()
     async with in_transaction():
         await doc.save()
+        # Update urlpath if slug or parent changed (don't index yet - do it after transaction)
+        if needs_urlpath_update:
+            await doc.update_urlpath(cascade=True, reindex=False)
         # Sync public status to all attached uploads
         if doc_update.public is not None:
             await Upload.filter(doc_id=doc.id).update(public=doc.public)
-    if create_revision:
-        await Revision.create(
-            doc=doc,
-            markdown=doc.markdown,
-            html=doc.html,
-            created_by_id=current_user.id,
-        )
+        if create_revision:
+            await Revision.create(
+                doc=doc,
+                markdown=doc.markdown,
+                html=doc.html,
+                created_by_id=current_user.id,
+            )
+    # Index after transaction commits
     if not settings.disable_search:  # pragma: no cover
         await index_document(doc)
+        # Re-index children if their urlpaths changed
+        if needs_urlpath_update:
+            await doc.fetch_related("children")
+            for child in doc.children:
+                await _reindex_subtree(child)
     logger.info(f"Document '{doc.title}' updated by user {current_user.username}.")
     return DocResponse(
         id=doc.id,
         parent_id=doc.parent_id,
         title=doc.title,
+        slug=doc.slug,
         urlpath=doc.urlpath,
         markdown=doc.markdown,
         html=doc.html,
@@ -465,6 +504,7 @@ async def list_docs(
                 id=doc.id,
                 parent_id=doc.parent_id,
                 title=doc.title,
+                slug=doc.slug,
                 urlpath=doc.urlpath,
                 markdown=doc.markdown if include_content else "",
                 html=doc.html if include_content else "",

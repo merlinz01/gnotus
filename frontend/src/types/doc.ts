@@ -1,7 +1,9 @@
 import type Metadata from './metadata'
 export default interface Doc {
   id: number
+  parent_id: number | null
   title: string
+  slug: string
   urlpath: string
   public: boolean
   metadata: Metadata

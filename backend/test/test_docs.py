@@ -14,7 +14,7 @@ async def test_create_toplevel_doc(api_client: "TestClient", user_admin: "User")
         "/api/docs/",
         json={
             "title": "Test Document",
-            "urlpath": "test/document",
+            "slug": "test-document",
         },
     )
     assert response.status_code == status.HTTP_201_CREATED, response.text
@@ -22,7 +22,8 @@ async def test_create_toplevel_doc(api_client: "TestClient", user_admin: "User")
     assert data == {
         "id": data["id"],
         "title": "Test Document",
-        "urlpath": "test/document",
+        "slug": "test-document",
+        "urlpath": "test-document",
         "parent_id": None,
         "public": False,
         "created_at": data["created_at"],
@@ -44,7 +45,8 @@ async def test_create_child_doc(api_client: "TestClient", user_admin: "User"):
     api_client.set_session_user(user_admin)
     parent = await Doc.create(
         title="Parent Document",
-        urlpath="parent/document",
+        slug="parent",
+        urlpath="parent",
         public=False,
         metadata={},
         markdown="",
@@ -54,7 +56,7 @@ async def test_create_child_doc(api_client: "TestClient", user_admin: "User"):
         "/api/docs/",
         json={
             "title": "Child Document",
-            "urlpath": "parent/document/child",
+            "slug": "child",
             "parent_id": parent.id,
         },
     )
@@ -63,7 +65,8 @@ async def test_create_child_doc(api_client: "TestClient", user_admin: "User"):
     assert data == {
         "id": data["id"],
         "title": "Child Document",
-        "urlpath": "parent/document/child",
+        "slug": "child",
+        "urlpath": "parent/child",
         "parent_id": parent.id,
         "public": False,
         "created_at": data["created_at"],
@@ -89,7 +92,7 @@ async def test_create_doc_with_invalid_parent(
         "/api/docs/",
         json={
             "title": "Invalid Parent Document",
-            "urlpath": "invalid/parent/document",
+            "slug": "invalid-parent-document",
             "parent_id": 9999,  # Assuming this ID does not exist
         },
     )
@@ -98,16 +101,17 @@ async def test_create_doc_with_invalid_parent(
     assert data["detail"] == "Parent document not found"
 
 
-async def test_create_doc_with_existing_urlpath(
+async def test_create_doc_with_existing_slug(
     api_client: "TestClient", user_admin: "User"
 ):
     """
-    Test creating a document with an existing URL path.
+    Test creating a document with an existing slug among siblings.
     """
     api_client.set_session_user(user_admin)
     await Doc.create(
         title="Existing Document",
-        urlpath="existing/document",
+        slug="existing",
+        urlpath="existing",
         public=False,
         metadata={},
         markdown="",
@@ -116,34 +120,32 @@ async def test_create_doc_with_existing_urlpath(
     response = api_client.post(
         "/api/docs/",
         json={
-            "title": "Duplicate URL Document",
-            "urlpath": "existing/document",  # Same URL path as existing document
+            "title": "Duplicate Slug Document",
+            "slug": "existing",  # Same slug as existing document
         },
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST, response.text
     data = response.json()
-    assert (
-        data["detail"] == "A document with URL path 'existing/document' already exists"
-    )
+    assert data["detail"] == "A sibling document with slug 'existing' already exists"
 
 
-async def test_create_doc_with_invalid_urlpath(
+async def test_create_doc_with_invalid_slug(
     api_client: "TestClient", user_admin: "User"
 ):
     """
-    Test creating a document with an invalid URL path.
+    Test creating a document with an invalid slug.
     """
     api_client.set_session_user(user_admin)
     response = api_client.post(
         "/api/docs/",
         json={
-            "title": "Invalid URL Document",
-            "urlpath": "invalid\\path",
+            "title": "Invalid Slug Document",
+            "slug": "invalid\\slug",
         },
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST, response.text
     data = response.json()
-    assert data["detail"] == "Invalid URL path"
+    assert "Invalid URL slug" in data["detail"]
 
 
 async def test_create_doc_unauthorized(api_client: "TestClient", user_viewer: "User"):
@@ -155,7 +157,7 @@ async def test_create_doc_unauthorized(api_client: "TestClient", user_viewer: "U
         "/api/docs/",
         json={
             "title": "Unauthorized Document",
-            "urlpath": "unauthorized/document",
+            "slug": "unauthorized-document",
         },
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN, response.text
@@ -169,7 +171,8 @@ async def test_get_doc_outline(api_client: "TestClient", user_admin: "User"):
     """
     doc1 = await Doc.create(
         title="Outline Document 1",
-        urlpath="outline/doc1",
+        slug="doc1",
+        urlpath="doc1",
         public=False,
         metadata={},
         markdown="",
@@ -177,7 +180,8 @@ async def test_get_doc_outline(api_client: "TestClient", user_admin: "User"):
     )
     doc2 = await Doc.create(
         title="Outline Document 2",
-        urlpath="outline/doc2",
+        slug="doc2",
+        urlpath="doc2",
         public=False,
         metadata={},
         markdown="",
@@ -186,7 +190,8 @@ async def test_get_doc_outline(api_client: "TestClient", user_admin: "User"):
     doc3 = await Doc.create(
         parent_id=doc1.id,
         title="Outline Document 3",
-        urlpath="outline/doc3",
+        slug="doc3",
+        urlpath="doc1/doc3",
         public=False,
         metadata={},
         markdown="",
@@ -195,7 +200,8 @@ async def test_get_doc_outline(api_client: "TestClient", user_admin: "User"):
     doc4 = await Doc.create(
         parent_id=doc2.id,
         title="Outline Document 4",
-        urlpath="outline/doc4",
+        slug="doc4",
+        urlpath="doc2/doc4",
         public=False,
         metadata={},
         markdown="",
@@ -216,13 +222,13 @@ async def test_get_doc_outline(api_client: "TestClient", user_admin: "User"):
                 "id": doc1.id,
                 "public": False,
                 "title": "Outline Document 1",
-                "urlpath": "outline/doc1",
+                "urlpath": "doc1",
                 "children": [
                     {
                         "id": doc3.id,
                         "public": False,
                         "title": "Outline Document 3",
-                        "urlpath": "outline/doc3",
+                        "urlpath": "doc1/doc3",
                         "children": [],
                     }
                 ],
@@ -231,13 +237,13 @@ async def test_get_doc_outline(api_client: "TestClient", user_admin: "User"):
                 "id": doc2.id,
                 "public": False,
                 "title": "Outline Document 2",
-                "urlpath": "outline/doc2",
+                "urlpath": "doc2",
                 "children": [
                     {
                         "id": doc4.id,
                         "public": False,
                         "title": "Outline Document 4",
-                        "urlpath": "outline/doc4",
+                        "urlpath": "doc2/doc4",
                         "children": [],
                     }
                 ],
@@ -252,7 +258,8 @@ async def test_get_doc_outline_public(api_client: "TestClient"):
     """
     doc1 = await Doc.create(
         title="Public Outline Document 1",
-        urlpath="public/outline/doc1",
+        slug="pub-doc1",
+        urlpath="pub-doc1",
         public=True,
         metadata={},
         markdown="",
@@ -260,7 +267,8 @@ async def test_get_doc_outline_public(api_client: "TestClient"):
     )
     doc2 = await Doc.create(
         title="Public Outline Document 2",
-        urlpath="public/outline/doc2",
+        slug="pub-doc2",
+        urlpath="pub-doc2",
         public=True,
         metadata={},
         markdown="",
@@ -269,7 +277,8 @@ async def test_get_doc_outline_public(api_client: "TestClient"):
     doc3 = await Doc.create(
         parent_id=doc1.id,
         title="Public Outline Document 3",
-        urlpath="public/outline/doc3",
+        slug="pub-doc3",
+        urlpath="pub-doc1/pub-doc3",
         public=True,
         metadata={},
         markdown="",
@@ -278,7 +287,8 @@ async def test_get_doc_outline_public(api_client: "TestClient"):
     await Doc.create(
         parent_id=doc2.id,
         title="Public Outline Document 4",
-        urlpath="public/outline/doc4",
+        slug="pub-doc4",
+        urlpath="pub-doc2/pub-doc4",
         public=False,
         metadata={},
         markdown="",
@@ -298,13 +308,13 @@ async def test_get_doc_outline_public(api_client: "TestClient"):
                 "id": doc1.id,
                 "public": True,
                 "title": "Public Outline Document 1",
-                "urlpath": "public/outline/doc1",
+                "urlpath": "pub-doc1",
                 "children": [
                     {
                         "id": doc3.id,
                         "public": True,
                         "title": "Public Outline Document 3",
-                        "urlpath": "public/outline/doc3",
+                        "urlpath": "pub-doc1/pub-doc3",
                         "children": [],
                     }
                 ],
@@ -313,7 +323,7 @@ async def test_get_doc_outline_public(api_client: "TestClient"):
                 "id": doc2.id,
                 "public": True,
                 "title": "Public Outline Document 2",
-                "urlpath": "public/outline/doc2",
+                "urlpath": "pub-doc2",
                 "children": [],
             },
         ],
@@ -327,7 +337,8 @@ async def test_get_doc_by_id(api_client: "TestClient", user_admin: "User"):
     api_client.set_session_user(user_admin)
     doc = await Doc.create(
         title="Test Get Document",
-        urlpath="test/get/document",
+        slug="get-document",
+        urlpath="get-document",
         public=False,
         metadata={"subtitles": []},
         markdown="",
@@ -340,7 +351,8 @@ async def test_get_doc_by_id(api_client: "TestClient", user_admin: "User"):
     assert data == {
         "id": doc.id,
         "title": "Test Get Document",
-        "urlpath": "test/get/document",
+        "slug": "get-document",
+        "urlpath": "get-document",
         "parent_id": None,
         "public": False,
         "created_at": data["created_at"],
@@ -372,7 +384,8 @@ async def test_get_doc_by_urlpath(api_client: "TestClient", user_admin: "User"):
     api_client.set_session_user(user_admin)
     doc = await Doc.create(
         title="Test Get Document by URL",
-        urlpath="test/get/document/url",
+        slug="get-document-url",
+        urlpath="get-document-url",
         public=False,
         metadata={"subtitles": []},
         markdown="",
@@ -385,7 +398,8 @@ async def test_get_doc_by_urlpath(api_client: "TestClient", user_admin: "User"):
     assert data == {
         "id": doc.id,
         "title": "Test Get Document by URL",
-        "urlpath": "test/get/document/url",
+        "slug": "get-document-url",
+        "urlpath": "get-document-url",
         "parent_id": None,
         "public": False,
         "created_at": data["created_at"],
@@ -418,7 +432,8 @@ async def test_get_doc_by_urlpath_public(api_client: "TestClient"):
     """
     doc = await Doc.create(
         title="Public Document",
-        urlpath="public/document",
+        slug="public-document",
+        urlpath="public-document",
         public=True,
         metadata={"subtitles": []},
         markdown="",
@@ -427,7 +442,8 @@ async def test_get_doc_by_urlpath_public(api_client: "TestClient"):
     await Doc.create(
         parent_id=doc.id,
         title="Child Private Document",
-        urlpath="public/document/child",
+        slug="child",
+        urlpath="public-document/child",
         public=False,
         metadata={"subtitles": []},
         markdown="",
@@ -439,7 +455,8 @@ async def test_get_doc_by_urlpath_public(api_client: "TestClient"):
     assert data == {
         "id": doc.id,
         "title": "Public Document",
-        "urlpath": "public/document",
+        "slug": "public-document",
+        "urlpath": "public-document",
         "parent_id": None,
         "public": True,
         "created_at": data["created_at"],
@@ -459,7 +476,8 @@ async def test_get_private_doc_unauthenticated(api_client: "TestClient"):
     """
     doc = await Doc.create(
         title="Private Document",
-        urlpath="private/document",
+        slug="private-document",
+        urlpath="private-document",
         public=False,
         metadata={"subtitles": []},
         markdown="",
@@ -478,7 +496,8 @@ async def test_get_doc_with_timestamp(api_client: "TestClient", user_admin: "Use
     api_client.set_session_user(user_admin)
     doc = await Doc.create(
         title="Document with Timestamp",
-        urlpath="document/with/timestamp",
+        slug="doc-timestamp",
+        urlpath="doc-timestamp",
         public=False,
         metadata={"subtitles": []},
         markdown="",
@@ -500,7 +519,8 @@ async def test_get_doc_with_non_matching_timestamp(
     api_client.set_session_user(user_admin)
     doc = await Doc.create(
         title="Document with Invalid Timestamp",
-        urlpath="document/with/invalid/timestamp",
+        slug="doc-invalid-timestamp",
+        urlpath="doc-invalid-timestamp",
         public=False,
         metadata={"subtitles": []},
         markdown="",
@@ -523,7 +543,8 @@ async def test_get_doc_revisions(api_client: "TestClient", user_admin: "User"):
     api_client.set_session_user(user_admin)
     doc = await Doc.create(
         title="Test Document Revisions",
-        urlpath="test/document/revisions",
+        slug="doc-revisions",
+        urlpath="doc-revisions",
         public=False,
         metadata={"subtitles": []},
         markdown="",
@@ -596,7 +617,8 @@ async def test_get_doc_revisions_unauthorized(
     api_client.set_session_user(user_viewer)
     doc = await Doc.create(
         title="Unauthorized Revisions Document",
-        urlpath="unauthorized/revisions/document",
+        slug="unauthorized-revisions",
+        urlpath="unauthorized-revisions",
         public=False,
         metadata={"subtitles": []},
         markdown="",
@@ -615,7 +637,8 @@ async def test_update_doc(api_client: "TestClient", user_admin: "User"):
     api_client.set_session_user(user_admin)
     doc = await Doc.create(
         title="Document to Update",
-        urlpath="document/to/update",
+        slug="doc-to-update",
+        urlpath="doc-to-update",
         public=False,
         metadata={"subtitles": []},
         markdown="",
@@ -624,7 +647,8 @@ async def test_update_doc(api_client: "TestClient", user_admin: "User"):
     )
     doc2 = await Doc.create(
         title="Another Document",
-        urlpath="another/document",
+        slug="another-doc",
+        urlpath="another-doc",
         public=False,
         metadata={"subtitles": []},
         markdown="",
@@ -636,7 +660,7 @@ async def test_update_doc(api_client: "TestClient", user_admin: "User"):
         json={
             "parent_id": doc2.id,
             "title": "Updated Document Title",
-            "urlpath": "document/to/update/updated",
+            "slug": "updated-doc",
             "public": True,
             "metadata": {"subtitles": ["en", "es"]},
             "markdown": "# Updated Markdown Content",
@@ -647,7 +671,8 @@ async def test_update_doc(api_client: "TestClient", user_admin: "User"):
     assert data == {
         "id": doc.id,
         "title": "Updated Document Title",
-        "urlpath": "document/to/update/updated",
+        "slug": "updated-doc",
+        "urlpath": "another-doc/updated-doc",
         "parent_id": doc2.id,
         "public": True,
         "created_at": data["created_at"],
@@ -678,7 +703,7 @@ async def test_update_doc_with_invalid_id(api_client: "TestClient", user_admin: 
         "/api/docs/9999",  # Assuming this ID does not exist
         json={
             "title": "Invalid Update Document",
-            "urlpath": "invalid/update/document",
+            "slug": "invalid-update",
         },
     )
     assert response.status_code == status.HTTP_404_NOT_FOUND, response.text
@@ -693,7 +718,8 @@ async def test_update_doc_unauthorized(api_client: "TestClient", user_viewer: "U
     api_client.set_session_user(user_viewer)
     doc = await Doc.create(
         title="Unauthorized Update Document",
-        urlpath="unauthorized/update/document",
+        slug="unauthorized-update",
+        urlpath="unauthorized-update",
         public=False,
         metadata={"subtitles": []},
         markdown="",
@@ -703,7 +729,7 @@ async def test_update_doc_unauthorized(api_client: "TestClient", user_viewer: "U
         f"/api/docs/{doc.id}",
         json={
             "title": "Unauthorized Update Attempt",
-            "urlpath": "unauthorized/update/attempt",
+            "slug": "unauthorized-update-attempt",
         },
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN, response.text
@@ -718,7 +744,8 @@ async def test_update_doc_parent_none(api_client: "TestClient", user_admin: "Use
     api_client.set_session_user(user_admin)
     parent = await Doc.create(
         title="Parent Document",
-        urlpath="parent/document",
+        slug="parent-doc",
+        urlpath="parent-doc",
         public=False,
         metadata={},
         markdown="",
@@ -727,7 +754,8 @@ async def test_update_doc_parent_none(api_client: "TestClient", user_admin: "Use
     doc = await Doc.create(
         parent_id=parent.id,
         title="Document with Parent",
-        urlpath="document/with/parent",
+        slug="doc-with-parent",
+        urlpath="parent-doc/doc-with-parent",
         public=False,
         metadata={"subtitles": []},
         markdown="",
@@ -743,6 +771,7 @@ async def test_update_doc_parent_none(api_client: "TestClient", user_admin: "Use
     assert response.status_code == status.HTTP_200_OK, response.text
     data = response.json()
     assert data["parent_id"] is None
+    assert data["urlpath"] == "doc-with-parent"
     assert await doc.revisions.all().count() == 0
 
 
@@ -755,7 +784,8 @@ async def test_update_doc_with_invalid_parent(
     api_client.set_session_user(user_admin)
     doc = await Doc.create(
         title="Document with Invalid Parent",
-        urlpath="document/with/invalid/parent",
+        slug="doc-invalid-parent",
+        urlpath="doc-invalid-parent",
         public=False,
         metadata={"subtitles": []},
         markdown="",
@@ -780,7 +810,8 @@ async def test_update_doc_with_same_parent(
     api_client.set_session_user(user_admin)
     doc = await Doc.create(
         title="Document with Same Parent",
-        urlpath="document/with/same/parent",
+        slug="doc-same-parent",
+        urlpath="doc-same-parent",
         public=False,
         metadata={"subtitles": []},
         markdown="",
@@ -807,7 +838,8 @@ async def test_update_doc_with_circular_parent(
     api_client.set_session_user(user_admin)
     parent = await Doc.create(
         title="Parent Document",
-        urlpath="parent/document",
+        slug="circular-parent",
+        urlpath="circular-parent",
         public=False,
         metadata={},
         markdown="",
@@ -816,7 +848,8 @@ async def test_update_doc_with_circular_parent(
     child = await Doc.create(
         parent_id=parent.id,
         title="Child Document",
-        urlpath="child/document",
+        slug="circular-child",
+        urlpath="circular-parent/circular-child",
         public=False,
         metadata={"subtitles": []},
         markdown="",
@@ -840,7 +873,8 @@ async def test_move_doc_up(api_client: "TestClient", user_admin: "User"):
     """
     doc1 = await Doc.create(
         title="Doc 1",
-        urlpath="doc/1",
+        slug="move-doc-1",
+        urlpath="move-doc-1",
         public=False,
         metadata={},
         markdown="",
@@ -849,7 +883,8 @@ async def test_move_doc_up(api_client: "TestClient", user_admin: "User"):
     )
     doc2 = await Doc.create(
         title="Doc 2",
-        urlpath="doc/2",
+        slug="move-doc-2",
+        urlpath="move-doc-2",
         public=False,
         metadata={},
         markdown="",
@@ -858,7 +893,8 @@ async def test_move_doc_up(api_client: "TestClient", user_admin: "User"):
     )
     doc3 = await Doc.create(
         title="Doc 3",
-        urlpath="doc/3",
+        slug="move-doc-3",
+        urlpath="move-doc-3",
         public=False,
         metadata={},
         markdown="",
@@ -884,7 +920,8 @@ async def test_move_doc_down(api_client: "TestClient", user_admin: "User"):
     """
     doc1 = await Doc.create(
         title="Doc 1",
-        urlpath="doc/1",
+        slug="move-down-doc-1",
+        urlpath="move-down-doc-1",
         public=False,
         metadata={},
         markdown="",
@@ -893,7 +930,8 @@ async def test_move_doc_down(api_client: "TestClient", user_admin: "User"):
     )
     doc2 = await Doc.create(
         title="Doc 2",
-        urlpath="doc/2",
+        slug="move-down-doc-2",
+        urlpath="move-down-doc-2",
         public=False,
         metadata={},
         markdown="",
@@ -902,7 +940,8 @@ async def test_move_doc_down(api_client: "TestClient", user_admin: "User"):
     )
     doc3 = await Doc.create(
         title="Doc 3",
-        urlpath="doc/3",
+        slug="move-down-doc-3",
+        urlpath="move-down-doc-3",
         public=False,
         metadata={},
         markdown="",
@@ -942,7 +981,8 @@ async def test_move_doc_unauthorized(api_client: "TestClient", user_viewer: "Use
     api_client.set_session_user(user_viewer)
     doc = await Doc.create(
         title="Unauthorized Move Document",
-        urlpath="unauthorized/move/document",
+        slug="unauthorized-move",
+        urlpath="unauthorized-move",
         public=False,
         metadata={"subtitles": []},
         markdown="",
@@ -961,7 +1001,8 @@ async def test_restore_doc_revision(api_client: "TestClient", user_admin: "User"
     api_client.set_session_user(user_admin)
     doc = await Doc.create(
         title="Document to Restore",
-        urlpath="document/to/restore",
+        slug="doc-to-restore",
+        urlpath="doc-to-restore",
         public=False,
         metadata={"subtitles": []},
         markdown="Initial content",
@@ -1009,7 +1050,8 @@ async def test_restore_doc_revision_invalid_revision(
     api_client.set_session_user(user_admin)
     doc = await Doc.create(
         title="Document with Invalid Revision",
-        urlpath="document/with/invalid/revision",
+        slug="doc-invalid-rev",
+        urlpath="doc-invalid-rev",
         public=False,
         metadata={"subtitles": []},
         markdown="",
@@ -1033,7 +1075,8 @@ async def test_restore_doc_revision_unauthorized(
     api_client.set_session_user(user_viewer)
     doc = await Doc.create(
         title="Unauthorized Restore Document",
-        urlpath="unauthorized/restore/document",
+        slug="unauthorized-restore",
+        urlpath="unauthorized-restore",
         public=False,
         metadata={"subtitles": []},
         markdown="",
@@ -1060,7 +1103,8 @@ async def test_delete_doc(api_client: "TestClient", user_admin: "User"):
     api_client.set_session_user(user_admin)
     doc = await Doc.create(
         title="Document to Delete",
-        urlpath="document/to/delete",
+        slug="doc-to-delete",
+        urlpath="doc-to-delete",
         public=False,
         metadata={"subtitles": []},
         markdown="",
@@ -1090,7 +1134,8 @@ async def test_delete_doc_unauthorized(api_client: "TestClient", user_viewer: "U
     api_client.set_session_user(user_viewer)
     doc = await Doc.create(
         title="Unauthorized Delete Document",
-        urlpath="unauthorized/delete/document",
+        slug="unauthorized-delete",
+        urlpath="unauthorized-delete",
         public=False,
         metadata={"subtitles": []},
         markdown="",
@@ -1109,7 +1154,8 @@ async def test_list_docs(api_client: "TestClient", user_admin: "User"):
     api_client.set_session_user(user_admin)
     doc1 = await Doc.create(
         title="List Document 1",
-        urlpath="list/document/1",
+        slug="list-doc-1",
+        urlpath="list-doc-1",
         public=False,
         metadata={},
         markdown="",
@@ -1117,7 +1163,8 @@ async def test_list_docs(api_client: "TestClient", user_admin: "User"):
     )
     doc2 = await Doc.create(
         title="List Document 2",
-        urlpath="list/document/2",
+        slug="list-doc-2",
+        urlpath="list-doc-2",
         public=False,
         metadata={},
         markdown="",
@@ -1125,7 +1172,8 @@ async def test_list_docs(api_client: "TestClient", user_admin: "User"):
     )
     await Doc.create(
         title="List Document 3",
-        urlpath="list/document/3",
+        slug="list-doc-3",
+        urlpath="list-doc-3",
         public=False,
         metadata={},
         markdown="",
@@ -1139,7 +1187,8 @@ async def test_list_docs(api_client: "TestClient", user_admin: "User"):
             {
                 "id": doc1.id,
                 "title": "List Document 1",
-                "urlpath": "list/document/1",
+                "slug": "list-doc-1",
+                "urlpath": "list-doc-1",
                 "parent_id": None,
                 "public": False,
                 "created_at": data["items"][0]["created_at"],
@@ -1154,7 +1203,8 @@ async def test_list_docs(api_client: "TestClient", user_admin: "User"):
             {
                 "id": doc2.id,
                 "title": "List Document 2",
-                "urlpath": "list/document/2",
+                "slug": "list-doc-2",
+                "urlpath": "list-doc-2",
                 "parent_id": None,
                 "public": False,
                 "created_at": data["items"][1]["created_at"],
@@ -1184,7 +1234,8 @@ async def test_search_docs_with_short_query(
     api_client.set_session_user(user_admin)
     await Doc.create(
         title="Search Document 1",
-        urlpath="search/doc/1",
+        slug="search-doc-1",
+        urlpath="search-doc-1",
         public=False,
         metadata={},
         markdown="This is a test document.",

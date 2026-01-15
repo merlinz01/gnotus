@@ -11,6 +11,7 @@ async def test_dump_docs(api_client, tmpdir: Path, user_admin: User):
     """Test the dump docs endpoint."""
     doc1 = await Doc.create(
         title="Test Doc 1",
+        slug="test-doc-1",
         urlpath="test-doc-1",
         public=True,
         markdown="This is a test document.",
@@ -20,6 +21,7 @@ async def test_dump_docs(api_client, tmpdir: Path, user_admin: User):
     doc2 = await Doc.create(
         parent_id=doc1.id,
         title="Test Doc 2",
+        slug="test-doc-2",
         urlpath="test-doc-1/test-doc-2",
         public=True,
         markdown="This is another test document.",
@@ -34,12 +36,13 @@ async def test_dump_docs(api_client, tmpdir: Path, user_admin: User):
         == f"""---
 id: {doc1.id}
 title: "Test Doc 1"
+slug: test-doc-1
 urlpath: test-doc-1
 public: True
-parent_id: 
+parent_id:
 created_at: {doc1.created_at.isoformat()}
 updated_at: {doc1.updated_at.isoformat()}
-updated_by_id: 
+updated_by_id:
 updated_by_username: ""
 order: 0
 ---
@@ -54,6 +57,7 @@ This is a test document."""
         == f"""---
 id: {doc2.id}
 title: "Test Doc 2"
+slug: test-doc-2
 urlpath: test-doc-1/test-doc-2
 public: True
 parent_id: {doc1.id}
@@ -74,6 +78,7 @@ async def test_dump_docs_with_revisions(api_client, tmpdir: Path, user_admin: Us
     """Test the dump docs endpoint with revisions."""
     doc1 = await Doc.create(
         title="Test Doc 1",
+        slug="test-doc-1",
         urlpath="test-doc-1",
         public=True,
         markdown="This is a test document.",
@@ -101,12 +106,13 @@ async def test_dump_docs_with_revisions(api_client, tmpdir: Path, user_admin: Us
         == f"""---
 id: {doc1.id}
 title: "Test Doc 1"
+slug: test-doc-1
 urlpath: test-doc-1
 public: True
-parent_id: 
+parent_id:
 created_at: {doc1.created_at.isoformat()}
 updated_at: {doc1.updated_at.isoformat()}
-updated_by_id: 
+updated_by_id:
 updated_by_username: ""
 order: 0
 ---

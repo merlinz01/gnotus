@@ -205,6 +205,7 @@ async def access_shared_doc(
         id=doc.id,
         parent_id=doc.parent_id,
         title=doc.title,
+        slug=doc.slug,
         urlpath=doc.urlpath,
         markdown="",
         html=doc.html,

@@ -83,13 +83,13 @@ describe('NewDocPage', () => {
       'placeholder',
       'How to make a widget'
     )
-    expect(screen.getByLabelText('Document URL path')).toHaveAttribute(
+    expect(screen.getByLabelText('URL slug')).toHaveAttribute(
       'placeholder',
-      'widgets/how-to-make-a-widget'
+      'how-to-make-a-widget'
     )
   })
 
-  test('updates urlpath when title changes', async () => {
+  test('updates slug when title changes', async () => {
     vi.mocked(axios.get).mockResolvedValueOnce({
       data: { items: mockParentDocs },
     })
@@ -97,9 +97,9 @@ describe('NewDocPage', () => {
     // Wait for docs to load
     await waitFor(() => expect(axios.get).toHaveBeenCalled())
     const titleInput = screen.getByLabelText('Document title')
-    const urlpathInput = screen.getByLabelText('Document URL path')
+    const slugInput = screen.getByLabelText('URL slug')
     fireEvent.change(titleInput, { target: { value: 'New Widget Guide' } })
-    expect(urlpathInput).toHaveValue('new-widget-guide')
+    expect(slugInput).toHaveValue('new-widget-guide')
   })
 
   test('shows error if document creation fails', async () => {

@@ -14,7 +14,7 @@ async def test_csrf_protected_endpoint(api_client: TestClient, user_admin: User)
         json={
             "title": "Test Document",
             "content": "This is a test.",
-            "urlpath": "test-document",
+            "slug": "test-document",
         },
     )
     assert response.status_code == status.HTTP_201_CREATED, response.text
@@ -33,7 +33,7 @@ async def test_csrf_protected_endpoint_invalid_token(
         json={
             "title": "Test Document",
             "content": "This is a test.",
-            "urlpath": "test-document",
+            "slug": "test-document",
         },
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN

@@ -46,14 +46,45 @@ const mockUser = {
 const mockDoc = {
   id: 123,
   title: 'Test Doc',
+  slug: 'test-doc',
   urlpath: 'test-doc',
   public: true,
   markdown: '# Hello',
   parents: [],
 }
+const mockDocsList = {
+  items: [
+    { id: 1, title: 'Parent Doc', urlpath: 'parent-doc', public: true, parent_id: null },
+    { id: 2, title: 'Another Doc', urlpath: 'another-doc', public: false, parent_id: null },
+  ],
+}
 const mockConfig = {
   site_name: 'Test site',
   site_description: 'Test description',
+}
+
+// Helper to mock axios.get based on URL
+function mockAxiosGet(options: {
+  doc?: object
+  docError?: Error
+  docs?: object
+  uploads?: object[]
+}) {
+  vi.mocked(axios.get).mockImplementation((url: string) => {
+    if (url.includes('/api/docs/') && url.includes('include_source')) {
+      if (options.docError) {
+        return Promise.reject(options.docError)
+      }
+      return Promise.resolve({ data: options.doc || mockDoc })
+    }
+    if (url === '/api/docs/') {
+      return Promise.resolve({ data: options.docs || mockDocsList })
+    }
+    if (url.includes('/api/uploads/by-doc/')) {
+      return Promise.resolve({ data: options.uploads || [] })
+    }
+    return Promise.reject(new Error(`Unexpected URL: ${url}`))
+  })
 }
 
 describe('DocEditorPage', () => {
@@ -76,13 +107,20 @@ describe('DocEditorPage', () => {
 
   it('renders loading spinner while loading', async () => {
     let resolvePromise: (r: unknown) => void
-    vi.mocked(axios.get)
-      .mockImplementationOnce(() => {
+    vi.mocked(axios.get).mockImplementation((url: string) => {
+      if (url.includes('/api/docs/') && url.includes('include_source')) {
         return new Promise((res) => {
           resolvePromise = res
         })
-      })
-      .mockResolvedValueOnce({ data: [] }) // uploads
+      }
+      if (url === '/api/docs/') {
+        return Promise.resolve({ data: mockDocsList })
+      }
+      if (url.includes('/api/uploads/by-doc/')) {
+        return Promise.resolve({ data: [] })
+      }
+      return Promise.reject(new Error(`Unexpected URL: ${url}`))
+    })
     renderWithRouter()
     expect(screen.getByText(/Edit document/i)).toBeInTheDocument()
     expect(screen.getByRole('status')).toBeInTheDocument()
@@ -91,19 +129,19 @@ describe('DocEditorPage', () => {
   })
 
   it('renders document fields after loading', async () => {
-    vi.mocked(axios.get)
-      .mockResolvedValueOnce({ data: mockDoc })
-      .mockResolvedValueOnce({ data: [] }) // uploads
+    mockAxiosGet({})
     renderWithRouter()
     expect(await screen.findByDisplayValue('Test Doc')).toBeInTheDocument()
     expect(screen.getByLabelText('Title')).toHaveValue('Test Doc')
-    expect(screen.getByLabelText('URL path')).toHaveValue('test-doc')
+    expect(screen.getByLabelText('URL slug')).toHaveValue('test-doc')
     expect(screen.getByLabelText('Public')).toBeChecked()
     expect(screen.getByPlaceholderText(/Write your document content here/i)).toHaveValue('# Hello')
+    // Verify parent select is rendered
+    expect(screen.getByLabelText('Parent')).toBeInTheDocument()
   })
 
   it('shows error if document fetch fails', async () => {
-    vi.mocked(axios.get).mockRejectedValueOnce(new Error('fail'))
+    mockAxiosGet({ docError: new Error('fail') })
     vi.spyOn(console, 'error').mockImplementation(() => {})
     renderWithRouter()
     expect(await screen.findByText(/Failed to load document/i)).toBeInTheDocument()
@@ -116,12 +154,13 @@ describe('DocEditorPage', () => {
   })
 
   it('saves document on submit', async () => {
-    vi.mocked(axios.get).mockResolvedValueOnce({ data: mockDoc })
+    mockAxiosGet({})
     vi.mocked(axios.put).mockResolvedValueOnce({
       data: {
         id: 123,
         title: 'Changed Title',
         markdown: '# Changed',
+        slug: 'changed-doc',
         urlpath: 'changed-doc',
         public: true,
         parents: [],
@@ -133,26 +172,54 @@ describe('DocEditorPage', () => {
     fireEvent.change(screen.getByPlaceholderText(/Write your document content here/i), {
       target: { value: '# Changed' },
     })
-    fireEvent.change(screen.getByLabelText('URL path'), {
+    fireEvent.change(screen.getByLabelText('URL slug'), {
       target: { value: 'changed-doc' },
     })
     fireEvent.click(screen.getByLabelText('Public'))
     fireEvent.click(screen.getByText('Save'))
-    waitFor(() =>
+    await waitFor(() =>
       expect(axios.put).toHaveBeenCalledWith('/api/docs/123', {
         title: 'Changed Title',
         markdown: '# Changed',
-        urlpath: 'changed-doc',
+        slug: 'changed-doc',
+        parent_id: 0,
+        public: false,
+      })
+    )
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/changed-doc'))
+  })
+
+  it('saves document with parent', async () => {
+    mockAxiosGet({})
+    vi.mocked(axios.put).mockResolvedValueOnce({
+      data: {
+        id: 123,
+        title: 'Test Doc',
+        markdown: '# Hello',
+        slug: 'test-doc',
+        urlpath: 'parent-doc/test-doc',
+        public: true,
+        parents: [{ id: 1, title: 'Parent Doc', urlpath: 'parent-doc' }],
+      },
+    })
+    renderWithRouter()
+    await screen.findByDisplayValue('Test Doc')
+    // Select a parent
+    fireEvent.change(screen.getByLabelText('Parent'), { target: { value: '1' } })
+    fireEvent.click(screen.getByText('Save'))
+    await waitFor(() =>
+      expect(axios.put).toHaveBeenCalledWith('/api/docs/123', {
+        title: 'Test Doc',
+        markdown: '# Hello',
+        slug: 'test-doc',
+        parent_id: 1,
         public: true,
       })
     )
-    waitFor(() => expect(navigate).toHaveBeenCalledWith('/changed-doc'))
   })
 
   it('shows error if save fails', async () => {
-    vi.mocked(axios.get)
-      .mockResolvedValueOnce({ data: mockDoc })
-      .mockResolvedValueOnce({ data: [] }) // uploads
+    mockAxiosGet({})
     vi.mocked(axios.put).mockRejectedValueOnce(new Error('fail'))
     vi.spyOn(console, 'error').mockImplementation(() => {})
     renderWithRouter()
@@ -163,11 +230,13 @@ describe('DocEditorPage', () => {
   })
 
   it('moves document up and down', async () => {
-    vi.mocked(axios.get).mockResolvedValueOnce({ data: mockDoc })
+    mockAxiosGet({})
     vi.mocked(axios.post).mockResolvedValueOnce({ data: {} })
     vi.mocked(axios.post).mockResolvedValueOnce({ data: {} })
     renderWithRouter()
-    fireEvent.click(await screen.findByTitle('Move document up'))
+    // Wait for document to load before clicking move buttons
+    await screen.findByDisplayValue('Test Doc')
+    fireEvent.click(screen.getByTitle('Move document up'))
     await waitFor(() => expect(axios.post).toHaveBeenCalledWith('/api/docs/123/move?direction=up'))
     fireEvent.click(screen.getByTitle('Move document down'))
     await waitFor(() =>
@@ -176,16 +245,18 @@ describe('DocEditorPage', () => {
   })
 
   it('shows error if move fails', async () => {
-    vi.mocked(axios.get).mockResolvedValueOnce({ data: mockDoc })
+    mockAxiosGet({})
     vi.mocked(axios.post).mockRejectedValueOnce(new Error('fail'))
     vi.spyOn(console, 'error').mockImplementation(() => {})
     renderWithRouter()
-    fireEvent.click(await screen.findByTitle('Move document up'))
+    // Wait for document to load before clicking move button
+    await screen.findByDisplayValue('Test Doc')
+    fireEvent.click(screen.getByTitle('Move document up'))
     expect(await screen.findByText(/Failed to move document up/i)).toBeInTheDocument()
   })
 
   it('deletes document after confirmation', async () => {
-    vi.mocked(axios.get).mockResolvedValueOnce({ data: mockDoc })
+    mockAxiosGet({})
     vi.mocked(axios.delete).mockResolvedValueOnce({})
     vi.spyOn(console, 'error').mockImplementation(() => {})
     vi.spyOn(window, 'confirm').mockReturnValue(true)
@@ -193,21 +264,23 @@ describe('DocEditorPage', () => {
     confirm.mockReturnValueOnce(true)
     renderWithRouter()
     fireEvent.click(await screen.findByTitle('Delete document'))
-    waitFor(() =>
-      expect(confirm).toHaveBeenCalledWith('Are you sure you want to delete this document?')
+    await waitFor(() =>
+      expect(confirm).toHaveBeenCalledWith(
+        'Are you sure you want to delete this document? This action cannot be undone.'
+      )
     )
-    waitFor(() => expect(axios.delete).toHaveBeenCalledWith('/api/docs/123'))
-    waitFor(() => expect(navigate).toHaveBeenCalledWith('/'))
+    await waitFor(() => expect(axios.delete).toHaveBeenCalledWith('/api/docs/123'))
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith('/'))
   })
 
   it('does not delete document if confirmation is cancelled', async () => {
-    vi.mocked(axios.get).mockResolvedValueOnce({ data: mockDoc })
+    mockAxiosGet({})
     vi.spyOn(console, 'error').mockImplementation(() => {})
     const confirm = vi.spyOn(window, 'confirm')
     confirm.mockReturnValueOnce(false)
     renderWithRouter()
     fireEvent.click(await screen.findByTitle('Delete document'))
-    waitFor(() =>
+    await waitFor(() =>
       expect(confirm).toHaveBeenCalledWith(
         'Are you sure you want to delete this document? This action cannot be undone.'
       )
@@ -218,7 +291,7 @@ describe('DocEditorPage', () => {
   })
 
   it('shows error if delete fails', async () => {
-    vi.mocked(axios.get).mockResolvedValueOnce({ data: mockDoc })
+    mockAxiosGet({})
     vi.mocked(axios.delete).mockRejectedValueOnce(new Error('fail'))
     vi.spyOn(console, 'error').mockImplementation(() => {})
     const confirm = vi.spyOn(window, 'confirm')
@@ -229,7 +302,7 @@ describe('DocEditorPage', () => {
   })
 
   it('updates preview when textarea changes', async () => {
-    vi.mocked(axios.get).mockResolvedValueOnce({ data: mockDoc })
+    mockAxiosGet({})
     renderWithRouter()
     const textarea = await screen.findByPlaceholderText(/Write your document content/i)
     fireEvent.change(textarea, { target: { value: '# Changed' } })
@@ -237,11 +310,64 @@ describe('DocEditorPage', () => {
   })
 
   it('renders document history link', async () => {
-    vi.mocked(axios.get).mockResolvedValueOnce({ data: mockDoc })
+    mockAxiosGet({})
     renderWithRouter()
     expect(await screen.findByTitle('View document history')).toHaveAttribute(
       'href',
       '/_revisions/123'
     )
+  })
+
+  it('shows parent in select when document has a parent', async () => {
+    mockAxiosGet({
+      doc: {
+        ...mockDoc,
+        parents: [{ id: 1, title: 'Parent Doc', urlpath: 'parent-doc' }],
+      },
+    })
+    renderWithRouter()
+    await screen.findByDisplayValue('Test Doc')
+    expect(screen.getByLabelText('Parent')).toHaveValue('1')
+  })
+
+  it('excludes current document from parent options', async () => {
+    mockAxiosGet({
+      docs: {
+        items: [
+          { id: 123, title: 'Test Doc', urlpath: 'test-doc', public: true, parent_id: null },
+          { id: 1, title: 'Parent Doc', urlpath: 'parent-doc', public: true, parent_id: null },
+        ],
+      },
+    })
+    renderWithRouter()
+    await screen.findByDisplayValue('Test Doc')
+    const parentSelect = screen.getByLabelText('Parent')
+    // Should have "(Top-level document)" and "Parent Doc" but not "Test Doc" (current doc)
+    expect(parentSelect.querySelectorAll('option')).toHaveLength(2)
+    expect(screen.queryByRole('option', { name: 'Test Doc' })).not.toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Parent Doc' })).toBeInTheDocument()
+  })
+
+  it('excludes descendants from parent options', async () => {
+    mockAxiosGet({
+      docs: {
+        items: [
+          { id: 123, title: 'Test Doc', urlpath: 'test-doc', public: true, parent_id: null },
+          { id: 1, title: 'Parent Doc', urlpath: 'parent-doc', public: true, parent_id: null },
+          { id: 200, title: 'Child Doc', urlpath: 'test-doc/child', public: true, parent_id: 123 },
+          { id: 201, title: 'Grandchild Doc', urlpath: 'test-doc/child/grandchild', public: true, parent_id: 200 },
+        ],
+      },
+    })
+    renderWithRouter()
+    await screen.findByDisplayValue('Test Doc')
+    const parentSelect = screen.getByLabelText('Parent')
+    // Should have "(Top-level document)" and "Parent Doc" only
+    // Should NOT have "Test Doc" (self), "Child Doc" (child), or "Grandchild Doc" (grandchild)
+    expect(parentSelect.querySelectorAll('option')).toHaveLength(2)
+    expect(screen.queryByRole('option', { name: 'Test Doc' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: 'Child Doc' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('option', { name: 'Grandchild Doc' })).not.toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Parent Doc' })).toBeInTheDocument()
   })
 })
