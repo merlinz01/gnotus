@@ -130,3 +130,23 @@ async def dump_to_zip(
                     attachment_path = f"{doc.urlpath}__attachments/{upload.filename}"
                     source_path = settings.uploads_dir / upload.storage_path
                     zf.write(source_path, attachment_path)
+
+
+async def dump_to_single_file(file_path: str, public_only: bool = False) -> None:
+    """Dump all documents to a single Markdown file for LLM consumption."""
+
+    # Fetch all documents ordered by urlpath for logical grouping
+    docs = Doc.all().order_by("urlpath")
+    if public_only:
+        docs = docs.filter(public=True)
+
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.write(f"# {settings.site_name}\n\n")
+        if settings.site_description:
+            f.write(f"{settings.site_description}\n\n")
+        async for doc in docs:
+            f.write("=" * 80)
+            f.write(f"\n<!-- path: /{doc.urlpath} -->\n\n")
+            f.write(f"# {doc.title}\n\n")
+            f.write(doc.markdown)
+            f.write("\n\n")

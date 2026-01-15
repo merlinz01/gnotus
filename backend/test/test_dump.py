@@ -2,7 +2,7 @@ import datetime
 import zipfile
 from pathlib import Path
 
-from app.dump import dump_to_dir, dump_to_zip
+from app.dump import dump_to_dir, dump_to_single_file, dump_to_zip
 from app.models.doc import Doc
 from app.models.revision import Revision
 from app.models.upload import Upload
@@ -436,3 +436,70 @@ async def test_dump_docs_to_zip_with_attachments(
         assert (
             zf.read("test-doc__attachments/image.png") == b"fake image content for zip"
         )
+
+
+async def test_dump_to_single_file(api_client, tmpdir: Path, user_admin: User):
+    """Test dumping all docs to a single Markdown file."""
+    await Doc.create(
+        title="First Doc",
+        slug="first-doc",
+        urlpath="first-doc",
+        public=True,
+        markdown="Content of first doc.",
+        html="",
+        metadata={},
+    )
+    await Doc.create(
+        title="Second Doc",
+        slug="second-doc",
+        urlpath="second-doc",
+        public=True,
+        markdown="Content of second doc.",
+        html="",
+        metadata={},
+    )
+    file_path = tmpdir / "dump.md"
+    await dump_to_single_file(str(file_path))
+    assert file_path.exists()
+    content = file_path.read_text("utf-8")
+    assert content.startswith(f"# {settings.site_name}\n")
+    assert "# First Doc" in content
+    assert "<!-- path: /first-doc -->" in content
+    assert "Content of first doc." in content
+    assert "=" * 80 in content
+    assert "# Second Doc" in content
+    assert "<!-- path: /second-doc -->" in content
+    assert "Content of second doc." in content
+
+
+async def test_dump_to_single_file_public_only(
+    api_client, tmpdir: Path, user_admin: User
+):
+    """Test dumping only public docs to a single Markdown file."""
+    await Doc.create(
+        title="Public Doc",
+        slug="public-doc",
+        urlpath="public-doc",
+        public=True,
+        markdown="Public content.",
+        html="",
+        metadata={},
+    )
+    await Doc.create(
+        title="Private Doc",
+        slug="private-doc",
+        urlpath="private-doc",
+        public=False,
+        markdown="Private content.",
+        html="",
+        metadata={},
+    )
+    file_path = tmpdir / "dump.md"
+    await dump_to_single_file(str(file_path), public_only=True)
+    assert file_path.exists()
+    content = file_path.read_text("utf-8")
+    assert content.startswith(f"# {settings.site_name}\n")
+    assert "# Public Doc" in content
+    assert "Public content." in content
+    assert "Private Doc" not in content
+    assert "Private content." not in content

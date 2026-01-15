@@ -67,6 +67,7 @@ async def create_user(admin: bool, username: str, password: str) -> None:
 @cli.command()
 @click.option("--dir", "output_dir", help="Directory to output Markdown files.")
 @click.option("--zip", "zip_path", help="Zip file path to output Markdown files.")
+@click.option("--single-file", "single_file", help="Single Markdown file for LLM consumption.")
 @click.option("--revisions", is_flag=True, help="Include revisions in the dump.")
 @click.option("--public", is_flag=True, help="Only dump public documents.")
 @click.option("--attachments", is_flag=True, help="Include attachments in the dump.")
@@ -75,14 +76,21 @@ async def create_user(admin: bool, username: str, password: str) -> None:
 async def dump(
     output_dir: str | None,
     zip_path: str | None,
+    single_file: str | None,
     revisions: bool,
     public: bool,
     attachments: bool,
 ) -> None:
     """Dump the database to Markdown files."""
-    if output_dir and zip_path:
-        raise click.UsageError("Cannot specify both --dir and --zip.")
-    if zip_path:
+    options = [output_dir, zip_path, single_file]
+    if sum(1 for opt in options if opt) > 1:
+        raise click.UsageError("Cannot specify more than one of --dir, --zip, or --single-file.")
+    if single_file:
+        from .dump import dump_to_single_file
+
+        await dump_to_single_file(single_file, public_only=public)
+        print(f"Database dumped to {single_file}.")
+    elif zip_path:
         from .dump import dump_to_zip
 
         await dump_to_zip(
@@ -103,7 +111,7 @@ async def dump(
         )
         print(f"Database dumped to {output_dir}.")
     else:
-        raise click.UsageError("Must specify either --dir or --zip.")
+        raise click.UsageError("Must specify one of --dir, --zip, or --single-file.")
 
 
 @cli.command()
