@@ -26,7 +26,7 @@ def test_settings_file(tmp_path: Path, monkeypatch: MonkeyPatch):
     config_file = tmp_path / "config.yml"
     monkeypatch.setenv("GNOTUS_CONFIG_FILE", str(config_file))
     with open(config_file, "w") as f:
-        f.write("site_name: Overridden in config file")
+        f.write("log_level: DEBUG")
     from app.settings import settings
 
-    assert settings.site_name == "Overridden in config file"
+    assert settings.log_level == "DEBUG"

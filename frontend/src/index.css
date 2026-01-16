@@ -34,6 +34,7 @@ label input[type='file']:focus-visible {
   outline: none;
 }
 input:focus-visible,
+input[type='color']:focus-within,
 textarea:focus-visible,
 select:focus-visible,
 select:focus-within {

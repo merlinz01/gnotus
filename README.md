@@ -55,25 +55,9 @@ The recommended way to install Gnotus is with Docker Compose.
 
    If you are serving Gnotus on a public domain, you may want edit the `compose.yml` file to open ports 80 and 443 on the frontend service instead of 5173.
 
-1. **Create the configuration file**
+1. **Configure the application**
 
-   Create a configuration file at `config.yml` in the same directory as `compose.yml`. This file will define the site branding.
-   Use this as a template:
-
-   ```yaml
-   # config.yml
-   site_name: "My Documentation Site"
-   site_description: >
-     This is my documentation site where I can
-     create and manage documentation.
-   primary_color: "#654321"
-   secondary_color: "#123456"
-   # Optionally, you can set the dark mode colors
-   primary_color_dark: "#987654"
-   secondary_color_dark: "#456789"
-   ```
-
-   If you want to use a custom logo, you can simply place an SVG file named `icon.svg` in the same directory as `compose.yml` and `config.yml`, and uncomment the line in the `compose.yml` file that mounts the icon file to the backend service:
+   If you want to use a custom logo, you can simply place an SVG file named `icon.svg` in the same directory as `compose.yml`, and uncomment the line in the `compose.yml` file that mounts the icon file to the backend service:
 
    ```yaml
    backend:

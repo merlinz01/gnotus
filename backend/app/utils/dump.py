@@ -3,6 +3,7 @@ import shutil
 import zipfile
 
 from ..models.doc import Doc
+from ..models.setting import Setting
 from ..settings import settings
 
 
@@ -148,6 +149,7 @@ async def dump_to_single_file(file_path: str, public_only: bool = False) -> None
             f.write("\n\n")
             await write_doc_tree(f, doc.id)
 
+    site_name = await Setting.get_value("site_name", "Gnotus")
     with open(file_path, "w", encoding="utf-8") as f:
-        f.write(f"# {settings.site_name}\n\n")
+        f.write(f"# {site_name}\n\n")
         await write_doc_tree(f, None)

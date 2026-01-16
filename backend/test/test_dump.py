@@ -4,6 +4,7 @@ from pathlib import Path
 
 from app.models.doc import Doc
 from app.models.revision import Revision
+from app.models.setting import Setting
 from app.models.upload import Upload
 from app.models.user import User
 from app.settings import settings
@@ -462,7 +463,7 @@ async def test_dump_to_single_file(api_client, tmpdir: Path, user_admin: User):
     await dump_to_single_file(str(file_path))
     assert file_path.exists()
     content = file_path.read_text("utf-8")
-    assert content.startswith(f"# {settings.site_name}\n")
+    assert content.startswith("# Gnotus\n")
     assert "# First Doc" in content
     assert "<!-- path: /first-doc -->" in content
     assert "Content of first doc." in content
@@ -498,7 +499,7 @@ async def test_dump_to_single_file_public_only(
     await dump_to_single_file(str(file_path), public_only=True)
     assert file_path.exists()
     content = file_path.read_text("utf-8")
-    assert content.startswith(f"# {settings.site_name}\n")
+    assert content.startswith("# Gnotus\n")
     assert "# Public Doc" in content
     assert "Public content." in content
     assert "Private Doc" not in content

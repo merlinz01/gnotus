@@ -54,7 +54,7 @@ describe('AdminPage', () => {
     expect(screen.getByText('Uploads')).toBeInTheDocument()
   })
 
-  it('has links to users and uploads pages', () => {
+  it('has links to users, uploads, and settings pages for admin', () => {
     useUser.setState({ user: mockAdmin, loaded: true })
     render(
       <MemoryRouter>
@@ -63,9 +63,10 @@ describe('AdminPage', () => {
     )
     expect(screen.getByRole('link', { name: /users/i })).toHaveAttribute('href', '/_users')
     expect(screen.getByRole('link', { name: /uploads/i })).toHaveAttribute('href', '/_uploads')
+    expect(screen.getByRole('link', { name: /settings/i })).toHaveAttribute('href', '/_settings')
   })
 
-  it('renders admin page for regular user', () => {
+  it('renders admin page for regular user without admin-only links', () => {
     useUser.setState({ user: mockUser, loaded: true })
     render(
       <MemoryRouter>
@@ -73,6 +74,9 @@ describe('AdminPage', () => {
       </MemoryRouter>
     )
     expect(screen.getByText('Administration')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /uploads/i })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /users/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /settings/i })).not.toBeInTheDocument()
   })
 
   it('redirects unauthenticated users to home', () => {
