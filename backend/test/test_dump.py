@@ -2,12 +2,12 @@ import datetime
 import zipfile
 from pathlib import Path
 
-from app.dump import dump_to_dir, dump_to_single_file, dump_to_zip
 from app.models.doc import Doc
 from app.models.revision import Revision
 from app.models.upload import Upload
 from app.models.user import User
 from app.settings import settings
+from app.utils.dump import dump_to_dir, dump_to_single_file, dump_to_zip
 
 
 async def test_dump_docs(api_client, tmpdir: Path, user_admin: User):

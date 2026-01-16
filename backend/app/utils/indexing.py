@@ -10,9 +10,9 @@ from meilisearch_python_sdk.models.settings import (
     TypoTolerance,
 )
 
-from .models.doc import Doc
-from .schemas.doc import DocIndexSchema, DocSearchResult
-from .settings import settings
+from ..models.doc import Doc
+from ..schemas.doc import DocIndexSchema, DocSearchResult
+from ..settings import settings
 
 index_settings = MeilisearchSettings(
     searchable_attributes=["title", "text", "urlpath", "urlpathbase"],

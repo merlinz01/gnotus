@@ -67,7 +67,9 @@ async def create_user(admin: bool, username: str, password: str) -> None:
 @cli.command()
 @click.option("--dir", "output_dir", help="Directory to output Markdown files.")
 @click.option("--zip", "zip_path", help="Zip file path to output Markdown files.")
-@click.option("--single-file", "single_file", help="Single Markdown file for LLM consumption.")
+@click.option(
+    "--single-file", "single_file", help="Single Markdown file for LLM consumption."
+)
 @click.option("--revisions", is_flag=True, help="Include revisions in the dump.")
 @click.option("--public", is_flag=True, help="Only dump public documents.")
 @click.option("--attachments", is_flag=True, help="Include attachments in the dump.")
@@ -84,16 +86,20 @@ async def dump(
     """Dump the database to Markdown files."""
     options = [output_dir, zip_path, single_file]
     if sum(1 for opt in options if opt) > 1:
-        raise click.UsageError("Cannot specify more than one of --dir, --zip, or --single-file.")
+        raise click.UsageError(
+            "Cannot specify more than one of --dir, --zip, or --single-file."
+        )
     if single_file and (attachments or revisions):
-        raise click.UsageError("--attachments and --revisions are not supported with --single-file.")
+        raise click.UsageError(
+            "--attachments and --revisions are not supported with --single-file."
+        )
     if single_file:
-        from .dump import dump_to_single_file
+        from .utils.dump import dump_to_single_file
 
         await dump_to_single_file(single_file, public_only=public)
         print(f"Database dumped to {single_file}.")
     elif zip_path:
-        from .dump import dump_to_zip
+        from .utils.dump import dump_to_zip
 
         await dump_to_zip(
             zip_path,
@@ -103,7 +109,7 @@ async def dump(
         )
         print(f"Database dumped to {zip_path}.")
     elif output_dir:
-        from .dump import dump_to_dir
+        from .utils.dump import dump_to_dir
 
         await dump_to_dir(
             output_dir,
@@ -121,7 +127,7 @@ async def dump(
 @with_tortoise
 async def index() -> None:
     """Index all documents."""
-    from .indexing import create_or_update_index, index_all_documents
+    from .utils.indexing import create_or_update_index, index_all_documents
 
     await create_or_update_index()
     await index_all_documents()

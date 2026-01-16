@@ -2,8 +2,8 @@ import os
 import shutil
 import zipfile
 
-from .models.doc import Doc
-from .settings import settings
+from ..models.doc import Doc
+from ..settings import settings
 
 
 def _generate_doc_content(doc) -> str:

@@ -8,7 +8,6 @@ from tortoise.exceptions import DoesNotExist
 from tortoise.transactions import in_transaction
 
 from ..auth.dependencies import LoggedInUser, OptionalUser
-from ..indexing import delete_document_from_index, index_document, search_documents
 from ..models.doc import Doc
 from ..models.revision import Revision
 from ..models.upload import Upload
@@ -24,6 +23,11 @@ from ..schemas.doc import (
 from ..schemas.revision import RevisionResponse
 from ..schemas.role import Role
 from ..settings import settings
+from ..utils.indexing import (
+    delete_document_from_index,
+    index_document,
+    search_documents,
+)
 from .pagination import PaginatedResponse, PaginationParams
 
 logger = getLogger(__name__)
@@ -233,7 +237,9 @@ async def get_doc_markdown(
     """
     try:
         urlpath = path.removesuffix(".md")
-        doc = await Doc.get(urlpath=urlpath if urlpath.startswith("/") else "/" + urlpath)
+        doc = await Doc.get(
+            urlpath=urlpath if urlpath.startswith("/") else "/" + urlpath
+        )
     except DoesNotExist:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Document not found"

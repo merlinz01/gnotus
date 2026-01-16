@@ -109,8 +109,8 @@ class Doc(TimestampedModel):
 
         if reindex:
             # Lazy import to avoid circular dependency
-            from ..indexing import index_document
             from ..settings import settings
+            from ..utils.indexing import index_document
 
             if not settings.disable_search:
                 await index_document(self)
