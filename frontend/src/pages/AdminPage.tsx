@@ -12,7 +12,7 @@ export default function AdminPage() {
   const config = useConfig((state) => state.config)
 
   useEffect(() => {
-    document.title = `Admin - ${config.site_name}`
+    document.title = `Administration - ${config.site_name}`
   }, [config])
 
   useEffect(() => {
@@ -33,10 +33,7 @@ export default function AdminPage() {
       <h1 className="text-primary mb-6 text-3xl font-bold">Administration</h1>
       <div className="grid gap-4 sm:grid-cols-2">
         {user.role === Role.ADMIN && (
-          <Link
-            to="/_users"
-            className="card bg-base-200 hover:bg-base-300 transition-colors"
-          >
+          <Link to="/_users" className="card bg-base-200 hover:bg-base-300 transition-colors">
             <div className="card-body flex-row items-center gap-4">
               <UsersIcon className="h-8 w-8" />
               <div>
@@ -46,10 +43,7 @@ export default function AdminPage() {
             </div>
           </Link>
         )}
-        <Link
-          to="/_uploads"
-          className="card bg-base-200 hover:bg-base-300 transition-colors"
-        >
+        <Link to="/_uploads" className="card bg-base-200 hover:bg-base-300 transition-colors">
           <div className="card-body flex-row items-center gap-4">
             <UploadIcon className="h-8 w-8" />
             <div>
@@ -59,10 +53,7 @@ export default function AdminPage() {
           </div>
         </Link>
         {user.role === Role.ADMIN && (
-          <Link
-            to="/_settings"
-            className="card bg-base-200 hover:bg-base-300 transition-colors"
-          >
+          <Link to="/_settings" className="card bg-base-200 hover:bg-base-300 transition-colors">
             <div className="card-body flex-row items-center gap-4">
               <SettingsIcon className="h-8 w-8" />
               <div>
