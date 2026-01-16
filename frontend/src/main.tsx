@@ -10,6 +10,7 @@ const configJSON = localStorage.getItem('app_config')
 if (configJSON) {
   try {
     const config = JSON.parse(configJSON)
+    // Always use cached config for fast startup
     useConfig.getState().setConfig(config)
   } catch (error) {
     console.error('Failed to parse config from localStorage:', error)

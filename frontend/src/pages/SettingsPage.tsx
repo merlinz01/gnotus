@@ -110,8 +110,9 @@ export default function SettingsPage() {
         primary_color_dark: primaryColorDark,
         secondary_color_dark: secondaryColorDark,
       })
-      setGlobalConfig(response.data)
-      localStorage.setItem('app_config', JSON.stringify(response.data))
+      const configWithTimestamp = { ...response.data, loaded_at: Date.now() }
+      setGlobalConfig(configWithTimestamp)
+      localStorage.setItem('app_config', JSON.stringify(configWithTimestamp))
       setSuccess(true)
     } catch (err) {
       setError(getErrorMessage(err))

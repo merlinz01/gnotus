@@ -28,7 +28,7 @@ describe('App', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     useConfig.setState({
-      config: DEFAULT_CONFIG,
+      config: { ...DEFAULT_CONFIG, loaded_at: Date.now() },
       loaded: true,
     })
     useUser.setState({

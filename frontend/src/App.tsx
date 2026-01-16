@@ -17,20 +17,24 @@ function App() {
   const [error, setError] = useState<string | null>(null)
   useEffect(() => {
     setError(null)
-    if (!loaded) {
+    const isStale = !config.loaded_at || Date.now() - config.loaded_at > 1000 * 60 * 60 * 24
+    if (!loaded || isStale) {
       const fetchConfig = async () => {
         try {
           const response = await axios.get('/api/config.json')
-          setConfig(response.data)
-          localStorage.setItem('app_config', JSON.stringify(response.data))
+          const configWithTimestamp = { ...response.data, loaded_at: Date.now() }
+          setConfig(configWithTimestamp)
+          localStorage.setItem('app_config', JSON.stringify(configWithTimestamp))
         } catch (error) {
           console.error('Failed to fetch config:', error)
-          setError('Failed to load site configuration: ' + getErrorMessage(error))
+          if (!loaded) {
+            setError('Failed to load site configuration: ' + getErrorMessage(error))
+          }
         }
       }
       fetchConfig()
     }
-  }, [loaded, setConfig])
+  }, [loaded, config.loaded_at, setConfig])
   useEffect(() => {
     if (userLoaded) return
     const fetchUser = async () => {
