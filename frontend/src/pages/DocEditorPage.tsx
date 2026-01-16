@@ -66,7 +66,13 @@ export default function DocEditorPage() {
   const [docUploads, setDocUploads] = useState<Upload[]>([])
   const [loadingUploads, setLoadingUploads] = useState(false)
   // Track original values to detect unsaved changes
-  const [originalValues, setOriginalValues] = useState({ title: '', slug: '', parentId: '', isPublic: false, content: '' })
+  const [originalValues, setOriginalValues] = useState({
+    title: '',
+    slug: '',
+    parentId: '',
+    isPublic: false,
+    content: '',
+  })
   // Ref to bypass blocker after successful save
   const skipBlockerRef = useRef(false)
 
@@ -130,7 +136,8 @@ export default function DocEditorPage() {
         setTitle(response.data.title)
         setSlug(response.data.slug)
         // First parent in the array is the immediate parent
-        const currentParentId = response.data.parents.length > 0 ? String(response.data.parents[0].id) : ''
+        const currentParentId =
+          response.data.parents.length > 0 ? String(response.data.parents[0].id) : ''
         setParentId(currentParentId)
         setIsPublic(response.data.public)
         setContent(response.data.markdown)
@@ -616,7 +623,7 @@ export default function DocEditorPage() {
 
         {/* Attachments Section */}
         <details className="bg-base-200 rounded-lg shadow">
-          <summary className="cursor-pointer p-3 font-medium">
+          <summary className="cursor-pointer rounded-lg p-3 font-medium">
             Attachments ({docUploads.length})
           </summary>
           <div className="border-base-300 border-t p-3">
@@ -675,7 +682,7 @@ export default function DocEditorPage() {
               <label className="btn btn-secondary btn-sm">
                 <input
                   type="file"
-                  className="hidden"
+                  className="absolute m-0 h-0 w-0 overflow-hidden p-0"
                   multiple
                   onChange={handleAttachmentUpload}
                   disabled={uploadingFile}

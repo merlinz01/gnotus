@@ -115,7 +115,7 @@ export default function SearchBox() {
               placeholder="Search..."
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              className="input w-full px-10 outline-none!"
+              className="input w-full px-10"
             />
             {value && (
               <button

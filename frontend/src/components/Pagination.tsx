@@ -35,7 +35,7 @@ export default function Pagination({
         <select
           value={params.size}
           onChange={(e) => handleSizeChange(Number(e.target.value))}
-          className="select select-sm w-20 outline-none!"
+          className="select select-sm w-20"
         >
           <option value="-1">All</option>
           {pageSizeOptions.map((size) => (

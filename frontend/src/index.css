@@ -20,3 +20,24 @@ html[data-theme='dark'] {
     font-size: 10pt;
   }
 }
+
+a:focus-visible,
+button:focus-visible,
+label:has(input[type='file']:focus-visible) {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+label input[type='file']:focus-visible {
+  outline: none;
+}
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+select:focus-within {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 0px;
+}
+summary:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
