@@ -1,5 +1,6 @@
-from app.models.doc import Doc
 from utils import TestClient
+
+from app.models.doc import Doc
 
 
 async def test_robots_txt(api_client: TestClient) -> None:
@@ -17,7 +18,7 @@ async def test_robots_txt(api_client: TestClient) -> None:
         "Disallow: /api/\n"
         "Allow: /api/auth/user\n"
         "Allow: /api/config.json\n"
-        "Allow: /api/icon.svg\n"
+        "Allow: /api/icon\n"
         "Allow: /api/sitemap.xml\n"
         "Allow: /api/docs/\n"
         "Allow: /api/uploads/\n"

@@ -17,6 +17,9 @@ export default function SettingsPage() {
   const [secondaryColor, setSecondaryColor] = useState('')
   const [primaryColorDark, setPrimaryColorDark] = useState('')
   const [secondaryColorDark, setSecondaryColorDark] = useState('')
+  const [iconPreviewUrl, setIconPreviewUrl] = useState('/api/icon')
+  const [currentIconId, setCurrentIconId] = useState<number | null>(null)
+  const [uploadingIcon, setUploadingIcon] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -44,10 +47,53 @@ export default function SettingsPage() {
       setSecondaryColor(response.data.secondary_color)
       setPrimaryColorDark(response.data.primary_color_dark)
       setSecondaryColorDark(response.data.secondary_color_dark)
+      setCurrentIconId(response.data.site_icon_upload_id)
+      setIconPreviewUrl(`/api/icon?t=${Date.now()}`)
     } catch (err) {
       setError(getErrorMessage(err))
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleIconUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadingIcon(true)
+    setError(null)
+    setSuccess(false)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await axios.post('/api/icon', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+
+      setCurrentIconId(response.data.id)
+      setIconPreviewUrl(`/api/icon?t=${Date.now()}`)
+      setSuccess(true)
+    } catch (err) {
+      setError(getErrorMessage(err))
+    } finally {
+      setUploadingIcon(false)
+    }
+  }
+
+  const handleRevertIcon = async () => {
+    setUploadingIcon(true)
+    setError(null)
+    setSuccess(false)
+    try {
+      await axios.delete('/api/icon')
+      setCurrentIconId(null)
+      setIconPreviewUrl(`/api/icon?t=${Date.now()}`)
+      setSuccess(true)
+    } catch (err) {
+      setError(getErrorMessage(err))
+    } finally {
+      setUploadingIcon(false)
     }
   }
 
@@ -88,7 +134,7 @@ export default function SettingsPage() {
           <li>Settings</li>
         </ul>
       </nav>
-      <div className="card border-base-300 bg-base-200 max-w-150 border shadow-lg">
+      <div className="card border-base-300 bg-base-200 border shadow-lg">
         <div className="card-body">
           <h1 className="card-title text-2xl">Site Settings</h1>
           {loading ? (
@@ -101,6 +147,48 @@ export default function SettingsPage() {
               {success && (
                 <div className="alert alert-success text-sm">Settings saved successfully</div>
               )}
+              <fieldset className="fieldset">
+                <label className="label">Site Icon</label>
+                <div className="flex items-center gap-4">
+                  <div className="bg-base-100 border-base-300 rounded-lg border p-2">
+                    <img
+                      src={iconPreviewUrl}
+                      alt="Current site icon"
+                      className="h-12 w-12 object-contain"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="btn btn-secondary btn-sm">
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept=".svg,.png,.jpg,.jpeg,.ico,.webp,.gif,image/*"
+                        onChange={handleIconUpload}
+                        disabled={saving || uploadingIcon}
+                      />
+                      {uploadingIcon ? (
+                        <span className="loading loading-spinner loading-sm"></span>
+                      ) : (
+                        'Upload New Icon'
+                      )}
+                    </label>
+                    {currentIconId && (
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-sm"
+                        onClick={handleRevertIcon}
+                        disabled={saving || uploadingIcon}
+                      >
+                        Revert to Default
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <p className="text-base-content/60 mt-1 text-xs">
+                  Recommended: 48x48 to 512x512 pixels. Max 512KB. Supported: SVG, PNG, JPG, ICO,
+                  WebP, GIF
+                </p>
+              </fieldset>
               <fieldset className="fieldset">
                 <label className="label" htmlFor="site-name">
                   Site Name

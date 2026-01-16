@@ -42,6 +42,7 @@
 			window 1m
 		}
 	}
+	rewrite /favicon.ico /api/icon
 	rewrite /robots.txt /api/robots.txt
 	rewrite /sitemap.xml /api/sitemap.xml
 	@markdown path *.md

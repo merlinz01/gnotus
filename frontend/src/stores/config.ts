@@ -6,6 +6,7 @@ interface Config {
   secondary_color?: string
   primary_color_dark?: string
   secondary_color_dark?: string
+  site_icon_upload_id?: number | null
 }
 
 interface ConfigState {

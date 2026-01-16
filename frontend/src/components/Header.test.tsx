@@ -33,9 +33,9 @@ describe('Header', () => {
     expect(screen.getByText(mockConfig.site_name)).toBeInTheDocument()
   })
 
-  it('renders the site logo', () => {
+  it('renders the site icon', () => {
     renderHeader()
-    expect(screen.getByAltText('Site logo')).toBeInTheDocument()
+    expect(screen.getByAltText('Icon')).toBeInTheDocument()
   })
 
   it('toggles the menu on button click', () => {

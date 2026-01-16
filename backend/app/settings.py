@@ -81,6 +81,18 @@ class Settings(BaseSettings):
         "txt",
     ]
 
+    # Icon uploads
+    allowed_icon_extensions: list[str] = [
+        "svg",
+        "png",
+        "jpg",
+        "jpeg",
+        "ico",
+        "webp",
+        "gif",
+    ]
+    max_icon_size: int = 512 * 1024  # 512 KB
+
     # Site config
     icon_file_path: FilePath
 

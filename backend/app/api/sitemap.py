@@ -28,7 +28,7 @@ async def robots_txt() -> Response:
         "Disallow: /api/\n"
         "Allow: /api/auth/user\n"
         "Allow: /api/config.json\n"
-        "Allow: /api/icon.svg\n"
+        "Allow: /api/icon\n"
         "Allow: /api/sitemap.xml\n"
         "Allow: /api/docs/\n"
         "Allow: /api/uploads/\n"
