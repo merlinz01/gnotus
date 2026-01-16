@@ -199,13 +199,17 @@ export default function DocEditorPage() {
       setError(null)
       setSaving(true)
       try {
-        const response = await axios.put(`/api/docs/${doc.id}`, {
+        const updateData: Record<string, unknown> = {
           title: title,
-          slug: slug,
-          parent_id: parentId ? parseInt(parentId, 10) : 0,
           public: isPublic,
           markdown: content,
-        })
+        }
+        // Don't send slug/parent_id for home page (can't be changed)
+        if (doc.parent_id !== null) {
+          updateData.slug = slug
+          updateData.parent_id = parentId ? parseInt(parentId, 10) : 0
+        }
+        const response = await axios.put(`/api/docs/${doc.id}`, updateData)
         setDoc(response.data)
         // Skip blocker for this navigation since we just saved
         skipBlockerRef.current = true
@@ -217,7 +221,7 @@ export default function DocEditorPage() {
         localStorage.removeItem(`${storagePrefix}outline-toplevel`)
         const evt = new CustomEvent('outline-changed')
         document.dispatchEvent(evt)
-        navigate(`/${response.data.urlpath}`)
+        navigate(response.data.urlpath)
       } catch (error) {
         console.error('Error updating document:', error)
         setError('Failed to update document. Please try again later.')
@@ -394,6 +398,8 @@ export default function DocEditorPage() {
     }
   }
 
+  const isHomePage = doc !== null && doc.parent_id === null
+
   const insertUploadLink = (upload: Upload) => {
     const textarea = document.querySelector(
       'textarea[name="content"]'
@@ -438,7 +444,7 @@ export default function DocEditorPage() {
             <button type="submit" className="btn btn-primary" disabled={loading || saving}>
               {saving ? <span className="loading loading-spinner loading-sm"></span> : 'Save'}
             </button>
-            <Link to={`/${doc?.urlpath || ''}`} className="btn">
+            <Link to={doc?.urlpath || '/'} className="btn">
               Discard
             </Link>
             <Link
@@ -448,84 +454,90 @@ export default function DocEditorPage() {
             >
               <HistoryIcon className="h-5 w-5" />
             </Link>
-            <button
-              type="button"
-              className="btn btn-square text-secondary"
-              onClick={() => moveDoc('up')}
-              title="Move document up"
-            >
-              <ChevronUpIcon className="h-5 w-5" />
-            </button>
-            <button
-              type="button"
-              className="btn btn-square text-secondary"
-              onClick={() => moveDoc('down')}
-              title="Move document down"
-            >
-              <ChevronDownIcon className="h-5 w-5" />
-            </button>
-            <button
-              type="button"
-              className="btn btn-square text-error"
-              onClick={deleteDoc}
-              title="Delete document"
-            >
-              {deleting ? (
-                <span className="loading loading-spinner loading-sm"></span>
-              ) : (
-                <TrashIcon className="h-5 w-5" />
-              )}
-            </button>
+            {!isHomePage && (
+              <>
+                <button
+                  type="button"
+                  className="btn btn-square text-secondary"
+                  onClick={() => moveDoc('up')}
+                  title="Move document up"
+                >
+                  <ChevronUpIcon className="h-5 w-5" />
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-square text-secondary"
+                  onClick={() => moveDoc('down')}
+                  title="Move document down"
+                >
+                  <ChevronDownIcon className="h-5 w-5" />
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-square text-error"
+                  onClick={deleteDoc}
+                  title="Delete document"
+                >
+                  {deleting ? (
+                    <span className="loading loading-spinner loading-sm"></span>
+                  ) : (
+                    <TrashIcon className="h-5 w-5" />
+                  )}
+                </button>
+              </>
+            )}
           </div>
-          {/* Row 2: Parent and URL slug */}
-          <div className="flex flex-wrap items-end gap-4">
-            <div className="min-w-48 flex-1">
-              <label className="label text-sm" htmlFor="doc-edit-parent">
-                Parent
-              </label>
-              <select
-                id="doc-edit-parent"
-                name="parentId"
-                className="select select-bordered w-full"
-                value={parentId}
-                onChange={(e) => setParentId(e.target.value)}
-                disabled={loading || saving || loadingDocs}
-              >
-                <option value="">(Top-level document)</option>
-                {(() => {
-                  if (loadingDocs) {
-                    return <option disabled>Loading documents...</option>
-                  }
-                  // Compute excluded IDs once: self + all descendants
-                  const excludeIds = doc
-                    ? new Set([doc.id, ...getDescendantIds(documents, doc.id)])
-                    : new Set<number>()
-                  return documents
-                    .filter((d) => !excludeIds.has(d.id))
-                    .map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.title}
-                      </option>
-                    ))
-                })()}
-              </select>
+          {/* Row 2: Parent and URL slug (hidden for home page) */}
+          {!isHomePage && (
+            <div className="flex flex-wrap items-end gap-4">
+              <div className="min-w-48 flex-1">
+                <label className="label text-sm" htmlFor="doc-edit-parent">
+                  Parent
+                </label>
+                <select
+                  id="doc-edit-parent"
+                  name="parentId"
+                  className="select select-bordered w-full"
+                  value={parentId}
+                  onChange={(e) => setParentId(e.target.value)}
+                  disabled={loading || saving || loadingDocs}
+                >
+                  <option value="">(Top-level document)</option>
+                  {(() => {
+                    if (loadingDocs) {
+                      return <option disabled>Loading documents...</option>
+                    }
+                    // Compute excluded IDs once: self + all descendants
+                    const excludeIds = doc
+                      ? new Set([doc.id, ...getDescendantIds(documents, doc.id)])
+                      : new Set<number>()
+                    return documents
+                      .filter((d) => !excludeIds.has(d.id))
+                      .map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.title}
+                        </option>
+                      ))
+                  })()}
+                </select>
+              </div>
+              <div className="min-w-48 flex-1">
+                <label className="label text-sm" htmlFor="doc-edit-slug">
+                  URL slug
+                </label>
+                <input
+                  type="text"
+                  id="doc-edit-slug"
+                  name="slug"
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value)}
+                  className="input input-bordered w-full"
+                  disabled={loading || saving}
+                  required
+                />
+              </div>
             </div>
-            <div className="min-w-48 flex-1">
-              <label className="label text-sm" htmlFor="doc-edit-slug">
-                URL slug
-              </label>
-              <input
-                type="text"
-                id="doc-edit-slug"
-                name="slug"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                className="input input-bordered w-full"
-                disabled={loading || saving}
-                required
-              />
-            </div>
-          </div>
+          )}
           {/* Row 3: Title and Public */}
           <div className="flex flex-wrap items-end gap-4">
             <div className="min-w-48 flex-1">

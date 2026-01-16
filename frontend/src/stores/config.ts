@@ -2,7 +2,6 @@ import { create } from 'zustand'
 
 interface Config {
   site_name: string
-  site_description: string
   primary_color?: string
   secondary_color?: string
   primary_color_dark?: string
@@ -16,7 +15,6 @@ interface ConfigState {
 }
 export const DEFAULT_CONFIG: Config = {
   site_name: 'Gnotus',
-  site_description: '',
   primary_color: '#4A90E2',
   secondary_color: '#50E3C2',
   primary_color_dark: '#4A90E2',

@@ -14,7 +14,6 @@ async def get_config() -> SiteConfig:
     """
     return SiteConfig(
         site_name=settings.site_name,
-        site_description=settings.site_description,
         primary_color=settings.primary_color,
         secondary_color=settings.secondary_color,
         primary_color_dark=settings.primary_color_dark or settings.primary_color,

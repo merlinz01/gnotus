@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import axios from '../axios'
 import { LoaderPinwheelIcon, PencilIcon, Share2Icon, CheckIcon } from 'lucide-react'
 import useUser from '../stores/user'
@@ -9,6 +9,7 @@ import DomPurify from 'dompurify'
 import useConfig from '../stores/config'
 import Role from '../types/role'
 import ShareDialog from '../components/ShareDialog'
+import useContentLinkHandler from '../hooks/useContentLinkHandler'
 
 export default function DocPage() {
   const [doc, setDoc] = useState<Doc | null>(null)
@@ -20,7 +21,7 @@ export default function DocPage() {
   const location = useLocation()
   const config = useConfig((state) => state.config)
   const storageKey = `${storagePrefix}doc:${location.pathname.slice(1)}`
-  const navigate = useNavigate()
+  const handleLinkClicks = useContentLinkHandler()
 
   // Update document title based on the current document
   useEffect(() => {
@@ -124,7 +125,7 @@ export default function DocPage() {
   }, [location.pathname, storageKey])
 
   useEffect(() => {
-    if (doc?.urlpath === location.pathname.slice(1)) {
+    if (doc?.urlpath === location.pathname) {
       return
     }
     setError(null)
@@ -153,19 +154,6 @@ export default function DocPage() {
       }
     }
   }, [location.hash, doc])
-
-  function handleLinkClicks(event: React.MouseEvent<HTMLDivElement>) {
-    const target = event.target as HTMLAnchorElement
-    if (target.tagName === 'A' && target.href) {
-      if (target.href.startsWith(window.location.origin)) {
-        event.preventDefault()
-        const path = target.pathname + target.search + target.hash
-        if (path !== location.pathname + location.search + location.hash) {
-          navigate(path)
-        }
-      }
-    }
-  }
 
   const handleShare = async () => {
     // If user is logged in with edit permissions, show the share dialog
@@ -226,13 +214,10 @@ export default function DocPage() {
             <div className="mx-auto flex w-full max-w-200 flex-col px-4 pt-2 pb-8 sm:px-4 md:px-8 lg:px-12 print:px-4">
               <nav className="breadcrumbs shrink-0 text-sm" aria-label="Breadcrumbs">
                 <ul className="flex-wrap">
-                  <li>
-                    <Link to="/">Home</Link>
-                  </li>
                   {doc.parents
                     ?.map((parent) => (
                       <li key={parent.id}>
-                        <Link to={`/${parent.urlpath}`}>{parent.title}</Link>
+                        <Link to={parent.urlpath}>{parent.title}</Link>
                       </li>
                     ))
                     .reverse()}
@@ -279,7 +264,7 @@ export default function DocPage() {
                   <ul className="text-primary list-disc pl-6 font-semibold">
                     {doc.children.map((child) => (
                       <li key={child.id}>
-                        <Link to={`/${child.urlpath}`}>{child.title}</Link>
+                        <Link to={child.urlpath}>{child.title}</Link>
                       </li>
                     ))}
                   </ul>

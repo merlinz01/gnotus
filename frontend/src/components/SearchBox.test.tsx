@@ -35,11 +35,11 @@ const mockUser = {
 }
 
 const mockSearchResults = [
-  { title: 'Result 1', urlpath: 'test/result1', text: 'Description 1', public: true },
-  { title: 'Result 2', urlpath: 'test/result2', text: 'Description 2', public: true },
+  { title: 'Result 1', urlpath: '/test/result1', text: 'Description 1', public: true },
+  { title: 'Result 2', urlpath: '/test/result2', text: 'Description 2', public: true },
   {
     title: 'Result 3 <em class="search-highlight">title highlighted</em>',
-    urlpath: 'test/result3',
+    urlpath: '/test/result3',
     text: 'Description 3 <em class="search-highlight">text highlighted</em>',
     public: true,
   },
@@ -131,7 +131,7 @@ describe('SearchBox', () => {
   it('shows private badge for non-public results', async () => {
     vi.mocked(axios.post).mockResolvedValue({
       data: {
-        results: [{ title: 'Test Doc', urlpath: 'test/doc', text: 'Secret info', public: false }],
+        results: [{ title: 'Test Doc', urlpath: '/test/doc', text: 'Secret info', public: false }],
       },
     })
     await axios.post('') // For some reason, this is needed to make it work when running from the terminal

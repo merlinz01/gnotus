@@ -104,13 +104,10 @@ export default function SharedDocPage() {
           </div>
           <nav className="breadcrumbs shrink-0 text-sm" aria-label="Breadcrumbs">
             <ul className="flex-wrap">
-              <li>
-                <Link to="/">Home</Link>
-              </li>
               {doc.parents
                 ?.map((parent) => (
                   <li key={parent.id}>
-                    <Link to={`/${parent.urlpath}`}>{parent.title}</Link>
+                    <Link to={parent.urlpath}>{parent.title}</Link>
                   </li>
                 ))
                 .reverse()}
@@ -124,7 +121,7 @@ export default function SharedDocPage() {
               <ul className="text-primary list-disc pl-6 font-semibold">
                 {doc.children.map((child) => (
                   <li key={child.id}>
-                    <Link to={`/${child.urlpath}`}>{child.title}</Link>
+                    <Link to={child.urlpath}>{child.title}</Link>
                   </li>
                 ))}
               </ul>

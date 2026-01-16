@@ -91,7 +91,7 @@ export default function RevisionsPage() {
         {doc && (
           <p>
             For
-            <Link to={`/${doc.urlpath}`} className="link link-primary ml-1">
+            <Link to={doc.urlpath} className="link link-primary ml-1">
               <strong>{doc.title}</strong>
             </Link>
             .
@@ -190,7 +190,7 @@ function RevisionDialog({
       await axios.post(`/api/docs/${doc.id}/restore_revision`, undefined, {
         params: { revision_id: revision.id },
       })
-      navigate(`/${doc.urlpath}`)
+      navigate(doc.urlpath)
     } catch (error) {
       console.error('Error restoring revision:', error)
       setError('Failed to restore revision. Please try again later.')

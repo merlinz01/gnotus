@@ -50,8 +50,8 @@ const mockUploads = [
 ]
 
 const mockDocuments = [
-  { id: 1, title: 'Test Document', urlpath: 'test-doc' },
-  { id: 2, title: 'Another Document', urlpath: 'another-doc' },
+  { id: 1, title: 'Test Document', urlpath: '/test-doc' },
+  { id: 2, title: 'Another Document', urlpath: '/another-doc' },
 ]
 
 // Helper to create a mock that handles both /api/docs/ and /api/uploads/ calls
@@ -82,7 +82,6 @@ describe('UploadsPage', () => {
     useConfig.setState({
       config: {
         site_name: 'Test Site',
-        site_description: 'A test site for uploads',
       },
       loaded: true,
     })

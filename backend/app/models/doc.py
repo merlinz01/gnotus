@@ -86,14 +86,17 @@ class Doc(TimestampedModel):
         """
         Compute the full URL path by traversing parent hierarchy.
         Uses parent_id directly to handle in-memory changes that haven't been committed.
+        Returns path with leading slash (e.g., "/docs/guide").
+        Home page children have paths like "/child", not "child".
         """
         segments = [self.slug]
         current_parent_id = self.parent_id
         while current_parent_id is not None:
             parent = await Doc.get(id=current_parent_id)
-            segments.append(parent.slug)
+            if parent.parent_id is not None:  # Skip home page
+                segments.append(parent.slug)
             current_parent_id = parent.parent_id
-        return "/".join(reversed(segments))
+        return "/" + "/".join(reversed(segments))
 
     async def update_urlpath(self, cascade: bool = True, reindex: bool = True) -> None:
         """

@@ -150,6 +150,4 @@ async def dump_to_single_file(file_path: str, public_only: bool = False) -> None
 
     with open(file_path, "w", encoding="utf-8") as f:
         f.write(f"# {settings.site_name}\n\n")
-        if settings.site_description:
-            f.write(f"{settings.site_description}\n\n")
         await write_doc_tree(f, None)

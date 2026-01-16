@@ -102,19 +102,4 @@ describe('App', () => {
       expect(screen.getByText(/failed to load site configuration/i)).toBeInTheDocument()
     })
   })
-  it('updates the description meta tag', async () => {
-    useConfig.setState({
-      config: {
-        ...DEFAULT_CONFIG,
-        site_description: 'Test description',
-      },
-      loaded: true,
-    })
-    renderApp()
-    await waitFor(() => {
-      const metaDescription = document.querySelector('meta[name="description"]')
-      expect(metaDescription).toBeInTheDocument()
-      expect(metaDescription?.getAttribute('content')).toBe('Test description')
-    })
-  })
 })

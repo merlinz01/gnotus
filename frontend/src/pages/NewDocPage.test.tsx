@@ -26,7 +26,7 @@ const mockParentDocs = [
   {
     id: 1,
     title: 'Parent Doc',
-    urlpath: 'parent-doc',
+    urlpath: '/parent-doc',
     public: true,
     created_at: '',
     updated_at: '',
@@ -34,7 +34,7 @@ const mockParentDocs = [
   {
     id: 2,
     title: 'Another Parent',
-    urlpath: 'another-parent',
+    urlpath: '/another-parent',
     public: true,
     created_at: '',
     updated_at: '',
@@ -57,7 +57,7 @@ describe('NewDocPage', () => {
       loaded: true,
     })
     useConfig.setState({
-      config: { site_name: 'Test Site', site_description: 'Test Description' },
+      config: { site_name: 'Test Site' },
       loaded: true,
     })
   })
@@ -127,7 +127,7 @@ describe('NewDocPage', () => {
     vi.mocked(axios.post).mockResolvedValueOnce({
       data: {
         id: 123,
-        urlpath: 'test-doc',
+        urlpath: '/test-doc',
         parents: [],
       },
     })

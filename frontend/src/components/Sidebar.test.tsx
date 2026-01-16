@@ -35,26 +35,26 @@ const mockViewer = {
 const mockOutline = {
   id: 1,
   title: 'Root',
-  urlpath: '',
+  urlpath: '/',
   public: true,
   children: [
     {
       id: 2,
       title: 'Child 1',
-      urlpath: 'child-1',
+      urlpath: '/child-1',
       public: true,
       children: [],
     },
     {
       id: 3,
       title: 'Child 2',
-      urlpath: 'child-2',
+      urlpath: '/child-2',
       public: true,
       children: [
         {
           id: 4,
           title: 'Grandchild',
-          urlpath: 'child-2/grandchild',
+          urlpath: '/child-2/grandchild',
           public: true,
           children: [],
         },
@@ -73,17 +73,6 @@ describe('Sidebar', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     localStorage.clear()
-  })
-
-  it('renders Home link always', async () => {
-    useUser.setState({ user: null, storagePrefix: '', loaded: true })
-    vi.mocked(axiosModule.default.get).mockResolvedValue({ data: mockOutline })
-    render(
-      <MemoryRouter>
-        <Sidebar />
-      </MemoryRouter>
-    )
-    expect(await screen.findByText('Home')).toBeInTheDocument()
   })
 
   it('renders outline nodes from API', async () => {
@@ -205,7 +194,7 @@ describe('Sidebar', () => {
         data: {
           id: 999,
           title: 'Old',
-          urlpath: '',
+          urlpath: '/',
           public: true,
           children: [],
         },

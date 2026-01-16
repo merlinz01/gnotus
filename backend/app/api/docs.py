@@ -71,11 +71,11 @@ async def create_doc(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"A sibling document with slug '{doc_create.slug}' already exists",
         )
-    # Compute urlpath from parent path + slug
+    # Compute urlpath from parent path + slug (always starts with /)
     if parent:
         urlpath = f"{parent.urlpath}/{doc_create.slug}"
     else:
-        urlpath = doc_create.slug
+        urlpath = f"/{doc_create.slug}"
     doc = await Doc.create(
         parent_id=parent_id,
         title=doc_create.title,
@@ -117,7 +117,7 @@ async def get_doc_outline(
     """
 
     async def get_children(doc_id: int | None, depth: int) -> list[DocTreeNode]:
-        query = Doc.filter(parent_id=doc_id)
+        query = Doc.filter(parent_id=doc_id).order_by("order", "title")
         if not current_user:
             query = query.filter(public=True)
         return [
@@ -131,12 +131,24 @@ async def get_doc_outline(
             async for doc in query
         ]
 
+    # Get the home page (document with no parent)
+    home = await Doc.get_or_none(parent_id=None)
+    if home is None:
+        # Fallback if home page doesn't exist
+        return DocTreeNode(
+            id=0,
+            title="Home",
+            urlpath="/",
+            public=True,
+            children=await get_children(None, depth - 1),
+        )
+
     return DocTreeNode(
-        id=0,
-        title="Home",
-        urlpath="/",
-        public=True,
-        children=await get_children(None, depth - 1),
+        id=home.id,
+        title=home.title,
+        urlpath=home.urlpath,
+        public=home.public,
+        children=await get_children(home.id, depth - 1),
     )
 
 
@@ -153,12 +165,12 @@ async def get_doc(
     """
     try:
         if doc_id == "by_path":
-            if not path:  # pragma: no cover
+            if path is None:  # pragma: no cover
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Path is required when using 'by_path'",
                 )
-            doc = await Doc.get(urlpath=path)
+            doc = await Doc.get(urlpath=path if path.startswith("/") else "/" + path)
         else:
             doc = await Doc.get(id=doc_id)
     except DoesNotExist:
@@ -220,7 +232,8 @@ async def get_doc_markdown(
     Get document content as plain Markdown with title and child links.
     """
     try:
-        doc = await Doc.get(urlpath=path.removesuffix(".md"))
+        urlpath = path.removesuffix(".md")
+        doc = await Doc.get(urlpath=urlpath if urlpath.startswith("/") else "/" + urlpath)
     except DoesNotExist:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Document not found"
@@ -242,7 +255,7 @@ async def get_doc_markdown(
     if child_list:
         lines.append("\n")
         for child in child_list:
-            lines.append(f"- [{child.title}](/{child.urlpath})\n")
+            lines.append(f"- [{child.title}]({child.urlpath})\n")
 
     lines.append(f"\n{doc.markdown}")
 
@@ -315,6 +328,15 @@ async def update_doc(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have permission to update this document",
+        )
+
+    is_home_page = doc.parent_id is None
+    if is_home_page and (
+        doc_update.parent_id is not None or doc_update.slug is not None
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cannot move or rename the home page",
         )
 
     needs_urlpath_update = False
@@ -423,6 +445,12 @@ async def move_doc(
             status_code=status.HTTP_404_NOT_FOUND, detail="Document not found"
         )
 
+    if doc.parent_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cannot move the home page",
+        )
+
     if current_user.role != Role.ADMIN and current_user.role != Role.USER:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -510,6 +538,12 @@ async def delete_doc(
     except DoesNotExist:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Document not found"
+        )
+
+    if doc.parent_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Cannot delete the home page",
         )
 
     if current_user.role != Role.ADMIN and current_user.role != Role.USER:

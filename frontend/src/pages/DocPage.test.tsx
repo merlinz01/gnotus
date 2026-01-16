@@ -29,12 +29,15 @@ const mockUser = {
 const mockDoc = {
   id: 1,
   title: 'Test Document',
-  urlpath: 'docs/test',
+  urlpath: '/docs/test',
   html: '<h2 id="section1">Section 1</h2><p>Content</p><h2 id="section2">Section 2</h2>',
   updated_at: new Date().toISOString(),
   created_at: new Date().toISOString(),
-  parents: [{ id: 2, title: 'Parent Doc', urlpath: 'docs/parent' }],
-  children: [{ id: 3, title: 'Child Doc', urlpath: 'docs/child' }],
+  parents: [
+    { id: 2, title: 'Parent Doc', urlpath: '/docs/parent' },
+    { id: 0, title: 'Home', urlpath: '/' },
+  ],
+  children: [{ id: 3, title: 'Child Doc', urlpath: '/docs/child' }],
   metadata: {
     subtitles: [
       { hash: 'section1', title: 'Section 1' },
@@ -60,7 +63,6 @@ describe('DocPage', () => {
     useConfig.setState({
       config: {
         site_name: 'Test Site',
-        site_description: 'Test Description',
       },
       loaded: true,
     })

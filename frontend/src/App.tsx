@@ -63,13 +63,6 @@ function App() {
         '--gnotus-secondary-dark',
         config.secondary_color_dark
       )
-    let metaDescription = document.querySelector('meta[name="description"]')
-    if (!metaDescription) {
-      metaDescription = document.createElement('meta')
-      metaDescription.setAttribute('name', 'description')
-      document.head.appendChild(metaDescription)
-    }
-    metaDescription.setAttribute('content', config.site_description || '')
   }, [config])
 
   if (error) {

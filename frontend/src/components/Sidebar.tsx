@@ -54,10 +54,14 @@ export default function Sidebar() {
   return (
     <div className="flex h-full w-64 flex-col overflow-y-auto p-2">
       <ul className="menu w-full">
-        <li>
-          <HighlightedLink to="/">Home</HighlightedLink>
-        </li>
-        {outline && outline.children.map((node) => <OutlineNode key={node.id} node={node} />)}
+        {outline && (
+          <>
+            <OutlineNode node={outline} showChildren={false} />
+            {outline.children.map((node) => (
+              <OutlineNode key={node.id} node={node} />
+            ))}
+          </>
+        )}
         {user && (user.role === Role.ADMIN || user.role === Role.USER) && (
           <>
             <li>
@@ -106,13 +110,14 @@ export default function Sidebar() {
   )
 }
 
-function OutlineNode({ node }: { node: DocTreeNode }) {
+function OutlineNode({ node, showChildren = true }: { node: DocTreeNode; showChildren?: boolean }) {
   const [open, setOpen] = useState(false)
+  const hasVisibleChildren = showChildren && node.children.length > 0
 
   return (
     <li className="flex flex-col">
       <div className="has-[a.active]:bg-base-100 flex items-center gap-0 p-0">
-        {node.children.length > 0 && (
+        {hasVisibleChildren && (
           <button
             className="hover:text-secondary cursor-pointer px-1 py-2"
             onClick={(event) => {
@@ -128,14 +133,14 @@ function OutlineNode({ node }: { node: DocTreeNode }) {
           </button>
         )}
         <HighlightedLink
-          to={'/' + node.urlpath}
-          className={`flex h-8 grow items-center ${node.children.length > 0 ? '' : 'pl-6'}`}
+          to={node.urlpath}
+          className={`flex h-8 grow items-center ${hasVisibleChildren ? '' : 'pl-6'}`}
           activeClassName="text-primary active"
         >
           <span>{node.title}</span>
         </HighlightedLink>
       </div>
-      {node.children.length > 0 && (
+      {hasVisibleChildren && (
         <ul
           className="menu border-base-300 ml-3 w-auto overflow-y-hidden border-l p-0 pl-2 before:hidden"
           style={{ display: open ? 'block' : 'none' }}

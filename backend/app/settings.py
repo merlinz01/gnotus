@@ -83,7 +83,6 @@ class Settings(BaseSettings):
 
     # Site config
     site_name: str = "Gnotus"
-    site_description: str = ""
     primary_color: str = "#4A90E2"
     secondary_color: str = "#50E3C2"
     primary_color_dark: str | None = None

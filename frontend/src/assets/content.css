@@ -150,6 +150,14 @@ SOFTWARE. */
   border-radius: 2px;
 }
 
+.gnotus-home-content .heading-anchor {
+  display: none;
+}
+
+.gnotus-home-content h1 {
+  color: var(--color-primary);
+}
+
 /* Lists */
 .gnotus-content ol,
 .gnotus-content ul {

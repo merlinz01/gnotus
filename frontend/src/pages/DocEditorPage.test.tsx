@@ -47,20 +47,20 @@ const mockDoc = {
   id: 123,
   title: 'Test Doc',
   slug: 'test-doc',
-  urlpath: 'test-doc',
+  urlpath: '/test-doc',
   public: true,
   markdown: '# Hello',
-  parents: [],
+  parents: [{ id: 1, title: 'Home', urlpath: '/' }],
+  parent_id: 1,
 }
 const mockDocsList = {
   items: [
-    { id: 1, title: 'Parent Doc', urlpath: 'parent-doc', public: true, parent_id: null },
-    { id: 2, title: 'Another Doc', urlpath: 'another-doc', public: false, parent_id: null },
+    { id: 1, title: 'Parent Doc', urlpath: '/parent-doc', public: true, parent_id: null },
+    { id: 2, title: 'Another Doc', urlpath: '/another-doc', public: false, parent_id: null },
   ],
 }
 const mockConfig = {
   site_name: 'Test site',
-  site_description: 'Test description',
 }
 
 // Helper to mock axios.get based on URL
@@ -161,7 +161,7 @@ describe('DocEditorPage', () => {
         title: 'Changed Title',
         markdown: '# Changed',
         slug: 'changed-doc',
-        urlpath: 'changed-doc',
+        urlpath: '/changed-doc',
         public: true,
         parents: [],
       },
@@ -182,7 +182,7 @@ describe('DocEditorPage', () => {
         title: 'Changed Title',
         markdown: '# Changed',
         slug: 'changed-doc',
-        parent_id: 0,
+        parent_id: 1,
         public: false,
       })
     )
@@ -197,9 +197,9 @@ describe('DocEditorPage', () => {
         title: 'Test Doc',
         markdown: '# Hello',
         slug: 'test-doc',
-        urlpath: 'parent-doc/test-doc',
+        urlpath: '/parent-doc/test-doc',
         public: true,
-        parents: [{ id: 1, title: 'Parent Doc', urlpath: 'parent-doc' }],
+        parents: [{ id: 1, title: 'Parent Doc', urlpath: '/parent-doc' }],
       },
     })
     renderWithRouter()
@@ -322,7 +322,7 @@ describe('DocEditorPage', () => {
     mockAxiosGet({
       doc: {
         ...mockDoc,
-        parents: [{ id: 1, title: 'Parent Doc', urlpath: 'parent-doc' }],
+        parents: [{ id: 1, title: 'Parent Doc', urlpath: '/parent-doc' }],
       },
     })
     renderWithRouter()
@@ -334,8 +334,8 @@ describe('DocEditorPage', () => {
     mockAxiosGet({
       docs: {
         items: [
-          { id: 123, title: 'Test Doc', urlpath: 'test-doc', public: true, parent_id: null },
-          { id: 1, title: 'Parent Doc', urlpath: 'parent-doc', public: true, parent_id: null },
+          { id: 123, title: 'Test Doc', urlpath: '/test-doc', public: true, parent_id: null },
+          { id: 1, title: 'Parent Doc', urlpath: '/parent-doc', public: true, parent_id: null },
         ],
       },
     })
@@ -352,10 +352,10 @@ describe('DocEditorPage', () => {
     mockAxiosGet({
       docs: {
         items: [
-          { id: 123, title: 'Test Doc', urlpath: 'test-doc', public: true, parent_id: null },
-          { id: 1, title: 'Parent Doc', urlpath: 'parent-doc', public: true, parent_id: null },
-          { id: 200, title: 'Child Doc', urlpath: 'test-doc/child', public: true, parent_id: 123 },
-          { id: 201, title: 'Grandchild Doc', urlpath: 'test-doc/child/grandchild', public: true, parent_id: 200 },
+          { id: 123, title: 'Test Doc', urlpath: '/test-doc', public: true, parent_id: null },
+          { id: 1, title: 'Parent Doc', urlpath: '/parent-doc', public: true, parent_id: null },
+          { id: 200, title: 'Child Doc', urlpath: '/test-doc/child', public: true, parent_id: 123 },
+          { id: 201, title: 'Grandchild Doc', urlpath: '/test-doc/child/grandchild', public: true, parent_id: 200 },
         ],
       },
     })

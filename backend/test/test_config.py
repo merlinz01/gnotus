@@ -8,7 +8,6 @@ def test_config(api_client: TestClient):
     from app.settings import settings
 
     settings.site_name = "Gnotus"
-    settings.site_description = "An open-source knowledge-base software."
     settings.primary_color = "#4A90E2"
     settings.secondary_color = "#50E3C2"
     settings.primary_color_dark = "#6B6Ef0"
@@ -20,7 +19,6 @@ def test_config(api_client: TestClient):
     data = response.json()
     assert data == {
         "site_name": "Gnotus",
-        "site_description": "An open-source knowledge-base software.",
         "primary_color": "#4A90E2",
         "secondary_color": "#50E3C2",
         "primary_color_dark": "#6B6Ef0",

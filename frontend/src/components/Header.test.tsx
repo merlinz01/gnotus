@@ -8,7 +8,7 @@ vi.mock('./SearchBox', () => ({
   default: () => <div>Search Box Mock</div>,
 }))
 
-const mockConfig = { site_name: 'Test Site', site_description: 'A test site' }
+const mockConfig = { site_name: 'Test Site' }
 
 function renderHeader() {
   return render(
