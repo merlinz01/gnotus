@@ -15,6 +15,6 @@ class User(TimestampedModel):
     role = fields.IntEnumField(Role, default=Role.USER)
     is_active = fields.BooleanField(default=True)
 
-    class Meta:  # type: ignore
+    class Meta:
         table = "users"
         ordering = ["username"]

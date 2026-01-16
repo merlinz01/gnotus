@@ -53,7 +53,7 @@ class Doc(TimestampedModel):
     revisions: fields.ReverseRelation["Revision"]
     uploads: fields.ReverseRelation["Upload"]
 
-    class Meta:  # type: ignore
+    class Meta:
         table = "docs"
         ordering = ["order", "title"]
         unique_together = [("parent_id", "slug")]

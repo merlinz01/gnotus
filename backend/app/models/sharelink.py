@@ -30,7 +30,7 @@ class ShareableLink(TimestampedModel):
     last_accessed_at = fields.DatetimeField(null=True)
     access_count = fields.IntField(default=0)
 
-    class Meta:  # type: ignore
+    class Meta:
         table = "shareable_links"
         ordering = ["-created_at"]
 

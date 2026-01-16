@@ -36,7 +36,7 @@ class Upload(TimestampedModel):
         null=True,
     )
 
-    class Meta:  # type: ignore
+    class Meta:
         table = "uploads"
         ordering = ["filename", "created_at"]
 

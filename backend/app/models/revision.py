@@ -25,6 +25,6 @@ class Revision(Model):
     )
     created_at = fields.DatetimeField(auto_now_add=True)
 
-    class Meta:  # type: ignore
+    class Meta:
         table = "revisions"
         ordering = ["-created_at"]
