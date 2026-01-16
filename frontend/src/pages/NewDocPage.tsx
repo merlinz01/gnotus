@@ -88,7 +88,7 @@ export default function NewDocPage() {
   }, [title])
 
   return (
-    <div className="card bg-base-200 m-4 max-h-full overflow-y-auto shadow-lg">
+    <div className="card bg-base-200 mx-auto my-4 w-full max-h-full max-w-150 overflow-y-auto shadow-lg">
       <form className="card-body flex flex-col gap-4" onSubmit={submit} role="form">
         <div className="card-title">
           <h2 className="text-2xl font-bold">Create New Document</h2>
