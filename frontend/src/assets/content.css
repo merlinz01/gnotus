@@ -26,13 +26,9 @@ SOFTWARE. */
 .gnotus-content {
   --active-brightness: 0.85;
   --border-radius: 5px;
-  --font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell,
-    'Helvetica Neue', sans-serif;
   --hover-brightness: 1.2;
   line-height: 1.5;
   scroll-behavior: smooth;
-  font-family: var(--font-family);
   font-size: 1rem;
 }
 

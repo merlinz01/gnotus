@@ -9,6 +9,9 @@
 html {
   --color-primary: var(--gnotus-primary);
   --color-secondary: var(--gnotus-secondary);
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell,
+    'Helvetica Neue', sans-serif;
   font-size: 12pt;
 }
 html[data-theme='dark'] {
