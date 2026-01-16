@@ -76,9 +76,11 @@ describe('NewDocPage', () => {
     })
     renderPage()
     expect(screen.getByText('Create New Document')).toBeInTheDocument()
+    // 1 placeholder + 2 parent docs = 3 options
     await waitFor(() =>
       expect(screen.getByLabelText('Parent document').querySelectorAll('option')).toHaveLength(3)
     )
+    expect(screen.getByText('Select a parent document')).toBeInTheDocument()
     expect(screen.getByLabelText('Document title')).toHaveAttribute(
       'placeholder',
       'How to make a widget'

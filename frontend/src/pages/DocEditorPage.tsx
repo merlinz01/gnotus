@@ -501,8 +501,11 @@ export default function DocEditorPage() {
                   value={parentId}
                   onChange={(e) => setParentId(e.target.value)}
                   disabled={loading || saving || loadingDocs}
+                  required
                 >
-                  <option value="">(Top-level document)</option>
+                  <option value="" disabled>
+                    Select a parent document
+                  </option>
                   {(() => {
                     if (loadingDocs) {
                       return <option disabled>Loading documents...</option>

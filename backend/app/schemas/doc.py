@@ -19,7 +19,7 @@ class DocCreate(DocBase):
     Model for creating a new document.
     """
 
-    parent_id: int | None = None
+    parent_id: int
     public: bool = False
 
 

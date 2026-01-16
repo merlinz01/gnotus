@@ -55,33 +55,28 @@ async def create_doc(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have permission to create documents",
         )
-    if doc_create.parent_id is not None:
-        try:
-            parent = await Doc.get(id=doc_create.parent_id)
-        except DoesNotExist:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Parent document not found",
-            )
-        parent_id = parent.id
-    else:
-        parent_id = None
-        parent = None
+    try:
+        parent = await Doc.get(id=doc_create.parent_id)
+    except DoesNotExist:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Parent document not found",
+        )
     Doc.validate_slug(doc_create.slug)
     # Check for duplicate slug among siblings
-    existing = await Doc.get_or_none(parent_id=parent_id, slug=doc_create.slug)
+    existing = await Doc.get_or_none(parent_id=parent.id, slug=doc_create.slug)
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"A sibling document with slug '{doc_create.slug}' already exists",
         )
-    # Compute urlpath from parent path + slug (always starts with /)
-    if parent:
-        urlpath = f"{parent.urlpath}/{doc_create.slug}"
-    else:
+    # Compute urlpath from parent path + slug
+    if parent.parent_id is None:
         urlpath = f"/{doc_create.slug}"
+    else:
+        urlpath = f"{parent.urlpath}/{doc_create.slug}"
     doc = await Doc.create(
-        parent_id=parent_id,
+        parent_id=parent.id,
         title=doc_create.title,
         slug=doc_create.slug,
         urlpath=urlpath,
@@ -348,28 +343,25 @@ async def update_doc(
     needs_urlpath_update = False
     old_parent_id = doc.parent_id
     if doc_update.parent_id is not None:
-        if doc_update.parent_id == 0:
-            doc.parent_id = None
-        else:
-            try:
-                parent_doc = await Doc.get(id=doc_update.parent_id)
-                doc.parent_id = parent_doc.id
-            except DoesNotExist:
+        try:
+            parent_doc = await Doc.get(id=doc_update.parent_id)
+            doc.parent_id = parent_doc.id
+        except DoesNotExist:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Parent document not found",
+            )
+        if doc.id == doc_update.parent_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot set a document as its own parent",
+            )
+        async for parent in parent_doc.parents():
+            if parent.id == doc.id:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Parent document not found",
+                    detail="Cannot set a document as a child of its own descendant",
                 )
-            if doc.id == doc_update.parent_id:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Cannot set a document as its own parent",
-                )
-            async for parent in parent_doc.parents():
-                if parent.id == doc.id:
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="Cannot set a document as a child of its own descendant",
-                    )
         if doc.parent_id != old_parent_id:
             needs_urlpath_update = True
     if doc_update.title is not None:

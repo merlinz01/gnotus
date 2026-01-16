@@ -1,13 +1,14 @@
-from app.models import User
-from app.models.doc import Doc
-from app.models.revision import Revision
 from fastapi import status
 from utils import TestClient
 
+from app.models import User
+from app.models.doc import Doc
+from app.models.revision import Revision
 
-async def test_create_toplevel_doc(api_client: "TestClient", user_admin: "User"):
+
+async def test_create_doc_requires_parent(api_client: "TestClient", user_admin: "User"):
     """
-    Test creating a document.
+    Test that creating a document requires a parent_id.
     """
     api_client.set_session_user(user_admin)
     response = api_client.post(
@@ -17,6 +18,34 @@ async def test_create_toplevel_doc(api_client: "TestClient", user_admin: "User")
             "slug": "test-document",
         },
     )
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT, response.text
+    data = response.json()
+    assert data["detail"][0]["loc"] == ["body", "parent_id"]
+    assert data["detail"][0]["msg"] == "Field required"
+
+
+async def test_create_doc_under_home(api_client: "TestClient", user_admin: "User"):
+    """
+    Test creating a document under the home page.
+    """
+    api_client.set_session_user(user_admin)
+    home = await Doc.create(
+        title="Home",
+        slug="",
+        urlpath="/",
+        public=True,
+        metadata={},
+        markdown="",
+        html="",
+    )
+    response = api_client.post(
+        "/api/docs/",
+        json={
+            "title": "Test Document",
+            "slug": "test-document",
+            "parent_id": home.id,
+        },
+    )
     assert response.status_code == status.HTTP_201_CREATED, response.text
     data = response.json()
     assert data == {
@@ -24,7 +53,7 @@ async def test_create_toplevel_doc(api_client: "TestClient", user_admin: "User")
         "title": "Test Document",
         "slug": "test-document",
         "urlpath": "/test-document",
-        "parent_id": None,
+        "parent_id": home.id,
         "public": False,
         "created_at": data["created_at"],
         "updated_at": data["updated_at"],
@@ -43,7 +72,17 @@ async def test_create_child_doc(api_client: "TestClient", user_admin: "User"):
     Test creating a child document.
     """
     api_client.set_session_user(user_admin)
+    home = await Doc.create(
+        title="Home",
+        slug="",
+        urlpath="/",
+        public=True,
+        metadata={},
+        markdown="",
+        html="",
+    )
     parent = await Doc.create(
+        parent_id=home.id,
         title="Parent Document",
         slug="parent",
         urlpath="/parent",
@@ -108,7 +147,17 @@ async def test_create_doc_with_existing_slug(
     Test creating a document with an existing slug among siblings.
     """
     api_client.set_session_user(user_admin)
+    home = await Doc.create(
+        title="Home",
+        slug="",
+        urlpath="/",
+        public=True,
+        metadata={},
+        markdown="",
+        html="",
+    )
     await Doc.create(
+        parent_id=home.id,
         title="Existing Document",
         slug="existing",
         urlpath="/existing",
@@ -122,6 +171,7 @@ async def test_create_doc_with_existing_slug(
         json={
             "title": "Duplicate Slug Document",
             "slug": "existing",  # Same slug as existing document
+            "parent_id": home.id,
         },
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST, response.text
@@ -136,11 +186,21 @@ async def test_create_doc_with_invalid_slug(
     Test creating a document with an invalid slug.
     """
     api_client.set_session_user(user_admin)
+    home = await Doc.create(
+        title="Home",
+        slug="",
+        urlpath="/",
+        public=True,
+        metadata={},
+        markdown="",
+        html="",
+    )
     response = api_client.post(
         "/api/docs/",
         json={
             "title": "Invalid Slug Document",
             "slug": "invalid\\slug",
+            "parent_id": home.id,
         },
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST, response.text
@@ -153,11 +213,21 @@ async def test_create_doc_unauthorized(api_client: "TestClient", user_viewer: "U
     Test creating a document as a user without permission.
     """
     api_client.set_session_user(user_viewer)
+    home = await Doc.create(
+        title="Home",
+        slug="",
+        urlpath="/",
+        public=True,
+        metadata={},
+        markdown="",
+        html="",
+    )
     response = api_client.post(
         "/api/docs/",
         json={
             "title": "Unauthorized Document",
             "slug": "unauthorized-document",
+            "parent_id": home.id,
         },
     )
     assert response.status_code == status.HTTP_403_FORBIDDEN, response.text
@@ -770,12 +840,24 @@ async def test_update_doc_unauthorized(api_client: "TestClient", user_viewer: "U
     assert data["detail"] == "You do not have permission to update this document"
 
 
-async def test_update_doc_parent_none(api_client: "TestClient", user_admin: "User"):
+async def test_update_doc_parent_zero_rejected(
+    api_client: "TestClient", user_admin: "User"
+):
     """
-    Test updating a document to have no parent.
+    Test that updating a document with parent_id=0 is rejected.
     """
     api_client.set_session_user(user_admin)
+    home = await Doc.create(
+        title="Home",
+        slug="",
+        urlpath="/",
+        public=True,
+        metadata={},
+        markdown="",
+        html="",
+    )
     parent = await Doc.create(
+        parent_id=home.id,
         title="Parent Document",
         slug="parent-doc",
         urlpath="/parent-doc",
@@ -801,11 +883,9 @@ async def test_update_doc_parent_none(api_client: "TestClient", user_admin: "Use
             "parent_id": 0,
         },
     )
-    assert response.status_code == status.HTTP_200_OK, response.text
+    assert response.status_code == status.HTTP_400_BAD_REQUEST, response.text
     data = response.json()
-    assert data["parent_id"] is None
-    assert data["urlpath"] == "/doc-with-parent"
-    assert await doc.revisions.all().count() == 0
+    assert data["detail"] == "Parent document not found"
 
 
 async def test_update_doc_with_invalid_parent(

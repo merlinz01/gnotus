@@ -103,8 +103,11 @@ export default function NewDocPage() {
             className="select select-bordered w-full"
             value={parentId}
             onChange={(e) => setParentId(e.target.value)}
+            required
           >
-            <option value="">(Top-level document)</option>
+            <option value="" disabled>
+              Select a parent document
+            </option>
             {loading ? (
               <option disabled>Loading documents...</option>
             ) : (
