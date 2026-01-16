@@ -604,7 +604,6 @@ export default function DocEditorPage() {
               onKeyDown={textAreaKeyDown}
               onPaste={textAreaPaste}
               onDrop={textAreaDrop}
-              required
             ></textarea>
             {uploadingFile && <progress className="progress progress-primary mt-2"></progress>}
           </div>
