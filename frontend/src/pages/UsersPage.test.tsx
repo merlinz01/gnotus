@@ -77,7 +77,7 @@ describe('UsersPage', () => {
 
   it('renders users table and Add User button', async () => {
     render(<UsersPage />)
-    expect(screen.getByText('Users')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Users' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Add User' })).toBeInTheDocument()
     await waitFor(() => {
       expect(screen.getByText('admin')).toBeInTheDocument()

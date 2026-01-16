@@ -150,10 +150,19 @@ export default function UploadsPage() {
     }
   }
   return (
-    <div className="card border-base-300 bg-base-200 m-4 max-h-full overflow-y-auto shadow-lg">
-      <div className="card-body">
-        <div className="mb-4 flex items-center justify-between">
-          <h1 className="card-title">Uploads</h1>
+    <div className="m-4 flex max-h-full flex-col overflow-y-auto">
+      <nav className="breadcrumbs text-sm" aria-label="Breadcrumbs">
+        <ul>
+          <li>
+            <Link to="/_admin">Administration</Link>
+          </li>
+          <li>Uploads</li>
+        </ul>
+      </nav>
+      <div className="card border-base-300 bg-base-200 border shadow-lg">
+        <div className="card-body">
+          <div className="mb-4 flex items-center justify-between">
+            <h1 className="card-title">Uploads</h1>
           <button
             className="btn btn-primary mb-4"
             onClick={() => {
@@ -451,6 +460,7 @@ export default function UploadsPage() {
           </div>
         </form>
       </dialog>
+      </div>
     </div>
   )
 }

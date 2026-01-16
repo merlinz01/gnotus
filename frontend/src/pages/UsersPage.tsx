@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import useUser from '../stores/user'
 import Role from '../types/role'
 import { useEffect, useState } from 'react'
@@ -132,10 +132,19 @@ export default function UsersPage() {
     }
   }
   return (
-    <div className="card border-base-300 bg-base-200 m-4 max-h-full overflow-y-auto border shadow-lg">
-      <div className="card-body">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="card-title text-2xl">Users</h2>
+    <div className="m-4 flex max-h-full flex-col overflow-y-auto">
+      <nav className="breadcrumbs text-sm" aria-label="Breadcrumbs">
+        <ul>
+          <li>
+            <Link to="/_admin">Administration</Link>
+          </li>
+          <li>Users</li>
+        </ul>
+      </nav>
+      <div className="card border-base-300 bg-base-200 border shadow-lg">
+        <div className="card-body">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="card-title text-2xl">Users</h2>
           <button
             className="btn btn-primary btn-sm"
             onClick={() => {
@@ -368,6 +377,7 @@ export default function UsersPage() {
           </div>
         </form>
       </dialog>
+      </div>
     </div>
   )
 }

@@ -104,7 +104,7 @@ describe('UploadsPage', () => {
       })
     )
     render(<UploadsPage />)
-    expect(screen.getByText('Uploads')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Uploads' })).toBeInTheDocument()
     expect(await screen.findByText('testfile.txt')).toBeInTheDocument()
     expect(screen.getByText('anotherfile.txt')).toBeInTheDocument()
     expect(axios.get).toHaveBeenCalledWith('/api/uploads/', {
