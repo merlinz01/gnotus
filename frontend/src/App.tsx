@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
+import ErrorBoundary from './components/ErrorBoundary'
 import useConfig from './stores/config'
 import { LoaderPinwheelIcon } from 'lucide-react'
 import axios, { getErrorMessage } from './axios'
@@ -67,26 +68,32 @@ function App() {
 
   if (error) {
     return (
-      <div className="bg-base-100 flex h-screen items-center justify-center">
-        <div className="bg-base-200 border-base-300 rounded-lg border p-4 text-sm text-red-500">
-          {error}
+      <ErrorBoundary>
+        <div className="bg-base-100 flex h-screen items-center justify-center">
+          <div className="bg-base-200 border-base-300 rounded-lg border p-4 text-sm text-red-500">
+            {error}
+          </div>
         </div>
-      </div>
+      </ErrorBoundary>
     )
   } else if (!loaded) {
     return (
-      <div className="bg-base-100 flex h-screen items-center justify-center">
-        <LoaderPinwheelIcon className="text-primary animate-spin" role="status" />
-      </div>
+      <ErrorBoundary>
+        <div className="bg-base-100 flex h-screen items-center justify-center">
+          <LoaderPinwheelIcon className="text-primary animate-spin" role="status" />
+        </div>
+      </ErrorBoundary>
     )
   } else {
     return (
-      <div className="bg-base-100 flex h-screen w-screen flex-col print:h-auto">
-        <Header />
-        <SidebarHolder>
-          <Outlet />
-        </SidebarHolder>
-      </div>
+      <ErrorBoundary>
+        <div className="bg-base-100 flex h-screen w-screen flex-col print:h-auto">
+          <Header />
+          <SidebarHolder>
+            <Outlet />
+          </SidebarHolder>
+        </div>
+      </ErrorBoundary>
     )
   }
 }
@@ -144,7 +151,9 @@ function SidebarHolder({ children }: { children: React.ReactNode }) {
           <Sidebar />
         </div>
       </div>
-      <div className="drawer-content flex grow flex-col">{children}</div>
+      <div className="drawer-content flex grow flex-col">
+        <ErrorBoundary>{children}</ErrorBoundary>
+      </div>
     </div>
   )
 }

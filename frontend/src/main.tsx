@@ -4,6 +4,7 @@ import './index.css'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import useConfig from './stores/config.ts'
 import routes from './Routes.tsx'
+import ErrorBoundary from './components/ErrorBoundary.tsx'
 
 const configJSON = localStorage.getItem('app_config')
 if (configJSON) {
@@ -20,6 +21,8 @@ const router = createBrowserRouter(routes)
 
 createRoot(document.body).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <ErrorBoundary>
+      <RouterProvider router={router} />
+    </ErrorBoundary>
   </StrictMode>
 )
