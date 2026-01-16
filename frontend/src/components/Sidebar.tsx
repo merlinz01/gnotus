@@ -63,23 +63,16 @@ export default function Sidebar() {
           </>
         )}
         {user && (user.role === Role.ADMIN || user.role === Role.USER) && (
-          <>
-            <li>
-              <HighlightedLink to="/_new" className="opacity-75">
-                <span>Create new document</span>
-              </HighlightedLink>
-            </li>
-            <li>
-              <HighlightedLink to="/_uploads" className="opacity-75">
-                <span>Manage uploads</span>
-              </HighlightedLink>
-            </li>
-          </>
+          <li>
+            <HighlightedLink to="/_new" className="opacity-75">
+              <span>Create new document</span>
+            </HighlightedLink>
+          </li>
         )}
         {user && user.role === Role.ADMIN && (
           <li>
-            <HighlightedLink to="/_users" className="opacity-75">
-              <span>Manage users</span>
+            <HighlightedLink to="/_admin" className="opacity-75">
+              <span>Administration</span>
             </HighlightedLink>
           </li>
         )}

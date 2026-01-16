@@ -88,7 +88,7 @@ describe('Sidebar', () => {
     expect(vi.mocked(axiosModule.default.get)).toHaveBeenCalledWith('/api/docs/outline')
   })
 
-  it("renders 'Create new document' but not 'Manage users' for USER", async () => {
+  it("renders 'Create new document' but not 'Administration' for USER", async () => {
     useUser.setState({ user: mockUser, storagePrefix: '', loaded: true })
     vi.mocked(axiosModule.default.get).mockResolvedValue({ data: mockOutline })
     render(
@@ -97,10 +97,10 @@ describe('Sidebar', () => {
       </MemoryRouter>
     )
     expect(await screen.findByText('Create new document')).toBeInTheDocument()
-    expect(screen.queryByText('Manage users')).not.toBeInTheDocument()
+    expect(screen.queryByText('Administration')).not.toBeInTheDocument()
   })
 
-  it("renders 'Create new document' and 'Manage users' for ADMIN", async () => {
+  it("renders 'Create new document' and 'Administration' for ADMIN", async () => {
     useUser.setState({ user: mockAdmin, storagePrefix: '' })
     vi.mocked(axiosModule.default.get).mockResolvedValue({ data: mockOutline })
     render(
@@ -109,10 +109,10 @@ describe('Sidebar', () => {
       </MemoryRouter>
     )
     expect(await screen.findByText('Create new document')).toBeInTheDocument()
-    expect(await screen.findByText('Manage users')).toBeInTheDocument()
+    expect(await screen.findByText('Administration')).toBeInTheDocument()
   })
 
-  it("does not render 'Create new document' or 'Manage users' for VIEWER", async () => {
+  it("does not render 'Create new document' or 'Administration' for VIEWER", async () => {
     useUser.setState({ user: mockViewer, storagePrefix: '' })
     vi.mocked(axiosModule.default.get).mockResolvedValue({ data: mockOutline })
     render(
@@ -123,7 +123,7 @@ describe('Sidebar', () => {
     // Wait for outline to load
     await screen.findByText('Child 1')
     expect(screen.queryByText('Create new document')).not.toBeInTheDocument()
-    expect(screen.queryByText('Manage users')).not.toBeInTheDocument()
+    expect(screen.queryByText('Administration')).not.toBeInTheDocument()
   })
 
   it('shows login link when not logged in', async () => {
