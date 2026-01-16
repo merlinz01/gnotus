@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import axios from '../axios'
 import useUser from '../stores/user'
 import type Doc from '../types/doc'
@@ -15,7 +15,8 @@ export default function NewDocPage() {
   const userLoaded = useUser((state) => state.loaded)
   const storagePrefix = useUser((state) => state.storagePrefix)
   const config = useConfig((state) => state.config)
-  const [parentId, setParentId] = useState('')
+  const [searchParams] = useSearchParams()
+  const [parentId, setParentId] = useState(searchParams.get('parent') || '')
   const [slug, setSlug] = useState('')
   const [title, setTitle] = useState('')
   useEffect(() => {

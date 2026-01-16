@@ -129,16 +129,25 @@ describe('DocPage', () => {
     })
   })
 
-  it('shows edit button and public badge for logged in user', async () => {
+  it('shows edit button, create child button, and public badge for logged in user', async () => {
     vi.mocked(axios.get).mockResolvedValue({ data: mockDoc, status: 200 })
     renderDocPage()
     await waitFor(() => {
       expect(screen.getByTitle('Edit document')).toBeInTheDocument()
+      expect(screen.getByTitle('Create child document')).toBeInTheDocument()
       expect(screen.getByText('Public')).toBeInTheDocument()
     })
   })
 
-  it('does not show edit button for non-logged in user', async () => {
+  it('links create child button to new doc page with parent prefilled', async () => {
+    vi.mocked(axios.get).mockResolvedValue({ data: mockDoc, status: 200 })
+    renderDocPage()
+    await waitFor(() => {
+      expect(screen.getByTitle('Create child document')).toHaveAttribute('href', '/_new?parent=1')
+    })
+  })
+
+  it('does not show edit button or create child button for non-logged in user', async () => {
     useUser.setState({ user: null })
     vi.mocked(axios.get).mockResolvedValue({ data: mockDoc, status: 200 })
     renderDocPage()
@@ -146,9 +155,10 @@ describe('DocPage', () => {
       expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Test Document')
     })
     expect(screen.queryByTitle('Edit document')).not.toBeInTheDocument()
+    expect(screen.queryByTitle('Create child document')).not.toBeInTheDocument()
   })
 
-  it('does not show edit button for view-only user', async () => {
+  it('does not show edit button or create child button for view-only user', async () => {
     useUser.setState({ user: { ...mockUser, role: Role.VIEWER } })
     vi.mocked(axios.get).mockResolvedValue({ data: mockDoc, status: 200 })
     renderDocPage()
@@ -156,6 +166,7 @@ describe('DocPage', () => {
       expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Test Document')
     })
     expect(screen.queryByTitle('Edit document')).not.toBeInTheDocument()
+    expect(screen.queryByTitle('Create child document')).not.toBeInTheDocument()
   })
 
   it('shows private badge if doc is not public', async () => {

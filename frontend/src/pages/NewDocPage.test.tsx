@@ -62,9 +62,9 @@ describe('NewDocPage', () => {
     })
   })
 
-  function renderPage() {
+  function renderPage(initialEntries = ['/_new']) {
     return render(
-      <MemoryRouter>
+      <MemoryRouter initialEntries={initialEntries}>
         <NewDocPage />
       </MemoryRouter>
     )
@@ -150,5 +150,15 @@ describe('NewDocPage', () => {
     waitFor(() => {
       expect(navigate).toHaveBeenCalledWith('/login')
     })
+  })
+
+  test('pre-fills parent document from query parameter', async () => {
+    vi.mocked(axios.get).mockResolvedValueOnce({
+      data: { items: mockParentDocs },
+    })
+    renderPage(['/_new?parent=2'])
+    await waitFor(() =>
+      expect(screen.getByLabelText('Parent document')).toHaveValue('2')
+    )
   })
 })

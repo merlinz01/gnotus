@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import axios from '../axios'
-import { LoaderPinwheelIcon, PencilIcon, Share2Icon, CheckIcon } from 'lucide-react'
+import { LoaderPinwheelIcon, PencilIcon, Share2Icon, CheckIcon, FilePlusIcon } from 'lucide-react'
 import useUser from '../stores/user'
 import type Doc from '../types/doc'
 import '../assets/content.css'
@@ -236,9 +236,14 @@ export default function DocPage() {
                   </>
                 )}
                 {user && user.role !== Role.VIEWER && (
-                  <Link to={`/_edit/${doc.id}`} className="ml-2" title="Edit document">
-                    <PencilIcon className="h-5 w-5" />
-                  </Link>
+                  <>
+                    <Link to={`/_new?parent=${doc.id}`} className="ml-2" title="Create child document">
+                      <FilePlusIcon className="h-5 w-5" />
+                    </Link>
+                    <Link to={`/_edit/${doc.id}`} className="ml-2" title="Edit document">
+                      <PencilIcon className="h-5 w-5" />
+                    </Link>
+                  </>
                 )}
                 <div
                   className={linkCopied ? 'tooltip tooltip-left tooltip-open' : ''}
