@@ -5,8 +5,6 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
-    ports:
-      - "127.0.0.1:8000:8000"
     init: true
     depends_on:
       - search
