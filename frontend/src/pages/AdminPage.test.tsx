@@ -65,14 +65,14 @@ describe('AdminPage', () => {
     expect(screen.getByRole('link', { name: /uploads/i })).toHaveAttribute('href', '/_uploads')
   })
 
-  it('redirects non-admin users to home', () => {
+  it('renders admin page for regular user', () => {
     useUser.setState({ user: mockUser, loaded: true })
     render(
       <MemoryRouter>
         <AdminPage />
       </MemoryRouter>
     )
-    expect(navigate).toHaveBeenCalledWith('/')
+    expect(screen.getByText('Administration')).toBeInTheDocument()
   })
 
   it('redirects unauthenticated users to home', () => {

@@ -69,7 +69,7 @@ export default function Sidebar() {
             </HighlightedLink>
           </li>
         )}
-        {user && user.role === Role.ADMIN && (
+        {user && (user.role === Role.ADMIN || user.role === Role.USER) && (
           <li>
             <HighlightedLink to="/_admin" className="opacity-75">
               <span>Administration</span>

@@ -19,12 +19,12 @@ export default function AdminPage() {
     if (!userLoaded) {
       return
     }
-    if (!user || user.role !== Role.ADMIN) {
+    if (!user || (user.role !== Role.ADMIN && user.role !== Role.USER)) {
       navigate('/')
     }
   }, [user, userLoaded, navigate])
 
-  if (!userLoaded || !user || user.role !== Role.ADMIN) {
+  if (!userLoaded || !user || (user.role !== Role.ADMIN && user.role !== Role.USER)) {
     return null
   }
 

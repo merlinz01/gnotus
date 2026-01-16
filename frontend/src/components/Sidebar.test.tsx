@@ -88,7 +88,7 @@ describe('Sidebar', () => {
     expect(vi.mocked(axiosModule.default.get)).toHaveBeenCalledWith('/api/docs/outline')
   })
 
-  it("renders 'Create new document' but not 'Administration' for USER", async () => {
+  it("renders 'Create new document' and 'Administration' for USER", async () => {
     useUser.setState({ user: mockUser, storagePrefix: '', loaded: true })
     vi.mocked(axiosModule.default.get).mockResolvedValue({ data: mockOutline })
     render(
@@ -97,7 +97,7 @@ describe('Sidebar', () => {
       </MemoryRouter>
     )
     expect(await screen.findByText('Create new document')).toBeInTheDocument()
-    expect(screen.queryByText('Administration')).not.toBeInTheDocument()
+    expect(screen.getByText('Administration')).toBeInTheDocument()
   })
 
   it("renders 'Create new document' and 'Administration' for ADMIN", async () => {
