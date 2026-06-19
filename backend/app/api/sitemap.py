@@ -54,7 +54,7 @@ async def sitemap() -> Response:
     async for doc in Doc.filter(public=True):
         url = ET.SubElement(urlset, "url")
         loc = ET.SubElement(url, "loc")
-        loc.text = settings.base_url + "/" + doc.urlpath
+        loc.text = settings.base_url + doc.urlpath
         lastmod = ET.SubElement(url, "lastmod")
         lastmod.text = doc.updated_at.isoformat(timespec="seconds")
     content = ET.tostring(urlset, encoding="utf-8", xml_declaration=True)
