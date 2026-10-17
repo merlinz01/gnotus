@@ -4,7 +4,6 @@ from pathlib import Path
 
 from app.models.doc import Doc
 from app.models.revision import Revision
-from app.models.setting import Setting
 from app.models.upload import Upload
 from app.models.user import User
 from app.settings import settings

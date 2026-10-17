@@ -1,0 +1,86 @@
+{% block head_meta %}
+<title>Settings - {{ site_name }}</title>
+<meta name="robots" content="noindex" data-page-meta>
+{% endblock %}
+
+{% block main %}
+{# Defined in the block, since blocks are rendered on their own #}
+{% macro color_field(name, label) %}
+<fieldset class="fieldset">
+  <label class="label" for="{{ name }}">{{ label }}</label>
+  <div class="settings-color-row">
+    <input
+      id="{{ name }}-picker"
+      type="color"
+      class="input settings-color-swatch"
+      value="{{ config[name] }}"
+      aria-label="{{ label }} picker"
+      data-sync="#{{ name }}"
+    >
+    {# No other element may use the name as its id, or form.elements[name] finds both #}
+    <input
+      id="{{ name }}"
+      type="text"
+      name="{{ name }}"
+      class="input settings-color-value"
+      value="{{ config[name] }}"
+      data-sync="#{{ name }}-picker"
+    >
+  </div>
+</fieldset>
+{% endmacro %}
+<div class="admin-page" data-scroll>
+  {% with page_title = "Settings" %}{% include "admin/breadcrumbs.html" %}{% endwith %}
+  <div class="card admin-panel">
+    <div class="card-body">
+      <h1 class="card-title page-heading">Site Settings</h1>
+      <form class="settings-form" data-form="save-settings">
+        <div class="alert alert-error" role="alert" hidden></div>
+        <div class="alert alert-success" role="status" hidden>Settings saved successfully</div>
+        <fieldset class="fieldset">
+          <span class="label">Site Icon</span>
+          <div class="settings-icon-row">
+            <div class="settings-icon-preview">
+              <img src="/api/icon" alt="Current site icon" class="settings-icon-image">
+            </div>
+            <div class="settings-icon-actions">
+              <label class="btn btn-secondary btn-sm">
+                <input
+                  type="file"
+                  hidden
+                  accept=".svg,.png,.jpg,.jpeg,.ico,.webp,.gif,image/*"
+                  data-on-change="upload-icon"
+                >
+                <span class="btn-label">Upload New Icon</span>
+                <span class="loading loading-sm btn-spinner"></span>
+              </label>
+              <button type="button" class="btn btn-ghost btn-sm" data-action="revert-icon"{% if not config.site_icon_upload_id %} hidden{% endif %}>
+                Revert to Default
+              </button>
+            </div>
+          </div>
+          <p class="settings-hint">
+            Recommended: 48x48 to 512x512 pixels. Max 512KB. Supported: SVG, PNG, JPG, ICO, WebP, GIF
+          </p>
+        </fieldset>
+        <fieldset class="fieldset">
+          <label class="label" for="site-name">Site Name</label>
+          <input id="site-name" type="text" name="site_name" class="input" value="{{ config.site_name }}">
+        </fieldset>
+        <div class="settings-colors">
+          {{ color_field("primary_color", "Primary Color") }}
+          {{ color_field("secondary_color", "Secondary Color") }}
+          {{ color_field("primary_color_dark", "Primary Color (Dark)") }}
+          {{ color_field("secondary_color_dark", "Secondary Color (Dark)") }}
+        </div>
+        <div class="card-actions settings-actions">
+          <button type="submit" class="btn btn-primary">
+            <span class="btn-label">Save</span>
+            <span class="loading loading-sm btn-spinner"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

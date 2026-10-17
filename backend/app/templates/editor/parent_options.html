@@ -1,0 +1,7 @@
+{# Options for choosing a parent document, indented by depth; `selected_parent` is preselected #}
+<option value="" disabled{% if not selected_parent %} selected{% endif %}>Select a parent document</option>
+{% for node, depth in parent_options %}
+<option value="{{ node.id }}" data-public="{{ 'true' if node.public else 'false' }}"{% if node.id == selected_parent %} selected{% endif %}>
+  {{- "   " * depth }}{{ node.title -}}
+</option>
+{% endfor %}

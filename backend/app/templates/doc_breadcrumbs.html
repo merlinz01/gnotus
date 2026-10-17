@@ -1,0 +1,8 @@
+<nav class="breadcrumbs doc-breadcrumbs" aria-label="Breadcrumbs">
+  <ul>
+    {% for parent in parents %}
+    <li><a href="{{ parent.urlpath }}">{{ parent.title }}</a></li>
+    {% endfor %}
+    <li>{{ doc.title }}</li>
+  </ul>
+</nav>

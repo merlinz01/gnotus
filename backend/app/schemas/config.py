@@ -16,4 +16,3 @@ class SiteConfigUpdate(BaseModel):
     secondary_color: str | None = None
     primary_color_dark: str | None = None
     secondary_color_dark: str | None = None
-    site_icon_upload_id: int | None = None

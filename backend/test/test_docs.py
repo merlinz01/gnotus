@@ -61,8 +61,6 @@ async def test_create_doc_under_home(api_client: "TestClient", user_admin: "User
         "markdown": "",
         "html": "",
         "metadata": {"subtitles": []},
-        "parents": [],
-        "children": [],
     }
     await Doc.get(id=data["id"])
 
@@ -114,8 +112,6 @@ async def test_create_child_doc(api_client: "TestClient", user_admin: "User"):
         "markdown": "",
         "html": "",
         "metadata": {"subtitles": []},
-        "parents": [],
-        "children": [],
     }
     await Doc.get(id=data["id"])
 
@@ -235,493 +231,6 @@ async def test_create_doc_unauthorized(api_client: "TestClient", user_viewer: "U
     assert data["detail"] == "You do not have permission to create documents"
 
 
-async def test_get_doc_outline(api_client: "TestClient", user_admin: "User"):
-    """
-    Test getting the document outline.
-    """
-    home = await Doc.create(
-        title="Home",
-        slug="",
-        urlpath="/",
-        public=True,
-        metadata={},
-        markdown="",
-        html="",
-    )
-    doc1 = await Doc.create(
-        parent_id=home.id,
-        title="Outline Document 1",
-        slug="doc1",
-        urlpath="/doc1",
-        public=False,
-        metadata={},
-        markdown="",
-        html="",
-    )
-    doc2 = await Doc.create(
-        parent_id=home.id,
-        title="Outline Document 2",
-        slug="doc2",
-        urlpath="/doc2",
-        public=False,
-        metadata={},
-        markdown="",
-        html="",
-    )
-    doc3 = await Doc.create(
-        parent_id=doc1.id,
-        title="Outline Document 3",
-        slug="doc3",
-        urlpath="/doc1/doc3",
-        public=False,
-        metadata={},
-        markdown="",
-        html="",
-    )
-    doc4 = await Doc.create(
-        parent_id=doc2.id,
-        title="Outline Document 4",
-        slug="doc4",
-        urlpath="/doc2/doc4",
-        public=False,
-        metadata={},
-        markdown="",
-        html="",
-    )
-
-    api_client.set_session_user(user_admin)
-    response = api_client.get("/api/docs/outline")
-    assert response.status_code == status.HTTP_200_OK, response.text
-    data = response.json()
-    assert data == {
-        "id": home.id,
-        "public": True,
-        "title": "Home",
-        "urlpath": "/",
-        "children": [
-            {
-                "id": doc1.id,
-                "public": False,
-                "title": "Outline Document 1",
-                "urlpath": "/doc1",
-                "children": [
-                    {
-                        "id": doc3.id,
-                        "public": False,
-                        "title": "Outline Document 3",
-                        "urlpath": "/doc1/doc3",
-                        "children": [],
-                    }
-                ],
-            },
-            {
-                "id": doc2.id,
-                "public": False,
-                "title": "Outline Document 2",
-                "urlpath": "/doc2",
-                "children": [
-                    {
-                        "id": doc4.id,
-                        "public": False,
-                        "title": "Outline Document 4",
-                        "urlpath": "/doc2/doc4",
-                        "children": [],
-                    }
-                ],
-            },
-        ],
-    }
-
-
-async def test_get_doc_outline_public(api_client: "TestClient"):
-    """
-    Test getting the document outline as a public user.
-    """
-    home = await Doc.create(
-        title="Home",
-        slug="",
-        urlpath="/",
-        public=True,
-        metadata={},
-        markdown="",
-        html="",
-    )
-    doc1 = await Doc.create(
-        parent_id=home.id,
-        title="Public Outline Document 1",
-        slug="pub-doc1",
-        urlpath="/pub-doc1",
-        public=True,
-        metadata={},
-        markdown="",
-        html="",
-    )
-    doc2 = await Doc.create(
-        parent_id=home.id,
-        title="Public Outline Document 2",
-        slug="pub-doc2",
-        urlpath="/pub-doc2",
-        public=True,
-        metadata={},
-        markdown="",
-        html="",
-    )
-    doc3 = await Doc.create(
-        parent_id=doc1.id,
-        title="Public Outline Document 3",
-        slug="pub-doc3",
-        urlpath="/pub-doc1/pub-doc3",
-        public=True,
-        metadata={},
-        markdown="",
-        html="",
-    )
-    await Doc.create(
-        parent_id=doc2.id,
-        title="Public Outline Document 4",
-        slug="pub-doc4",
-        urlpath="/pub-doc2/pub-doc4",
-        public=False,
-        metadata={},
-        markdown="",
-        html="",
-    )
-
-    response = api_client.get("/api/docs/outline")
-    assert response.status_code == status.HTTP_200_OK, response.text
-    data = response.json()
-    assert data == {
-        "id": home.id,
-        "public": True,
-        "title": "Home",
-        "urlpath": "/",
-        "children": [
-            {
-                "id": doc1.id,
-                "public": True,
-                "title": "Public Outline Document 1",
-                "urlpath": "/pub-doc1",
-                "children": [
-                    {
-                        "id": doc3.id,
-                        "public": True,
-                        "title": "Public Outline Document 3",
-                        "urlpath": "/pub-doc1/pub-doc3",
-                        "children": [],
-                    }
-                ],
-            },
-            {
-                "id": doc2.id,
-                "public": True,
-                "title": "Public Outline Document 2",
-                "urlpath": "/pub-doc2",
-                "children": [],
-            },
-        ],
-    }
-
-
-async def test_get_doc_by_id(api_client: "TestClient", user_admin: "User"):
-    """
-    Test getting a document by ID.
-    """
-    api_client.set_session_user(user_admin)
-    doc = await Doc.create(
-        title="Test Get Document",
-        slug="get-document",
-        urlpath="/get-document",
-        public=False,
-        metadata={"subtitles": []},
-        markdown="",
-        html="",
-        updated_by_id=user_admin.id,
-    )
-    response = api_client.get(f"/api/docs/{doc.id}")
-    assert response.status_code == status.HTTP_200_OK, response.text
-    data = response.json()
-    assert data == {
-        "id": doc.id,
-        "title": "Test Get Document",
-        "slug": "get-document",
-        "urlpath": "/get-document",
-        "parent_id": None,
-        "public": False,
-        "created_at": data["created_at"],
-        "updated_at": data["updated_at"],
-        "updated_by_id": user_admin.id,
-        "markdown": "",
-        "html": "",
-        "metadata": {"subtitles": []},
-        "parents": [],
-        "children": [],
-    }
-
-
-async def test_get_nonexistent_doc_by_id(api_client: "TestClient", user_admin: "User"):
-    """
-    Test getting a document by a non-existent ID.
-    """
-    api_client.set_session_user(user_admin)
-    response = api_client.get("/api/docs/9999")  # Assuming this ID does not exist
-    assert response.status_code == status.HTTP_404_NOT_FOUND, response.text
-    data = response.json()
-    assert data["detail"] == "Document not found"
-
-
-async def test_get_doc_by_urlpath(api_client: "TestClient", user_admin: "User"):
-    """
-    Test getting a document by URL path.
-    """
-    api_client.set_session_user(user_admin)
-    doc = await Doc.create(
-        title="Test Get Document by URL",
-        slug="get-document-url",
-        urlpath="/get-document-url",
-        public=False,
-        metadata={"subtitles": []},
-        markdown="",
-        html="",
-        updated_by_id=user_admin.id,
-    )
-    response = api_client.get("/api/docs/by_path", params={"path": doc.urlpath})
-    assert response.status_code == status.HTTP_200_OK, response.text
-    data = response.json()
-    assert data == {
-        "id": doc.id,
-        "title": "Test Get Document by URL",
-        "slug": "get-document-url",
-        "urlpath": "/get-document-url",
-        "parent_id": None,
-        "public": False,
-        "created_at": data["created_at"],
-        "updated_at": data["updated_at"],
-        "updated_by_id": user_admin.id,
-        "markdown": "",
-        "html": "",
-        "metadata": {"subtitles": []},
-        "parents": [],
-        "children": [],
-    }
-
-
-async def test_get_nonexistent_doc_by_urlpath(
-    api_client: "TestClient", user_admin: "User"
-):
-    """
-    Test getting a document by a non-existent URL path.
-    """
-    api_client.set_session_user(user_admin)
-    response = api_client.get("/api/docs/by_path", params={"path": "nonexistent/path"})
-    assert response.status_code == status.HTTP_404_NOT_FOUND, response.text
-    data = response.json()
-    assert data["detail"] == "Document not found"
-
-
-async def test_get_doc_by_urlpath_public(api_client: "TestClient"):
-    """
-    Test getting a public document by URL path.
-    """
-    doc = await Doc.create(
-        title="Public Document",
-        slug="public-document",
-        urlpath="/public-document",
-        public=True,
-        metadata={"subtitles": []},
-        markdown="",
-        html="",
-    )
-    await Doc.create(
-        parent_id=doc.id,
-        title="Child Private Document",
-        slug="child",
-        urlpath="/public-document/child",
-        public=False,
-        metadata={"subtitles": []},
-        markdown="",
-        html="",
-    )
-    response = api_client.get("/api/docs/by_path", params={"path": doc.urlpath})
-    assert response.status_code == status.HTTP_200_OK, response.text
-    data = response.json()
-    assert data == {
-        "id": doc.id,
-        "title": "Public Document",
-        "slug": "public-document",
-        "urlpath": "/public-document",
-        "parent_id": None,
-        "public": True,
-        "created_at": data["created_at"],
-        "updated_at": data["updated_at"],
-        "updated_by_id": None,
-        "markdown": "",
-        "html": "",
-        "metadata": {"subtitles": []},
-        "parents": [],
-        "children": [],
-    }
-
-
-async def test_get_private_doc_unauthenticated(api_client: "TestClient"):
-    """
-    Test getting a private document without authentication.
-    """
-    doc = await Doc.create(
-        title="Private Document",
-        slug="private-document",
-        urlpath="/private-document",
-        public=False,
-        metadata={"subtitles": []},
-        markdown="",
-        html="",
-    )
-    response = api_client.get("/api/docs/by_path", params={"path": doc.urlpath})
-    assert response.status_code == status.HTTP_404_NOT_FOUND, response.text
-    data = response.json()
-    assert data["detail"] == "Document not found"
-
-
-async def test_get_doc_with_timestamp(api_client: "TestClient", user_admin: "User"):
-    """
-    Test getting a document with a timestamp.
-    """
-    api_client.set_session_user(user_admin)
-    doc = await Doc.create(
-        title="Document with Timestamp",
-        slug="doc-timestamp",
-        urlpath="/doc-timestamp",
-        public=False,
-        metadata={"subtitles": []},
-        markdown="",
-        html="",
-        updated_by_id=user_admin.id,
-    )
-    response = api_client.get(
-        f"/api/docs/{doc.id}", params={"timestamp": doc.updated_at.isoformat()}
-    )
-    assert response.status_code == status.HTTP_304_NOT_MODIFIED, response.text
-
-
-async def test_get_doc_with_non_matching_timestamp(
-    api_client: "TestClient", user_admin: "User"
-):
-    """
-    Test getting a document with a non-matching timestamp.
-    """
-    api_client.set_session_user(user_admin)
-    doc = await Doc.create(
-        title="Document with Invalid Timestamp",
-        slug="doc-invalid-timestamp",
-        urlpath="/doc-invalid-timestamp",
-        public=False,
-        metadata={"subtitles": []},
-        markdown="",
-        html="",
-        updated_by_id=user_admin.id,
-    )
-    response = api_client.get(
-        f"/api/docs/{doc.id}",
-        params={"timestamp": "2023-01-01T00:00:00Z"},
-    )
-    assert response.status_code == status.HTTP_200_OK, response.text
-    data = response.json()
-    assert data["id"] == doc.id
-
-
-async def test_get_doc_revisions(api_client: "TestClient", user_admin: "User"):
-    """
-    Test getting document revisions.
-    """
-    api_client.set_session_user(user_admin)
-    doc = await Doc.create(
-        title="Test Document Revisions",
-        slug="doc-revisions",
-        urlpath="/doc-revisions",
-        public=False,
-        metadata={"subtitles": []},
-        markdown="",
-        html="",
-        updated_by_id=user_admin.id,
-    )
-    rev1 = await Revision.create(
-        doc_id=doc.id,
-        markdown="Initial content",
-        html="<p>Initial content</p>",
-        created_by_id=user_admin.id,
-    )
-    rev2 = await Revision.create(
-        doc_id=doc.id,
-        markdown="Updated content",
-        html="<p>Updated content</p>",
-        created_by_id=user_admin.id,
-    )
-    response = api_client.get(f"/api/docs/{doc.id}/revisions")
-    assert response.status_code == status.HTTP_200_OK, response.text
-    data = response.json()
-    assert data == {
-        "items": [
-            {
-                "id": rev2.id,
-                "doc_id": doc.id,
-                "markdown": "Updated content",
-                "html": "<p>Updated content</p>",
-                "created_at": data["items"][0]["created_at"],
-                "created_by_id": user_admin.id,
-                "created_by_username": user_admin.username,
-            },
-            {
-                "id": rev1.id,
-                "doc_id": doc.id,
-                "markdown": "Initial content",
-                "html": "<p>Initial content</p>",
-                "created_at": data["items"][1]["created_at"],
-                "created_by_id": user_admin.id,
-                "created_by_username": user_admin.username,
-            },
-        ],
-        "total": 2,
-        "page": 1,
-        "size": -1,
-    }
-
-
-async def test_get_doc_revisions_invalid_id(
-    api_client: "TestClient", user_admin: "User"
-):
-    """
-    Test getting revisions for a document with an invalid ID.
-    """
-    api_client.set_session_user(user_admin)
-    response = api_client.get(
-        "/api/docs/9999/revisions"
-    )  # Assuming this ID does not exist
-    assert response.status_code == status.HTTP_404_NOT_FOUND, response.text
-    data = response.json()
-    assert data["detail"] == "Document not found"
-
-
-async def test_get_doc_revisions_unauthorized(
-    api_client: "TestClient", user_viewer: "User"
-):
-    """
-    Test getting revisions for a document as a user without permission.
-    """
-    api_client.set_session_user(user_viewer)
-    doc = await Doc.create(
-        title="Unauthorized Revisions Document",
-        slug="unauthorized-revisions",
-        urlpath="/unauthorized-revisions",
-        public=False,
-        metadata={"subtitles": []},
-        markdown="",
-        html="",
-    )
-    response = api_client.get(f"/api/docs/{doc.id}/revisions")
-    assert response.status_code == status.HTTP_403_FORBIDDEN, response.text
-    data = response.json()
-    assert data["detail"] == "You do not have permission to view document revisions"
-
-
 async def test_update_doc(api_client: "TestClient", user_admin: "User"):
     """
     Test updating a document.
@@ -791,8 +300,6 @@ async def test_update_doc(api_client: "TestClient", user_admin: "User"):
                 }
             ],
         },
-        "parents": [],
-        "children": [],
     }
     assert await doc.revisions.all().count() == 1
 
@@ -1470,82 +977,6 @@ async def test_delete_home_page_forbidden(api_client: "TestClient", user_admin: 
     assert data["detail"] == "Cannot delete the home page"
 
 
-async def test_list_docs(api_client: "TestClient", user_admin: "User"):
-    """
-    Test listing documents.
-    """
-    api_client.set_session_user(user_admin)
-    doc1 = await Doc.create(
-        title="List Document 1",
-        slug="list-doc-1",
-        urlpath="/list-doc-1",
-        public=False,
-        metadata={},
-        markdown="",
-        html="",
-    )
-    doc2 = await Doc.create(
-        title="List Document 2",
-        slug="list-doc-2",
-        urlpath="/list-doc-2",
-        public=False,
-        metadata={},
-        markdown="",
-        html="",
-    )
-    await Doc.create(
-        title="List Document 3",
-        slug="list-doc-3",
-        urlpath="/list-doc-3",
-        public=False,
-        metadata={},
-        markdown="",
-        html="",
-    )
-    response = api_client.get("/api/docs/?page=1&size=2")
-    assert response.status_code == status.HTTP_200_OK, response.text
-    data = response.json()
-    assert data == {
-        "items": [
-            {
-                "id": doc1.id,
-                "title": "List Document 1",
-                "slug": "list-doc-1",
-                "urlpath": "/list-doc-1",
-                "parent_id": None,
-                "public": False,
-                "created_at": data["items"][0]["created_at"],
-                "updated_at": data["items"][0]["updated_at"],
-                "updated_by_id": None,
-                "markdown": "",
-                "html": "",
-                "metadata": {},
-                "parents": [],
-                "children": [],
-            },
-            {
-                "id": doc2.id,
-                "title": "List Document 2",
-                "slug": "list-doc-2",
-                "urlpath": "/list-doc-2",
-                "parent_id": None,
-                "public": False,
-                "created_at": data["items"][1]["created_at"],
-                "updated_at": data["items"][1]["updated_at"],
-                "updated_by_id": None,
-                "markdown": "",
-                "html": "",
-                "metadata": {},
-                "parents": [],
-                "children": [],
-            },
-        ],
-        "total": 3,
-        "page": 1,
-        "size": 2,
-    }
-
-
 async def test_search_docs_with_short_query(
     api_client: "TestClient", user_admin: "User"
 ):
@@ -1604,7 +1035,7 @@ async def test_get_doc_markdown(api_client: "TestClient", user_admin: "User"):
         markdown="This is the content.",
         html="",
     )
-    response = api_client.get(f"/api/docs/markdown/{doc.urlpath}")
+    response = api_client.get(f"{doc.urlpath}.md")
     assert response.status_code == status.HTTP_200_OK
     assert response.headers["content-type"] == "text/plain; charset=utf-8"
     assert response.text == "# Test Document\n\nThis is the content."
@@ -1646,7 +1077,7 @@ async def test_get_doc_markdown_with_children(
         markdown="",
         html="",
     )
-    response = api_client.get("/api/docs/markdown/parent")
+    response = api_client.get("/parent.md")
     assert response.status_code == status.HTTP_200_OK
     text = response.text
     assert "# Parent Document\n" in text
@@ -1660,7 +1091,7 @@ async def test_get_doc_markdown_not_found(api_client: "TestClient", user_admin: 
     Test getting markdown for non-existent document.
     """
     api_client.set_session_user(user_admin)
-    response = api_client.get("/api/docs/markdown/non-existent")
+    response = api_client.get("/non-existent.md")
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
@@ -1677,7 +1108,7 @@ async def test_get_doc_markdown_private_anonymous(api_client: "TestClient"):
         markdown="Secret content.",
         html="",
     )
-    response = api_client.get("/api/docs/markdown/private-doc")
+    response = api_client.get("/private-doc.md")
     assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
@@ -1694,7 +1125,7 @@ async def test_get_doc_markdown_public_anonymous(api_client: "TestClient"):
         markdown="Public content.",
         html="",
     )
-    response = api_client.get("/api/docs/markdown/public-doc")
+    response = api_client.get("/public-doc.md")
     assert response.status_code == status.HTTP_200_OK
     assert "# Public Document" in response.text
     assert "Public content." in response.text

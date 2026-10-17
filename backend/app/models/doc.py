@@ -26,6 +26,44 @@ def slugify(text: str) -> str:
     return text[:50]
 
 
+def render_markdown(markdown: str) -> tuple[str, list[DocSubtitle]]:
+    """
+    Render Markdown to sanitized HTML, giving each heading a unique ID and an anchor link.
+    Returns the HTML and the headings.
+    """
+    from markdown_it import MarkdownIt
+
+    html = nh3.clean(MarkdownIt("gfm-like").disable("code").render(markdown))
+    soup = BeautifulSoup(html, "html.parser")
+    subtitles: list[DocSubtitle] = []
+    for tag in soup.find_all(["h1", "h2", "h3", "h4", "h5", "h6"]):
+        if isinstance(tag, Tag):
+            text = tag.get_text()
+            if not text:
+                continue  # pragma: no cover
+            hash = str(tag.get("id", "") or slugify(text))
+            if not hash:
+                continue  # pragma: no cover
+            hash = "section-" + hash
+            existing_hashes = {subtitle.hash for subtitle in subtitles}
+            count = 1
+            original_hash = hash
+            while hash in existing_hashes:  # pragma: no cover
+                hash = f"{original_hash}-{count}"
+                count += 1
+            tag.attrs["id"] = hash
+            tag.insert(
+                len(tag.contents),
+                soup.new_tag(
+                    "a",
+                    attrs={"class": "heading-anchor", "href": f"#{hash}"},
+                    string="#",
+                ),
+            )
+            subtitles.append(DocSubtitle(title=text, hash=hash))
+    return str(soup), subtitles
+
+
 class Doc(TimestampedModel):
     """
     Model representing a document.
@@ -126,42 +164,7 @@ class Doc(TimestampedModel):
         This includes generating subtitles and ensuring unique IDs for headings.
         This method should be called after any changes to the markdown content.
         """
-        from markdown_it import MarkdownIt
-
-        self.html = nh3.clean(
-            MarkdownIt("gfm-like").disable("code").render(self.markdown)
-        )
-        soup = BeautifulSoup(self.html, "html.parser")
-        subtitles = []
-        for tag in soup.find_all(["h1", "h2", "h3", "h4", "h5", "h6"]):
-            if isinstance(tag, Tag):
-                text = tag.get_text()
-                if not text:
-                    continue  # pragma: no cover
-                hash = str(tag.get("id", "") or slugify(text))
-                if not hash:
-                    continue  # pragma: no cover
-                hash = "section-" + hash
-                existing_hashes = {subtitle.hash for subtitle in subtitles}
-                count = 1
-                original_hash = hash
-                while hash in existing_hashes:  # pragma: no cover
-                    hash = f"{original_hash}-{count}"
-                    count += 1
-                tag.attrs["id"] = hash
-                tag.insert(
-                    len(tag.contents),
-                    soup.new_tag(
-                        "a",
-                        attrs={"class": "heading-anchor", "href": f"#{hash}"},
-                        string="#",
-                    ),
-                )
-                subtitles.append(DocSubtitle(title=text, hash=hash))
-        self.html = str(soup)
+        self.html, subtitles = render_markdown(self.markdown)
         self.metadata["subtitles"] = [
-            DocSubtitle(title=subtitle.title, hash=subtitle.hash).model_dump(
-                mode="json"
-            )
-            for subtitle in subtitles
+            subtitle.model_dump(mode="json") for subtitle in subtitles
         ]

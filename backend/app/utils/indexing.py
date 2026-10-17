@@ -1,3 +1,5 @@
+import html
+
 import nh3
 from bs4 import BeautifulSoup
 from meilisearch_python_sdk import AsyncClient, AsyncIndex
@@ -127,6 +129,23 @@ async def delete_document_from_index(doc_id: int):  # pragma: no cover
     await index.delete_document(str(doc_id))
 
 
+# Private-use characters marking highlighted search matches
+_HIGHLIGHT_PRE = "\ue000"
+_HIGHLIGHT_POST = "\ue001"
+
+
+def _highlight_html(text: str) -> str:
+    """
+    Convert highlighted search result text to HTML, escaping the text itself.
+    """
+    text = html.escape(text)
+    if text.count(_HIGHLIGHT_PRE) != text.count(_HIGHLIGHT_POST):
+        return text.replace(_HIGHLIGHT_PRE, "").replace(_HIGHLIGHT_POST, "")
+    return text.replace(_HIGHLIGHT_PRE, '<em class="search-highlight">').replace(
+        _HIGHLIGHT_POST, "</em>"
+    )
+
+
 async def search_documents(
     query: str, public_only: bool = True
 ) -> list[DocSearchResult]:  # pragma: no cover
@@ -147,14 +166,15 @@ async def search_documents(
         crop_length=100,
         crop_marker="...",
         attributes_to_highlight=["title", "text"],
-        highlight_pre_tag="<em class='search-highlight'>",
+        highlight_pre_tag=_HIGHLIGHT_PRE,
+        highlight_post_tag=_HIGHLIGHT_POST,
     )
     return [
         DocSearchResult(
             id=int(result["id"]),
-            title=result["_formatted"]["title"],
+            title=_highlight_html(result["_formatted"]["title"]),
             urlpath=result["urlpath"],
-            text=result["_formatted"]["text"],
+            text=_highlight_html(result["_formatted"]["text"]),
             public=result["public"],
         )
         for result in results.hits

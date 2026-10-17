@@ -1,0 +1,62 @@
+{% macro sidebar_link(urlpath, title, leaf) %}
+<a
+  href="{{ urlpath }}"
+  class="sidebar-link{% if leaf %} sidebar-link-leaf{% endif %}{% if urlpath == current_path %} active{% endif %}"
+>
+  <span>{{ title }}</span>
+</a>
+{% endmacro %}
+{% macro outline_node(node) %}
+<li>
+  {% if node.children %}
+  <details class="sidebar-node"{% if node.urlpath in open_paths %} open{% endif %}>
+    <summary class="sidebar-item">
+      <span class="sidebar-toggle" title="Toggle children">{{ icon('chevron-right', 'sidebar-toggle-icon') }}</span>
+      {{ sidebar_link(node.urlpath, node.title, false) }}
+    </summary>
+    <ul class="menu sidebar-children">
+      {% for child in node.children %}
+      {{ outline_node(child) }}
+      {% endfor %}
+    </ul>
+  </details>
+  {% else %}
+  <div class="sidebar-item">{{ sidebar_link(node.urlpath, node.title, true) }}</div>
+  {% endif %}
+</li>
+{% endmacro %}
+<div class="sidebar" data-outline-version="{{ outline_version }}">
+  <ul class="menu sidebar-menu">
+    {% if outline %}
+    <li>
+      <div class="sidebar-item">{{ sidebar_link(outline.urlpath, outline.title, true) }}</div>
+    </li>
+    {% for node in outline.children %}
+    {{ outline_node(node) }}
+    {% endfor %}
+    {% endif %}
+    {% if can_edit %}
+    {% for path, title in [("/_new", "Create new document"), ("/_admin", "Administration")] %}
+    <li>
+      <a href="{{ path }}" class="sidebar-action{% if path == current_path %} active{% endif %}"><span>{{ title }}</span></a>
+    </li>
+    {% endfor %}
+    {% endif %}
+  </ul>
+  <div class="sidebar-spacer"></div>
+  <div class="sidebar-footer">
+    {% if user %}
+    <span>
+      Logged in as <i>{{ user.username }}</i>
+      <br>
+      <a href="/_logout">Log out</a>
+    </span>
+    {% else %}
+    <a href="/_login">Log in</a>
+    {% endif %}
+  </div>
+  <div class="sidebar-footer">
+    Powered by
+    <a href="https://github.com/merlinz01/gnotus" target="_blank" rel="noopener noreferrer">Gnotus</a>
+  </div>
+</div>

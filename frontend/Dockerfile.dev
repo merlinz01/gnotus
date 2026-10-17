@@ -1,4 +1,0 @@
-
-FROM node:20
-WORKDIR /app
-CMD ["bash", "-c", "npm install --frozen --ignore-scripts && npm run dev"]

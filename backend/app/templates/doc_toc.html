@@ -1,0 +1,8 @@
+<aside class="doc-toc">
+  <h2 class="doc-toc-heading">In this page</h2>
+  <ul class="doc-toc-list">
+    {% for heading in doc.metadata.get('subtitles', []) %}
+    <li><a href="#{{ heading.hash }}">{{ heading.title }}</a></li>
+    {% endfor %}
+  </ul>
+</aside>

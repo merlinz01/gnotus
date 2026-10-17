@@ -1,0 +1,10 @@
+{% if children %}
+<nav class="doc-contents" aria-label="Contents">
+  <h2 class="doc-contents-heading">Contents</h2>
+  <ul class="doc-contents-list">
+    {% for child in children %}
+    <li><a href="{{ child.urlpath }}">{{ child.title }}</a></li>
+    {% endfor %}
+  </ul>
+</nav>
+{% endif %}

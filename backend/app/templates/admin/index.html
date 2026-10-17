@@ -1,0 +1,43 @@
+{% block head_meta %}
+<title>Administration - {{ site_name }}</title>
+<meta name="robots" content="noindex" data-page-meta>
+{% endblock %}
+
+{% block main %}
+<div class="admin-home" data-scroll>
+  <h1 class="admin-home-title">Administration</h1>
+  <div class="admin-home-grid">
+    {% if is_admin %}
+    <a href="/_users" class="card admin-home-card">
+      <div class="card-body admin-home-card-body">
+        {{ icon('users') }}
+        <div>
+          <h2 class="card-title">Users</h2>
+          <p class="admin-home-card-description">Manage user accounts and roles</p>
+        </div>
+      </div>
+    </a>
+    {% endif %}
+    <a href="/_uploads" class="card admin-home-card">
+      <div class="card-body admin-home-card-body">
+        {{ icon('upload') }}
+        <div>
+          <h2 class="card-title">Uploads</h2>
+          <p class="admin-home-card-description">Manage uploaded files</p>
+        </div>
+      </div>
+    </a>
+    {% if is_admin %}
+    <a href="/_settings" class="card admin-home-card">
+      <div class="card-body admin-home-card-body">
+        {{ icon('settings') }}
+        <div>
+          <h2 class="card-title">Settings</h2>
+          <p class="admin-home-card-description">Configure site settings</p>
+        </div>
+      </div>
+    </a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

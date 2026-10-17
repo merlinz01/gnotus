@@ -12,10 +12,8 @@ from ..auth.dependencies import LoggedInUser, OptionalUser
 from ..models.doc import Doc
 from ..models.sharelink import ShareableLink
 from ..models.upload import Upload
-from ..schemas.role import Role
 from ..schemas.upload import UploadCreate, UploadResponse, UploadUpdate
 from ..settings import settings
-from .pagination import PaginatedResponse, PaginationParams
 
 logger = getLogger(__name__)
 router = APIRouter(prefix="/uploads", tags=["uploads"])
@@ -29,7 +27,7 @@ async def upload_file(
     """
     Upload a file.
     """
-    if current_user.role != Role.ADMIN and current_user.role != Role.USER:
+    if not current_user.can_edit:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have permission to upload files",
@@ -80,7 +78,7 @@ async def upload_file(
                 detail="Document not found",
             )
         # Check user has permission to attach uploads to this document
-        if current_user.role != Role.ADMIN and current_user.role != Role.USER:
+        if not current_user.can_edit:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You do not have permission to attach uploads to this document",
@@ -127,68 +125,6 @@ async def upload_file(
     )
 
 
-@router.get("/")
-async def list_uploads(
-    current_user: LoggedInUser,
-    pagination: PaginationParams,
-) -> PaginatedResponse[UploadResponse]:
-    """
-    List all uploads.
-    """
-    uploads = Upload.all()
-    total = await uploads.count()
-    uploads = pagination.apply(uploads)
-
-    return PaginatedResponse[UploadResponse](
-        items=[
-            UploadResponse(
-                id=upload.id,
-                filename=upload.filename,
-                content_type=upload.content_type,
-                size=upload.size,
-                public=upload.public,
-                doc_id=upload.doc_id,
-                created_by_id=upload.created_by_id,
-                created_at=upload.created_at,
-                updated_at=upload.updated_at,
-            )
-            async for upload in uploads
-        ],
-        total=total,
-        page=pagination.page,
-        size=pagination.size,
-    )
-
-
-@router.get("/{upload_id}")
-async def get_upload(
-    current_user: LoggedInUser,
-    upload_id: int,
-) -> UploadResponse:
-    """
-    Get details of a specific upload.
-    """
-    try:
-        upload = await Upload.get(id=upload_id)
-    except DoesNotExist:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Upload not found",
-        )
-
-    return UploadResponse(
-        id=upload.id,
-        filename=upload.filename,
-        content_type=upload.content_type,
-        size=upload.size,
-        public=upload.public,
-        doc_id=upload.doc_id,
-        created_by_id=upload.created_by_id,
-        created_at=upload.created_at,
-        updated_at=upload.updated_at,
-    )
-
-
 @router.put("/{upload_id}")
 async def update_upload(
     current_user: LoggedInUser,
@@ -206,7 +142,7 @@ async def update_upload(
             detail="Upload not found",
         )
 
-    if current_user.role != Role.ADMIN and current_user.role != Role.USER:
+    if not current_user.can_edit:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have permission to update uploads",
@@ -242,12 +178,12 @@ async def update_upload(
                     detail="Document not found",
                 )
             # Check user has permission to attach uploads to this document
-            if current_user.role != Role.ADMIN and current_user.role != Role.USER:
+            if not current_user.can_edit:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="You do not have permission to attach uploads to this document",
                 )
-            upload.doc = doc
+            upload.doc = doc  # type: ignore
             # Inherit public status from the document
             upload.public = doc.public
     await upload.save()
@@ -282,7 +218,7 @@ async def delete_upload(
             detail="Upload not found",
         )
 
-    if current_user.role != Role.ADMIN and current_user.role != Role.USER:
+    if not current_user.can_edit:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have permission to delete uploads",
@@ -369,62 +305,3 @@ async def download_upload(
         media_type=upload.content_type,
         content_disposition_type="attachment" if download else "inline",
     )
-
-
-@router.get("/by-doc/{doc_id}")
-async def list_uploads_by_doc(
-    current_user: OptionalUser,
-    doc_id: int,
-    share_token: str | None = None,
-) -> list[UploadResponse]:
-    """
-    List all uploads associated with a specific document.
-
-    Access is granted if:
-    - User is authenticated, OR
-    - Document is public, OR
-    - A valid share token for the document is provided
-    """
-    try:
-        doc = await Doc.get(id=doc_id)
-    except DoesNotExist:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Document not found",
-        )
-
-    # Check access to the document
-    has_access = False
-    if current_user:
-        has_access = True
-    elif doc.public:
-        has_access = True
-    elif share_token:
-        try:
-            link = await ShareableLink.get(token=share_token, doc_id=doc_id)
-            if not link.is_expired():
-                has_access = True
-        except DoesNotExist:
-            pass
-
-    if not has_access:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Document not found",
-        )
-
-    uploads = await Upload.filter(doc_id=doc_id)
-    return [
-        UploadResponse(
-            id=upload.id,
-            filename=upload.filename,
-            content_type=upload.content_type,
-            size=upload.size,
-            public=upload.public,
-            doc_id=upload.doc_id,
-            created_by_id=upload.created_by_id,
-            created_at=upload.created_at,
-            updated_at=upload.updated_at,
-        )
-        for upload in uploads
-    ]

@@ -1,0 +1,118 @@
+.share-dialog {
+  max-width: 32rem;
+}
+
+.share-dialog .btn svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.share-dialog-error {
+  margin-bottom: 1rem;
+}
+
+.share-dialog-section {
+  margin-bottom: 1rem;
+}
+
+.share-dialog-heading {
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.share-dialog-create {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.share-dialog-expiration {
+  flex: 1;
+}
+
+.share-dialog-loading {
+  display: flex;
+  justify-content: center;
+  padding-block: 1rem;
+}
+
+.share-dialog-loading svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.share-dialog-empty {
+  padding-block: 1rem;
+  color: var(--color-subtle);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  text-align: center;
+}
+
+.share-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.share-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem;
+  border-radius: var(--radius-box);
+  background-color: var(--color-base-200);
+}
+
+.share-link-expired {
+  opacity: 0.5;
+}
+
+.share-link-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.share-link-token {
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.share-link-meta {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  color: var(--color-subtle);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+}
+
+.share-link-expiry-expired {
+  color: var(--color-error);
+}
+
+.share-link-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.share-link-copied {
+  color: var(--color-success);
+}
+
+.share-link-actions .share-link-copied,
+.share-link-actions .is-copied .share-link-copy {
+  display: none;
+}
+
+.share-link-actions .is-copied .share-link-copied {
+  display: block;
+}
+
+.share-link-delete {
+  color: var(--color-error);
+}

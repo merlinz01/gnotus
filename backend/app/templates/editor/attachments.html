@@ -1,0 +1,47 @@
+{# The attachments of the document being edited #}
+<summary class="editor-attachments-summary">Attachments ({{ uploads | length }})</summary>
+<div class="editor-attachments-body">
+  {% if uploads %}
+  <div class="editor-attachment-list">
+    {% for upload in uploads %}
+    <div class="editor-attachment" data-upload-id="{{ upload.id }}">
+      <span class="editor-attachment-name">{{ upload.filename }}</span>
+      <button
+        type="button"
+        class="btn btn-ghost btn-xs"
+        title="Insert link"
+        data-action="insert-attachment"
+        data-filename="{{ upload.filename }}"
+        data-image="{{ 'true' if upload.content_type.startswith('image/') else 'false' }}"
+      >{{ icon('link-2') }}</button>
+      <a
+        href="/api/uploads/{{ upload.id }}/download/{{ upload.filename | urlencode }}?download=false"
+        class="btn btn-ghost btn-xs"
+        target="_blank"
+        title="View"
+      >{{ icon('eye') }}</a>
+      <a
+        href="/api/uploads/{{ upload.id }}/download/{{ upload.filename | urlencode }}"
+        class="btn btn-ghost btn-xs"
+        title="Download"
+        download
+      >{{ icon('download') }}</a>
+      <button type="button" class="btn btn-ghost btn-xs editor-attachment-delete" title="Delete" data-action="delete-attachment">
+        {{ icon('trash') }}
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="editor-attachments-empty">
+    No attachments yet. Drag files into the editor, paste, or use the button below.
+  </p>
+  {% endif %}
+  <div class="editor-attachment-upload">
+    <label class="btn btn-secondary btn-sm">
+      <input type="file" class="editor-attachment-input" multiple data-on-change="add-attachments">
+      <span class="btn-label">Add Attachment</span>
+      <span class="loading loading-sm btn-spinner"></span>
+    </label>
+  </div>
+</div>

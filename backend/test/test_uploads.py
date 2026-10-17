@@ -173,45 +173,6 @@ async def test_create_upload_exceeds_max_size(api_client: TestClient, user_admin
     }
 
 
-async def test_get_upload(api_client: TestClient, user_admin: User):
-    """
-    Test getting a upload by ID.
-    """
-    api_client.set_session_user(user_admin)
-    upload = await Upload.create(
-        filename="testupload.png",
-        content_type="image/png",
-        size=1024,
-        public=True,
-        created_by=user_admin,
-        storage_path="",
-    )
-    response = api_client.get(f"/api/uploads/{upload.id}")
-    assert response.status_code == status.HTTP_200_OK
-    data = response.json()
-    assert data == {
-        "id": upload.id,
-        "filename": "testupload.png",
-        "content_type": "image/png",
-        "size": 1024,
-        "public": True,
-        "doc_id": None,
-        "created_by_id": user_admin.id,
-        "created_at": data["created_at"],
-        "updated_at": data["updated_at"],
-    }
-
-
-async def test_get_upload_not_found(api_client: TestClient, user_admin: User):
-    """
-    Test getting a upload that does not exist.
-    """
-    api_client.set_session_user(user_admin)
-    response = api_client.get("/api/uploads/9999")
-    assert response.status_code == status.HTTP_404_NOT_FOUND
-    assert response.json() == {"detail": "Upload not found"}
-
-
 async def test_download_upload(
     api_client: TestClient, user_admin: User, tmp_path: Path
 ):
@@ -468,58 +429,3 @@ async def test_delete_upload_not_found(api_client: TestClient, user_admin: User)
     response = api_client.delete("/api/uploads/9999")
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert response.json() == {"detail": "Upload not found"}
-
-
-async def test_list_uploads(api_client: TestClient, user_admin: User):
-    """
-    Test listing all uploads.
-    """
-    upload1 = await Upload.create(
-        filename="upload1.png",
-        content_type="image/png",
-        size=1024,
-        public=True,
-        created_by=user_admin,
-        storage_path="abc",
-    )
-    upload2 = await Upload.create(
-        filename="upload2.png",
-        content_type="image/png",
-        size=2048,
-        public=False,
-        created_by=user_admin,
-        storage_path="def",
-    )
-    api_client.set_session_user(user_admin)
-    response = api_client.get("/api/uploads/?page=1&size=2")
-    assert response.status_code == status.HTTP_200_OK
-    data = response.json()
-    assert data == {
-        "items": [
-            {
-                "id": upload1.id,
-                "filename": "upload1.png",
-                "content_type": "image/png",
-                "size": 1024,
-                "public": True,
-                "doc_id": None,
-                "created_by_id": user_admin.id,
-                "created_at": data["items"][0]["created_at"],
-                "updated_at": data["items"][0]["updated_at"],
-            },
-            {
-                "id": upload2.id,
-                "filename": "upload2.png",
-                "content_type": "image/png",
-                "size": 2048,
-                "public": False,
-                "doc_id": None,
-                "created_by_id": user_admin.id,
-                "created_at": data["items"][1]["created_at"],
-                "updated_at": data["items"][1]["updated_at"],
-            },
-        ],
-        "size": 2,
-        "page": 1,
-        "total": 2,
-    }

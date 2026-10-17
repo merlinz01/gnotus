@@ -1,0 +1,45 @@
+{% block head_meta %}
+<title>Log in - {{ site_name }}</title>
+<meta name="robots" content="noindex" data-page-meta>
+{% endblock %}
+
+{% block main %}
+<div class="auth-page">
+  <form class="card card-border auth-card" data-form="login">
+    <input type="hidden" name="next" value="{{ next }}">
+    <div class="card-body">
+      <h2 class="card-title page-heading">Log in</h2>
+      <fieldset class="fieldset">
+        <label class="label" for="login-username">Username</label>
+        <input
+          type="text"
+          id="login-username"
+          name="username"
+          placeholder="Enter your username"
+          class="input"
+          autocomplete="username"
+          required
+          autofocus
+        >
+        <label class="label" for="login-password">Password</label>
+        <input
+          type="password"
+          id="login-password"
+          name="password"
+          placeholder="Enter your password"
+          class="input"
+          autocomplete="current-password"
+          required
+        >
+      </fieldset>
+      <div class="alert alert-error form-error" role="alert" hidden></div>
+      <div class="card-actions auth-actions">
+        <button type="submit" class="btn btn-primary auth-submit">
+          <span class="btn-label">Log in</span>
+          <span class="loading loading-sm btn-spinner" role="status"></span>
+        </button>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

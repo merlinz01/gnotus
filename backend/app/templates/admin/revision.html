@@ -1,0 +1,22 @@
+{# The details of a revision, loaded into the dialog on the revisions page #}
+<p class="revision-meta">
+  Created
+  {% if revision.created_by %}by <strong>{{ revision.created_by.username }}</strong>{% endif %}
+  on <strong><time datetime="{{ revision.created_at.isoformat() }}" data-localize="datetime">{{ revision.created_at | format_datetime }}</time></strong>
+</p>
+<div class="tabs tabs-border revision-tabs">
+  <input type="radio" name="revision-tab" class="tab" aria-label="Content" checked>
+  <div class="tab-content revision-pane revision-pane-content">
+    <div class="gnotus-content">{{ revision.html | safe }}</div>
+  </div>
+  <input type="radio" name="revision-tab" class="tab" aria-label="Markdown Diff">
+  {% if diff is not none %}
+  <div class="tab-content revision-pane revision-pane-diff revision-diff">
+    {%- for kind, text in diff -%}
+    {%- if kind -%}<span class="diff-{{ kind }}">{{ text }}</span>{%- else -%}{{ text }}{%- endif -%}
+    {%- endfor -%}
+  </div>
+  {% else %}
+  <div class="tab-content revision-pane">This is the first revision.</div>
+  {% endif %}
+</div>

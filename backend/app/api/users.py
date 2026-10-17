@@ -6,9 +6,7 @@ from tortoise.exceptions import DoesNotExist
 from ..auth.dependencies import LoggedInUser
 from ..auth.passwords import check_password, hash_password
 from ..models.user import User
-from ..schemas.role import Role
 from ..schemas.user import UserChangePassword, UserCreate, UserResponse, UserUpdate
-from .pagination import PaginatedResponse, PaginationParams
 
 logger = getLogger(__name__)
 router = APIRouter(prefix="/users", tags=["users"])
@@ -22,7 +20,7 @@ async def create_user(
     """
     Create a new user.
     """
-    if current_user.role != Role.ADMIN:
+    if not current_user.is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only admins can create new users",
@@ -42,23 +40,6 @@ async def create_user(
     return UserResponse.from_user(user)
 
 
-@router.get("/{user_id}")
-async def get_user(
-    current_user: LoggedInUser,
-    user_id: int,
-) -> UserResponse:
-    """
-    Get a user by ID.
-    """
-    try:
-        user = await User.get(id=user_id)
-    except DoesNotExist:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-        )
-    return UserResponse.from_user(user)
-
-
 @router.put("/{user_id}")
 async def update_user(
     current_user: LoggedInUser,
@@ -74,7 +55,7 @@ async def update_user(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
-    if current_user.role != Role.ADMIN and user.id != current_user.id:
+    if not current_user.is_admin and user.id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only admins can update other users",
@@ -91,14 +72,14 @@ async def update_user(
             )
         user.username = user_update.username
     if user_update.role is not None:
-        if current_user.role != Role.ADMIN:
+        if not current_user.is_admin:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Only admins can change user roles",
             )
         user.role = user_update.role
     if user_update.is_active is not None:
-        if current_user.role != Role.ADMIN:
+        if not current_user.is_admin:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Only admins can change user active status",
@@ -124,12 +105,12 @@ async def change_user_password(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
-    if current_user.role != Role.ADMIN and user.id != current_user.id:
+    if not current_user.is_admin and user.id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only admins can change other users' passwords",
         )
-    if user_change_password.old_password == "" and current_user.role == Role.ADMIN:
+    if user_change_password.old_password == "" and current_user.is_admin:
         pass  # Admins can reset passwords without providing the old password
     elif not await check_password(user, user_change_password.old_password):
         raise HTTPException(
@@ -152,7 +133,7 @@ async def delete_user(
     """
     Delete a user by ID.
     """
-    if current_user.role != Role.ADMIN:
+    if not current_user.is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only admins can delete users",
@@ -166,23 +147,3 @@ async def delete_user(
     await user.delete()
     logger.info(f"User {user.username} deleted by {current_user.username}.")
     return None
-
-
-@router.get("/")
-async def list_users(
-    current_user: LoggedInUser,
-    pagination: PaginationParams,
-) -> PaginatedResponse[UserResponse]:
-    """
-    List users with pagination.
-    """
-    users = User.all()
-    total = await users.count()
-    users = pagination.apply(users)
-
-    return PaginatedResponse(
-        items=[UserResponse.from_user(user) async for user in users],
-        size=pagination.size,
-        page=pagination.page,
-        total=total,
-    )

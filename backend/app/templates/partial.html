@@ -1,0 +1,15 @@
+{#
+  The parts of a page that change on client-side navigation.
+  The client swaps the [data-page-meta] elements and the contents of #main into the current page.
+#}
+<!doctype html>
+<html>
+  <head>
+    <meta name="gnotus-user" content="{{ user.id if user else '' }}">
+    <meta name="gnotus-outline-version" content="{{ outline_version }}">
+    {{ head_meta }}
+  </head>
+  <body>
+    <main id="main">{{ main }}</main>
+  </body>
+</html>

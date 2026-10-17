@@ -5,39 +5,6 @@ from app.models.setting import Setting
 from app.models.user import User
 
 
-async def test_get_config_defaults(api_client: TestClient):
-    """
-    Test that the config endpoint returns default values when no settings exist.
-    """
-    response = api_client.get("/api/config.json")
-
-    assert response.status_code == 200
-    data = response.json()
-    assert data == {
-        "site_name": "Gnotus",
-        "primary_color": "#4A90E2",
-        "secondary_color": "#50E3C2",
-        "primary_color_dark": "#4A90E2",
-        "secondary_color_dark": "#50E3C2",
-        "site_icon_upload_id": None,
-    }
-
-
-async def test_get_config_from_database(api_client: TestClient):
-    """
-    Test that the config endpoint returns values from the database.
-    """
-    await Setting.set_value("site_name", "Test Site")
-    await Setting.set_value("primary_color", "#FF0000")
-
-    response = api_client.get("/api/config.json")
-
-    assert response.status_code == 200
-    data = response.json()
-    assert data["site_name"] == "Test Site"
-    assert data["primary_color"] == "#FF0000"
-
-
 async def test_update_config(api_client: TestClient, user_admin: User):
     """
     Test that admin can update site configuration.
@@ -45,7 +12,7 @@ async def test_update_config(api_client: TestClient, user_admin: User):
     api_client.set_session_user(user_admin)
 
     response = api_client.put(
-        "/api/config.json",
+        "/api/config",
         json={
             "site_name": "Updated Site",
             "primary_color": "#00FF00",
@@ -72,7 +39,7 @@ async def test_update_config_partial(api_client: TestClient, user_admin: User):
     api_client.set_session_user(user_admin)
 
     response = api_client.put(
-        "/api/config.json",
+        "/api/config",
         json={
             "site_name": "New Name",
         },
@@ -93,7 +60,7 @@ async def test_update_config_forbidden_for_non_admin(
     api_client.set_session_user(user_user)
 
     response = api_client.put(
-        "/api/config.json",
+        "/api/config",
         json={"site_name": "Hacked"},
     )
 
@@ -106,7 +73,7 @@ async def test_update_config_unauthorized(api_client: TestClient):
     Test that unauthenticated users cannot update configuration.
     """
     response = api_client.put(
-        "/api/config.json",
+        "/api/config",
         json={"site_name": "Hacked"},
     )
 
@@ -122,6 +89,9 @@ def test_icon_svg(api_client: TestClient):
     assert response.status_code == 200
     assert response.headers["Content-Type"] == "image/svg+xml"
     assert b"<svg" in response.content
+    # Browsers must check for a changed icon instead of caching it heuristically
+    assert response.headers["Cache-Control"] == "no-cache"
+    assert api_client.get("/favicon.ico").headers["Cache-Control"] == "no-cache"
 
 
 async def test_upload_icon(api_client: TestClient, user_admin: User):

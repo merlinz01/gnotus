@@ -35,16 +35,6 @@ class DocUpdate(BaseModel):
     public: bool | None = None
 
 
-class DocInfo(BaseModel):
-    """
-    Model for document parent information.
-    """
-
-    id: int
-    urlpath: str
-    title: str
-
-
 class DocResponse(DocBase):
     """
     Model for document response data.
@@ -58,8 +48,6 @@ class DocResponse(DocBase):
     markdown: str
     html: str
     metadata: dict
-    parents: list[DocInfo] = []
-    children: list[DocInfo] = []
 
 
 class DocSubtitle(BaseModel):
@@ -79,16 +67,12 @@ class DocMetadata(BaseModel):
     subtitles: list[DocSubtitle] = []
 
 
-class DocTreeNode(BaseModel):
+class DocPreview(BaseModel):
     """
-    Model for a document tree node.
+    Model for rendered Markdown previews.
     """
 
-    id: int
-    title: str
-    urlpath: str
-    public: bool
-    children: list["DocTreeNode"] = []
+    html: str
 
 
 class DocSearchResult(BaseModel):

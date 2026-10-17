@@ -1,0 +1,68 @@
+{% block head_meta %}
+<title>Revisions - {{ doc.title }} - {{ site_name }}</title>
+<meta name="robots" content="noindex" data-page-meta>
+{% endblock %}
+
+{% block main %}
+<div class="revisions-page" data-scroll>
+  <div class="card revisions-card">
+    <div class="card-body">
+      <h1 class="card-title page-heading">Document Revisions</h1>
+      <p>
+        For
+        <a href="{{ doc.urlpath }}" class="link link-primary revisions-doc-link"><strong>{{ doc.title }}</strong></a>.
+      </p>
+      <table class="table revisions-table">
+        <thead>
+          <tr>
+            <th>Created At</th>
+            <th>Created By</th>
+            <th class="revisions-actions-column">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for revision in revisions %}
+          <tr>
+            <td>
+              <time datetime="{{ revision.created_at.isoformat() }}" data-localize="datetime">{{ revision.created_at | format_datetime }}</time>
+            </td>
+            <td>{{ revision.created_by.username if revision.created_by else 'Unknown User' }}</td>
+            <td>
+              <button class="btn btn-primary btn-sm" data-action="view-revision" data-revision-id="{{ revision.id }}">
+                View Revision
+              </button>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="3" class="admin-table-empty">No revisions found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% include "admin/pagination.html" %}
+    </div>
+  </div>
+  <dialog id="revision-modal" class="modal" data-doc-id="{{ doc.id }}" data-doc-path="{{ doc.urlpath }}">
+    <div class="modal-box revision-dialog">
+      <h3 class="modal-title revision-dialog-title">Revision Details</h3>
+      <form method="dialog">
+        <button class="btn btn-sm btn-circle btn-ghost revision-dialog-close" aria-label="Close">{{ icon('x') }}</button>
+      </form>
+      <div class="revision-body"></div>
+      <div class="revision-loading" hidden>{{ icon('loader-pinwheel', 'page-spinner') }}</div>
+      <div class="alert alert-error form-error" role="alert" hidden></div>
+      <div class="modal-action">
+        <button class="btn btn-secondary" data-action="restore-revision">
+          <span class="btn-label">Restore</span>
+          <span class="loading loading-sm btn-spinner"></span>
+        </button>
+        <form method="dialog"><button class="btn">Close</button></form>
+      </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+      <button>close</button>
+    </form>
+  </dialog>
+</div>
+{% endblock %}

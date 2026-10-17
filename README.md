@@ -28,7 +28,8 @@ for both public and internal documentation.
 
 ## Features
 
-- Light-weight single-page application built with React and FastAPI.
+- Light-weight server-rendered pages with fast in-page navigation,
+  built with FastAPI and plain JavaScript (no frontend build step).
 - Browser caching for fast page loads
 - In-app document creation and editing
 - Markdown document format
@@ -150,7 +151,7 @@ The recommended way to install Gnotus is with Docker Compose.
 
 ### (Recommended) With Docker Compose
 
-If you want to develop Gnotus, the recommended way is to use Docker Compose to set up the development environment for both the backend and frontend.
+If you want to develop Gnotus, the recommended way is to use Docker Compose to set up the development environment.
 Simply run the following command in the root directory of the project:
 
 ```bash
@@ -158,7 +159,8 @@ docker compose -f compose.dev.yml up --build
 # Add the `-d` flag to run in the background
 ```
 
-This will start the backend and frontend services in development mode, with hot-reloading enabled for both.
+This will start the backend and the search service in development mode.
+The app will be available at `http://localhost:5173`, and will reload when you modify the backend code, templates, styles or scripts.
 If you want to override settings, you can set them as environment variables in a `.env` file in the `backend` directory.
 
 If you need to run commands in the backend service, you can use the following command:
@@ -223,24 +225,21 @@ You can also set up the development environment without Docker Compose, but this
    GNOTUS_CONFIG_FILE=config-dev.yml fastapi dev
    ```
 
-   The API will be available at `http://localhost:8000` and will auto-reload when you modify backend code.
+   The app will be available at `http://localhost:8000` and will auto-reload when you modify backend code.
 
-#### Frontend Setup
+### Project layout
 
-1. **Install Node.js dependencies**
+The backend serves both the API (under `/api`) and the pages:
 
-   ```bash
-   cd frontend
-   npm install
-   ```
+- `backend/app/pages/` renders the pages with the Jinja templates in `backend/app/templates/`.
+  Each page is also available as a partial (with `?_partial=1`) containing just its content.
+- `backend/app/static/app.js` swaps those partials into the page when navigating,
+  caches them for instant repeat visits, and implements the interactive parts of the pages.
+  It is served as-is, without a build step.
+- `backend/app/static/css/` contains the styles, which the backend bundles into one stylesheet.
+- `frontend/` contains the Caddy configuration for the reverse proxy used in production.
 
-2. **Run the frontend development server**
-
-   ```bash
-   npm run dev
-   ```
-
-   The app will be available at `http://localhost:5173` and will hot-reload when you modify frontend code.
+The JavaScript and CSS are formatted with [Prettier](https://prettier.io) using the configuration in `.prettierrc.json`.
 
 ## License
 

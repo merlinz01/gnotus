@@ -49,6 +49,7 @@ jobs:
           cache-from: type=registry,ref=merlinz01/gnotus-backend:latest
           cache-to: type=inline
 
+  # The frontend image is the Caddy reverse proxy in front of the backend
   build-frontend:
     name: Build frontend
     runs-on: ubuntu-latest
@@ -62,14 +63,6 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@d7f5e7f509e45cec5c76c4d5afdd7de93d0b3df5 # v4.1.0
-
-      - name: Set up Docker Compose
-        uses: docker/setup-compose-action@16feee727cbdc83b6a014e6cc26fec4a79bcf30c # v2.2.0
-
-      - name: Run tests
-        run: >
-          docker compose -f compose.dev.yml run --rm --build frontend
-          bash -c "npm install --frozen --ignore-scripts && npm run test run"
 
       - name: Log in to Docker Hub
         uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0

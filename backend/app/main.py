@@ -10,6 +10,7 @@ from starlette_csrf.middleware import CSRFMiddleware
 from tortoise.contrib.fastapi import register_tortoise
 
 from .api import router
+from .pages import router as pages_router
 from .settings import TORTOISE_ORM, settings
 
 
@@ -40,6 +41,9 @@ app = FastAPI(
     title="Gnotus",
     description="An open-source knowledge-base software",
     version="0.1.0",
+    docs_url="/api/swagger",
+    redoc_url=None,
+    openapi_url="/api/openapi.json",
 )
 app.add_middleware(
     CORSMiddleware,
@@ -66,6 +70,7 @@ app.add_middleware(
     sensitive_cookies={settings.session_cookie},
 )
 app.include_router(router)
+app.include_router(pages_router)
 register_tortoise(app, TORTOISE_ORM, add_exception_handlers=False)
 logging.getLogger("tortoise").setLevel(logging.WARNING)
 logging.basicConfig(

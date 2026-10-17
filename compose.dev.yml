@@ -20,6 +20,8 @@ services:
       - GNOTUS_MEILISEARCH_URL=http://search:7700
       - GNOTUS_MEILISEARCH_API_KEY=dev_meilisearch_api_key
       - GNOTUS_CONFIG_FILE=/app/config.yml
+    ports:
+      - "127.0.0.1:5173:8000"
     volumes:
       - ./data:/data
       - ./backend:/app
@@ -30,16 +32,3 @@ services:
       - MEILI_MASTER_KEY=dev_meilisearch_api_key
     volumes:
       - ./data/meilisearch:/data.ms
-
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile.dev
-    ports:
-      - "127.0.0.1:5173:5173"
-    volumes:
-      - ./frontend:/app
-    environment:
-      - API_ADDRESS=http://backend:8000
-      - VITE_HOST=0.0.0.0
-      - VITE_PORT=5173

@@ -85,34 +85,6 @@ async def test_create_user_with_inactive(api_client: TestClient, user_admin: Use
     assert user.is_active is False
 
 
-async def test_get_user(api_client: TestClient, user_admin: User, user_user: User):
-    """
-    Test getting a user by ID.
-    """
-    api_client.set_session_user(user_admin)
-    response = api_client.get(f"/api/users/{user_user.id}")
-    assert response.status_code == status.HTTP_200_OK
-    data = response.json()
-    assert data == {
-        "id": user_user.id,
-        "username": user_user.username,
-        "role": user_user.role,
-        "created_at": data["created_at"],
-        "updated_at": data["updated_at"],
-        "is_active": user_user.is_active,
-    }
-
-
-async def test_get_user_not_found(api_client: TestClient, user_admin: User):
-    """
-    Test getting a user that does not exist.
-    """
-    api_client.set_session_user(user_admin)
-    response = api_client.get("/api/users/9999")
-    assert response.status_code == status.HTTP_404_NOT_FOUND
-    assert response.json() == {"detail": "User not found"}
-
-
 async def test_update_user(api_client: TestClient, user_admin: User, user_user: User):
     """
     Test updating a user by ID.
@@ -374,51 +346,3 @@ async def test_change_user_password_invalid_old_password(
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == {"detail": "Old password is incorrect"}
-
-
-async def test_list_users(api_client: TestClient, user_admin: User, user_user: User):
-    """
-    Test listing all users.
-    """
-    user3 = await User.create(
-        username="user3",
-        password_hash="hashed_password3",
-        role=Role.USER,
-    )
-    user4 = await User.create(
-        username="user4",
-        password_hash="hashed_password4",
-        role=Role.USER,
-    )
-    await User.create(
-        username="user5",
-        password_hash="hashed_password5",
-        role=Role.USER,
-    )
-    api_client.set_session_user(user_admin)
-    response = api_client.get("/api/users/?page=2&size=2")
-    assert response.status_code == status.HTTP_200_OK
-    data = response.json()
-    assert data == {
-        "items": [
-            {
-                "id": user3.id,
-                "username": "user3",
-                "role": Role.USER,
-                "created_at": data["items"][0]["created_at"],
-                "updated_at": data["items"][0]["updated_at"],
-                "is_active": True,
-            },
-            {
-                "id": user4.id,
-                "username": "user4",
-                "role": Role.USER,
-                "created_at": data["items"][1]["created_at"],
-                "updated_at": data["items"][1]["updated_at"],
-                "is_active": True,
-            },
-        ],
-        "size": 2,
-        "page": 2,
-        "total": 5,
-    }

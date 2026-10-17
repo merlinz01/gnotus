@@ -1,6 +1,6 @@
 from tortoise import fields
 
-from ..schemas.role import Role
+from ..schemas.role import ADMIN_ROLES, EDITOR_ROLES, Role
 from .utils import TimestampedModel
 
 
@@ -18,3 +18,11 @@ class User(TimestampedModel):
     class Meta:
         table = "users"
         ordering = ["username"]
+
+    @property
+    def is_admin(self) -> bool:
+        return self.role in ADMIN_ROLES
+
+    @property
+    def can_edit(self) -> bool:
+        return self.role in EDITOR_ROLES

@@ -1,0 +1,102 @@
+{% block head_meta %}
+<title>Editing {{ doc.title }} - {{ site_name }}</title>
+<meta name="robots" content="noindex" data-page-meta>
+<meta name="gnotus-cache" content="no" data-page-meta>
+{% endblock %}
+
+{% block main %}
+<div class="editor-page">
+  <form
+    class="editor-form"
+    data-form="save-doc"
+    data-init="editor"
+    data-doc-id="{{ doc.id }}"
+    data-doc-path="{{ doc.urlpath }}"
+    {% if is_home %}data-home{% endif %}
+  >
+    <div class="editor-meta">
+      <div class="editor-toolbar">
+        <h1 class="editor-heading">Edit document</h1>
+        <span class="badge badge-warning badge-sm editor-unsaved" hidden>Unsaved</span>
+        <div class="editor-toolbar-spacer"></div>
+        <button type="submit" class="btn btn-primary">
+          <span class="btn-label">Save</span>
+          <span class="loading loading-sm btn-spinner"></span>
+        </button>
+        <a href="{{ doc.urlpath }}" class="btn">Discard</a>
+        <a href="/_revisions/{{ doc.id }}" class="btn btn-square editor-history" title="View document history">
+          {{ icon('history') }}
+        </a>
+        {% if not is_home %}
+        <button type="button" class="btn btn-square editor-move" title="Move document up" data-action="move-doc" data-direction="up">
+          {{ icon('chevron-up') }}
+        </button>
+        <button type="button" class="btn btn-square editor-move" title="Move document down" data-action="move-doc" data-direction="down">
+          {{ icon('chevron-down') }}
+        </button>
+        <button type="button" class="btn btn-square editor-delete" title="Delete document" data-action="delete-doc">
+          {{ icon('trash', 'btn-label') }}
+          <span class="loading loading-sm btn-spinner"></span>
+        </button>
+        {% endif %}
+      </div>
+      {% if not is_home %}
+      <div class="editor-fields">
+        <div class="editor-field">
+          <label class="label editor-field-label" for="doc-edit-parent">Parent</label>
+          <select id="doc-edit-parent" name="parent_id" class="select" required>
+            {% with selected_parent = doc.parent_id %}{% include "editor/parent_options.html" %}{% endwith %}
+          </select>
+        </div>
+        <div class="editor-field">
+          <label class="label editor-field-label" for="doc-edit-slug">URL slug</label>
+          <input
+            type="text"
+            id="doc-edit-slug"
+            name="slug"
+            value="{{ doc.slug }}"
+            class="input"
+            required
+            maxlength="100"
+            pattern="[a-zA-Z0-9_\-]+"
+            title="Only letters, numbers, hyphens and underscores"
+          >
+        </div>
+      </div>
+      {% endif %}
+      <div class="editor-fields">
+        <div class="editor-field">
+          <label class="label editor-field-label" for="doc-edit-title">Title</label>
+          <input type="text" id="doc-edit-title" name="title" value="{{ doc.title }}" class="input" required>
+        </div>
+        <label for="doc-edit-public" class="editor-public-toggle">
+          <input type="checkbox" name="public" id="doc-edit-public" class="toggle toggle-primary"{% if doc.public %} checked{% endif %}>
+          <span>Public</span>
+        </label>
+      </div>
+    </div>
+    <div class="alert alert-error form-error" role="alert" hidden></div>
+    <div class="editor-panes">
+      <div class="editor-pane">
+        <label class="label editor-pane-label" for="doc-edit-content">Markdown</label>
+        {# Browsers drop a newline right after the tag, so the one after it keeps any in the content #}
+        <textarea
+          id="doc-edit-content"
+          name="markdown"
+          class="textarea editor-textarea"
+          placeholder="Write your document content here..."
+        >
+{{ doc.markdown }}</textarea>
+        <progress class="progress progress-primary editor-upload-progress" hidden></progress>
+      </div>
+      <div class="editor-pane">
+        <span class="label editor-pane-label">Preview</span>
+        <div class="gnotus-content editor-preview" aria-live="polite">{{ doc.html | safe }}</div>
+      </div>
+    </div>
+    <details class="editor-attachments">
+      {% include "editor/attachments.html" %}
+    </details>
+  </form>
+</div>
+{% endblock %}

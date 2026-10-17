@@ -1,0 +1,28 @@
+{% block head_meta %}
+<title>{{ doc.title }} - {{ site_name }}</title>
+<meta name="robots" content="noindex" data-page-meta>
+{% endblock %}
+
+{% block main %}
+<div class="doc-layout">
+  <div class="doc-scroll" data-scroll>
+    <article class="doc-article doc-article-shared">
+      <div class="doc-shared-notice">
+        <span class="badge badge-info badge-sm">Shared via link</span>
+      </div>
+      {% include "doc_breadcrumbs.html" %}
+      <h1 class="doc-title">{{ doc.title }}</h1>
+      {% include "doc_contents.html" %}
+      <div class="gnotus-content">{{ doc.html | safe }}</div>
+      <div class="doc-spacer"></div>
+      <ul class="doc-dates">
+        <li>
+          Last updated:
+          <time datetime="{{ doc.updated_at.isoformat() }}" data-localize>{{ doc.updated_at | format_date }}</time>
+        </li>
+      </ul>
+    </article>
+  </div>
+  {% include "doc_toc.html" %}
+</div>
+{% endblock %}

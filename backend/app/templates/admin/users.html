@@ -1,0 +1,153 @@
+{% block head_meta %}
+<title>Users - {{ site_name }}</title>
+<meta name="robots" content="noindex" data-page-meta>
+{% endblock %}
+
+{% block main %}
+<div class="admin-page" data-scroll>
+  {% with page_title = "Users" %}{% include "admin/breadcrumbs.html" %}{% endwith %}
+  <div class="card admin-panel">
+    <div class="card-body">
+      <div class="admin-panel-header">
+        <h1 class="card-title page-heading">Users</h1>
+        <button class="btn btn-primary btn-sm" data-action="add-user">Add User</button>
+      </div>
+      <div class="alert alert-error" role="alert" data-page-error hidden></div>
+      <div class="admin-table-wrapper">
+        <table class="table admin-table">
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th class="users-actions-column">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for account in users %}
+            <tr
+              class="{{ '' if account.is_active else 'user-inactive' }}"
+              data-user-id="{{ account.id }}"
+              data-username="{{ account.username }}"
+              data-role="{{ account.role.value }}"
+              data-active="{{ 'true' if account.is_active else 'false' }}"
+            >
+              <td>{{ account.username }}</td>
+              <td>{{ role_names[account.role] }}</td>
+              <td>
+                {% if account.is_active %}
+                <span class="badge badge-success">Active</span>
+                {% else %}
+                <span class="badge user-status-inactive">Inactive</span>
+                {% endif %}
+              </td>
+              <td class="users-actions">
+                <button class="btn btn-xs btn-secondary" data-action="edit-user">Edit</button>
+                <button class="btn btn-xs btn-accent" data-action="change-password">Password</button>
+                <button class="btn btn-xs btn-error" data-action="delete-user">
+                  <span class="btn-label">Delete</span>
+                  <span class="loading loading-xs btn-spinner"></span>
+                </button>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="4" class="admin-table-empty">No users found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% include "admin/pagination.html" %}
+    </div>
+  </div>
+  <dialog id="user_edit_dialog" class="modal">
+    <form class="modal-box users-dialog" data-form="save-user">
+      <h3 class="modal-title" data-add-title="Add User" data-edit-title="Edit User">Add User</h3>
+      <fieldset class="fieldset">
+        <label class="label" for="user-edit-username">Username</label>
+        <input id="user-edit-username" type="text" name="username" placeholder="Username" class="input" required minlength="3">
+        <label class="label" for="user-edit-role">Role</label>
+        <select id="user-edit-role" name="role" class="select">
+          {% for role, name in role_names.items() %}
+          <option value="{{ role.value }}">{{ name }}</option>
+          {% endfor %}
+        </select>
+        <label class="label" for="user-edit-active">
+          <input id="user-edit-active" type="checkbox" name="is_active" class="toggle toggle-primary" checked>
+          Active
+        </label>
+        <div class="users-new-password">
+          <label class="label" for="user-edit-password">Password</label>
+          <input
+            id="user-edit-password"
+            type="password"
+            name="password"
+            placeholder="Password"
+            class="input"
+            autocomplete="new-password"
+            required
+            minlength="8"
+          >
+        </div>
+      </fieldset>
+      <div class="alert alert-error form-error" role="alert" hidden></div>
+      <div class="modal-action">
+        <button type="submit" class="btn btn-primary">
+          <span class="btn-label">Save</span>
+          <span class="loading loading-sm btn-spinner"></span>
+        </button>
+        <button type="button" class="btn" data-action="close-dialog">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog id="change_password_dialog" class="modal">
+    <form class="modal-box users-dialog" data-form="change-password">
+      <h3 class="modal-title">Change Password</h3>
+      <p class="users-password-for"></p>
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">Old Password</legend>
+        <input
+          type="password"
+          name="old_password"
+          placeholder="Not required for admins"
+          class="input"
+          autocomplete="current-password"
+        >
+      </fieldset>
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">New Password</legend>
+        <input
+          type="password"
+          name="new_password"
+          placeholder="Enter new password"
+          class="input"
+          autocomplete="new-password"
+          required
+          minlength="8"
+        >
+      </fieldset>
+      <fieldset class="fieldset">
+        <legend class="fieldset-legend">Confirm Password</legend>
+        <input
+          type="password"
+          name="confirm_password"
+          placeholder="Confirm new password"
+          class="input"
+          autocomplete="new-password"
+          required
+          minlength="8"
+        >
+      </fieldset>
+      <div class="alert alert-error form-error" role="alert" hidden></div>
+      <div class="modal-action">
+        <button type="submit" class="btn btn-primary">
+          <span class="btn-label">Change Password</span>
+          <span class="loading loading-sm btn-spinner"></span>
+        </button>
+        <button type="button" class="btn" data-action="close-dialog">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+</div>
+{% endblock %}

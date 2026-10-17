@@ -1,0 +1,16 @@
+{% block head_meta %}
+<title>{{ page_title }} - {{ site_name }}</title>
+<meta name="robots" content="noindex" data-page-meta>
+{% endblock %}
+
+{% block main %}
+<div class="page-status">
+  <div class="alert alert-error page-message">{{ message }}</div>
+  <div class="page-message-actions">
+    <a href="/" class="btn btn-primary">Go to Home</a>
+    {% if not user %}
+    <a href="/_login" class="btn">Log in</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

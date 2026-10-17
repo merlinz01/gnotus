@@ -1,0 +1,93 @@
+/* Server-rendered app shell */
+
+#main:focus {
+  outline: none;
+}
+
+/*
+ * The sidebar is a drawer on narrow screens and docked on wide ones, where
+ * <body data-sidebar> controls whether it is expanded.
+ */
+@media (min-width: 751px) {
+  .app-sidebar-auto.drawer-side {
+    position: static;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    width: 16rem;
+    height: auto;
+    overflow: hidden;
+    border-right: var(--border-subtle);
+    visibility: visible;
+    pointer-events: auto;
+    opacity: 1;
+    transition: width 0.3s ease-out;
+  }
+
+  body[data-sidebar='closed'] .app-sidebar-auto.drawer-side {
+    width: 0;
+  }
+
+  .app-sidebar-auto.drawer-side > .drawer-overlay {
+    display: none;
+  }
+
+  .app-sidebar-auto.drawer-side > :not(.drawer-overlay) {
+    translate: none;
+  }
+}
+
+/* Collapsible outline nodes */
+.sidebar-node {
+  display: block;
+  padding: 0;
+  background-color: transparent;
+  color: inherit;
+}
+
+.sidebar-node > summary.sidebar-item {
+  border-radius: var(--radius-field);
+  list-style: none;
+}
+
+.sidebar-node > summary.sidebar-item::-webkit-details-marker {
+  display: none;
+}
+
+@media (hover: hover) {
+  .sidebar-node > summary.sidebar-item:hover {
+    background-color: color-mix(in oklab, var(--color-base-content) 10%, transparent);
+  }
+}
+
+.sidebar-node[open] > summary .sidebar-toggle-icon {
+  rotate: 90deg;
+}
+
+/* Progress bar shown while a page is loading */
+.page-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  width: 0;
+  height: 3px;
+  background-color: var(--color-primary);
+  opacity: 0;
+  pointer-events: none;
+}
+
+html.is-loading .page-progress {
+  width: 80%;
+  opacity: 1;
+  transition:
+    width 8s cubic-bezier(0.1, 0.7, 0.2, 1),
+    opacity 0.2s ease-out;
+}
+
+/* Smooth scrolling to in-page anchors */
+@media (prefers-reduced-motion: no-preference) {
+  [data-scroll] {
+    scroll-behavior: smooth;
+  }
+}

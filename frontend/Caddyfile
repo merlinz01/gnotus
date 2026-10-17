@@ -3,16 +3,16 @@
 	admin off
 }
 {$CADDY_DOMAIN} {
-	root * /usr/share/caddy
 	encode gzip zstd
 	header {
 		# This means the site is only accessible over HTTPS for one year
 		# and allows browsers to preload the site in their HSTS lists.
 		Strict-Transport-Security "max-age=31536000; preload"
 		# This policy allows scripts and styles from the same origin,
-		# allows inline scripts and styles, and allows images from the same origin and data URIs.
+		# allows inline styles (used for the configurable site colors),
+		# and allows images from the same origin and data URIs.
 		# It also restricts connections to the same origin and disallows framing.
-		Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; font-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
 		# This policy sends no referrer information when navigating to a less secure page,
 		# but sends it when navigating to a more secure page.
 		Referrer-Policy no-referrer-when-downgrade
@@ -35,6 +35,8 @@
 			match {
 				not method GET
 				not path /api/auth/logout
+				# Sent while typing in the editor, which only editors can do
+				not path /api/docs/preview
 				path /api/*
 			}
 			key {remote_ip}
@@ -42,16 +44,6 @@
 			window 1m
 		}
 	}
-	rewrite /favicon.ico /api/icon
-	rewrite /robots.txt /api/robots.txt
-	rewrite /sitemap.xml /api/sitemap.xml
-	@markdown path *.md
-	rewrite @markdown /api/docs/markdown{path}
-	handle /api/* {
-		reverse_proxy {$API_ADDRESS}
-	}
-	handle {
-		try_files {path} /index.html
-		file_server
-	}
+	# The backend serves the pages, their Markdown versions, the API and the static files
+	reverse_proxy {$API_ADDRESS}
 }

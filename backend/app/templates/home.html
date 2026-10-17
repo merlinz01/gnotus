@@ -1,0 +1,35 @@
+{% block head_meta %}
+<title>{% if home and home.title %}{{ home.title }} - {% endif %}{{ site_name }}</title>
+<meta name="description" content="{{ description }}" data-page-meta>
+<link rel="canonical" href="{{ base_url }}/" data-page-meta>
+{% endblock %}
+
+{% block main %}
+<div class="home-page" data-scroll>
+  {% if home and home.html %}
+  <div class="gnotus-content gnotus-home-content home-intro">{{ home.html | safe }}</div>
+  {% else %}
+  <h1 class="home-title">{{ site_name }}</h1>
+  {% endif %}
+  {% if sections %}
+  <div class="home-sections">
+    <ul class="home-section-list">
+      {% for section in sections %}
+      <li class="home-section">
+        <a href="{{ section.urlpath }}" class="home-section-link">
+          {{ section.title }}
+          {{ icon('chevron-right', 'home-section-chevron') }}
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+  {% if can_edit and home %}
+  <a href="/_edit/{{ home.id }}" class="btn btn-ghost home-edit" title="Edit home page">
+    {{ icon('pencil') }}
+    Edit
+  </a>
+  {% endif %}
+</div>
+{% endblock %}

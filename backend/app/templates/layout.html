@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en" style="{{ theme_style }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/api/icon">
+    <link rel="stylesheet" href="{{ static_url('gnotus.css') }}">
+    <script src="{{ static_url('theme.js') }}"></script>
+    <script type="module" src="{{ static_url('app.js') }}"></script>
+    <meta name="gnotus-partial-etag" content="{{ partial_etag }}">
+    <meta name="gnotus-outline-version" content="{{ outline_version }}">
+    {{ head_meta }}
+  </head>
+  <body data-user-id="{{ user.id if user else '' }}" data-sidebar="{{ 'open' if sidebar_open else 'closed' }}">
+    <div class="page-progress" aria-hidden="true"></div>
+    <div class="app">
+      <header class="navbar app-header">
+        <button class="btn btn-ghost btn-square app-header-menu" title="Toggle sidebar" data-action="toggle-sidebar">
+          {{ icon('menu') }}
+        </button>
+        <div class="app-header-bar">
+          <a href="/">
+            <img src="/api/icon" alt="Home" class="app-header-logo">
+          </a>
+          <span class="app-header-title">{{ site_name }}</span>
+          <button class="btn btn-ghost btn-square" title="Search (Ctrl + S)" data-action="open-search">
+            {{ icon('search', 'search-trigger-icon') }}
+          </button>
+          <button class="btn btn-ghost btn-square" title="Toggle light/dark mode" data-action="toggle-theme">
+            {{ icon('sun-moon') }}
+          </button>
+        </div>
+      </header>
+      <div class="drawer app-body">
+        <input id="drawer-toggle" type="checkbox" class="drawer-toggle" aria-label="Toggle sidebar">
+        <div class="app-sidebar app-sidebar-auto drawer-side">
+          <label for="drawer-toggle" class="drawer-overlay"></label>
+          <div class="app-sidebar-content" id="sidebar">{{ sidebar }}</div>
+        </div>
+        <main id="main" class="drawer-content app-main" tabindex="-1">{{ main }}</main>
+      </div>
+    </div>
+    <div id="page-announcer" class="visually-hidden" aria-live="polite"></div>
+    <dialog class="modal search-modal" id="doc-search-modal">
+      <div class="modal-box search-box">
+        <div class="search-field">
+          <span class="loading search-spinner" role="status" hidden></span>
+          {{ icon('search', 'search-field-icon') }}
+          <input
+            id="doc-search-input"
+            type="text"
+            placeholder="Search..."
+            class="input search-input"
+            autocomplete="off"
+            aria-label="Search"
+          >
+          <button type="button" class="search-clear" title="Clear search" hidden>{{ icon('x') }}</button>
+        </div>
+        <ul class="search-results" id="doc-search-results">
+          <li class="search-message">No results</li>
+        </ul>
+      </div>
+      <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+      </form>
+    </dialog>
+    <template id="search-result-template">
+      <li class="search-result">
+        <a>
+          <div class="search-result-header">
+            <strong></strong>
+            <span class="badge badge-sm badge-secondary search-result-badge" hidden>Private</span>
+          </div>
+          <p class="search-result-text"></p>
+        </a>
+      </li>
+    </template>
+  </body>
+</html>

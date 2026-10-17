@@ -1,0 +1,61 @@
+{% block head_meta %}
+<title>{{ doc.title }} - {{ site_name }}</title>
+<meta name="description" content="{{ description }}" data-page-meta>
+<link rel="canonical" href="{{ base_url }}{{ doc.urlpath }}" data-page-meta>
+{% if not doc.public %}
+<meta name="robots" content="noindex" data-page-meta>
+{% endif %}
+{% endblock %}
+
+{% block main %}
+<div class="doc-layout">
+  <div class="doc-scroll" data-scroll>
+    <article class="doc-article">
+      {% include "doc_breadcrumbs.html" %}
+      <h1 class="doc-title">
+        <span class="doc-title-text">{{ doc.title }}</span>
+        {% if user %}
+        {% if doc.public %}
+        <span class="badge badge-lg badge-primary doc-visibility">Public</span>
+        {% else %}
+        <span class="badge badge-lg badge-accent doc-visibility">Private</span>
+        {% endif %}
+        {% endif %}
+        {% if can_edit %}
+        <a href="/_new?parent={{ doc.id }}" class="doc-title-action" title="Create child document">{{ icon('file-plus') }}</a>
+        <a href="/_edit/{{ doc.id }}" class="doc-title-action" title="Edit document">{{ icon('pencil') }}</a>
+        {% endif %}
+        <span class="doc-share" data-tip="Link copied!">
+          <button
+            class="doc-title-action doc-share-button"
+            data-action="share"
+            data-title="{{ doc.title }}"
+            title="{{ 'Share document' if can_edit else 'Copy link to clipboard' }}"
+            aria-label="{{ 'Share document' if can_edit else 'Copy link to clipboard' }}"
+          >
+            {{ icon('share-2', 'doc-share-icon') }}
+            {{ icon('check', 'doc-share-copied') }}
+          </button>
+        </span>
+      </h1>
+      {% include "doc_contents.html" %}
+      <div class="gnotus-content">{{ doc.html | safe }}</div>
+      <div class="doc-spacer"></div>
+      <ul class="doc-dates">
+        <li>
+          Last updated:
+          <time datetime="{{ doc.updated_at.isoformat() }}" data-localize>{{ doc.updated_at | format_date }}</time>
+        </li>
+        <li>
+          Created:
+          <time datetime="{{ doc.created_at.isoformat() }}" data-localize>{{ doc.created_at | format_date }}</time>
+        </li>
+      </ul>
+    </article>
+  </div>
+  {% include "doc_toc.html" %}
+</div>
+{% if can_edit %}
+{% include "share_dialog.html" %}
+{% endif %}
+{% endblock %}

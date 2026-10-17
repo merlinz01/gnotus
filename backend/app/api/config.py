@@ -4,31 +4,15 @@ from fastapi.responses import FileResponse
 from tortoise.exceptions import DoesNotExist
 
 from ..auth.dependencies import LoggedInUser
-from ..models.setting import Setting
+from ..models.setting import Setting, get_site_config, get_site_icon
 from ..models.upload import Upload
-from ..models.user import Role
 from ..schemas.config import SiteConfig, SiteConfigUpdate
 from ..settings import settings
 
 router = APIRouter()
 
 
-@router.get("/config.json")
-async def get_config() -> SiteConfig:
-    """
-    Get the site configuration.
-    """
-    return SiteConfig(
-        site_name=await Setting.get_value("site_name", "Gnotus"),
-        primary_color=await Setting.get_value("primary_color", "#4A90E2"),
-        secondary_color=await Setting.get_value("secondary_color", "#50E3C2"),
-        primary_color_dark=await Setting.get_value("primary_color_dark", "#4A90E2"),
-        secondary_color_dark=await Setting.get_value("secondary_color_dark", "#50E3C2"),
-        site_icon_upload_id=await Setting.get_value("site_icon_upload_id", None),
-    )
-
-
-@router.put("/config.json")
+@router.put("/config")
 async def update_config(
     current_user: LoggedInUser,
     config_update: SiteConfigUpdate,
@@ -36,7 +20,7 @@ async def update_config(
     """
     Update the site configuration. Requires admin role.
     """
-    if current_user.role != Role.ADMIN:
+    if not current_user.is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only admins can update site configuration",
@@ -53,30 +37,19 @@ async def update_config(
         await Setting.set_value(
             "secondary_color_dark", config_update.secondary_color_dark
         )
-    return await get_config()
+    return await get_site_config()
 
 
 @router.get("/icon", response_class=FileResponse)
-async def get_icon():
+async def get_icon() -> FileResponse:
     """
     Get the site icon. Returns custom icon if configured, otherwise default.
     """
-    icon_upload_id = await Setting.get_value("site_icon_upload_id", None)
-
-    if icon_upload_id:
-        try:
-            upload = await Upload.get(id=icon_upload_id)
-            return FileResponse(
-                path=settings.uploads_dir / upload.storage_path,
-                media_type=upload.content_type,
-            )
-        except DoesNotExist:
-            # Custom icon was deleted, fall back to default
-            pass
-
+    path, media_type = await get_site_icon()
+    # Without this, browsers cache the icon heuristically and keep showing
+    # the old one after it is changed, until a hard reload
     return FileResponse(
-        path=settings.icon_file_path,
-        media_type="image/svg+xml",
+        path=path, media_type=media_type, headers={"Cache-Control": "no-cache"}
     )
 
 
@@ -101,7 +74,7 @@ async def upload_icon(
     """
     Upload a custom site icon. Requires admin role.
     """
-    if current_user.role != Role.ADMIN:
+    if not current_user.is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only admins can upload site icon",
@@ -169,7 +142,7 @@ async def delete_icon(current_user: LoggedInUser) -> None:
     """
     Remove custom site icon and revert to default. Requires admin role.
     """
-    if current_user.role != Role.ADMIN:
+    if not current_user.is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only admins can delete site icon",

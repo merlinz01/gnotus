@@ -9,22 +9,19 @@ async def test_robots_txt(api_client: TestClient) -> None:
     """
     from app.settings import settings
 
-    response = api_client.get("/api/robots.txt")
+    response = api_client.get("/robots.txt")
     assert response.status_code == 200
     assert response.headers["Content-Type"] == "text/plain; charset=utf-8"
     assert response.text == (
         "User-agent: *\n"
         "Allow: /\n"
         "Disallow: /api/\n"
-        "Allow: /api/auth/user\n"
-        "Allow: /api/config.json\n"
         "Allow: /api/icon\n"
-        "Allow: /api/sitemap.xml\n"
-        "Allow: /api/docs/\n"
         "Allow: /api/uploads/\n"
-        f"\nSitemap: {settings.base_url}/api/sitemap.xml\n"
+        "Disallow: /_partial/\n"
+        f"\nSitemap: {settings.base_url}/sitemap.xml\n"
     )
-    response = api_client.head("/api/robots.txt")
+    response = api_client.head("/robots.txt")
     assert response.status_code == 200
     assert response.headers["Content-Type"] == "text/plain; charset=utf-8"
 
@@ -55,7 +52,7 @@ async def test_sitemap(api_client: TestClient) -> None:
         markdown="",
     )
 
-    response = api_client.get("/api/sitemap.xml")
+    response = api_client.get("/sitemap.xml")
     assert response.status_code == 200
     assert response.headers["Content-Type"] == "application/xml; charset=utf-8"
 
@@ -72,6 +69,15 @@ async def test_sitemap(api_client: TestClient) -> None:
         "</url>"
         "</urlset>"
     )
-    response = api_client.head("/api/sitemap.xml")
+    response = api_client.head("/sitemap.xml")
     assert response.status_code == 200
     assert response.headers["Content-Type"] == "application/xml; charset=utf-8"
+
+
+async def test_favicon(api_client: TestClient) -> None:
+    """
+    Test that the site icon is also served where browsers look for it.
+    """
+    response = api_client.get("/favicon.ico")
+    assert response.status_code == 200
+    assert response.content == api_client.get("/api/icon").content

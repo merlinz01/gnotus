@@ -1,0 +1,39 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--color-base-100);
+}
+
+.app-body {
+  display: flex;
+  flex-direction: row;
+  flex-grow: 1;
+  overflow-y: hidden;
+}
+
+.app-sidebar.drawer-side {
+  z-index: 30;
+}
+
+.app-sidebar-content {
+  height: 100%;
+  background-color: var(--color-base-200);
+}
+
+.app-main {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+@media print {
+  .app {
+    height: auto;
+  }
+
+  .app-sidebar {
+    display: none;
+  }
+}

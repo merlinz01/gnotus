@@ -1,0 +1,49 @@
+{% block head_meta %}
+<title>New Document - {{ site_name }}</title>
+<meta name="robots" content="noindex" data-page-meta>
+<meta name="gnotus-cache" content="no" data-page-meta>
+{% endblock %}
+
+{% block main %}
+<div class="new-doc-page" data-scroll>
+  <div class="card new-doc-card">
+    <form class="card-body new-doc-form" data-form="create-doc">
+      <h1 class="card-title page-heading">Create New Document</h1>
+      <fieldset class="fieldset">
+        <label class="label" for="new-doc-parent">Parent document</label>
+        <select id="new-doc-parent" name="parent_id" class="select" required>
+          {% with selected_parent = parent_id %}{% include "editor/parent_options.html" %}{% endwith %}
+        </select>
+        <label class="label" for="new-doc-title">Document title</label>
+        <input
+          id="new-doc-title"
+          type="text"
+          name="title"
+          placeholder="How to make a widget"
+          class="input"
+          required
+          autofocus
+          data-slug-input="#new-doc-slug"
+        >
+        <label class="label" for="new-doc-slug">URL slug</label>
+        <input
+          id="new-doc-slug"
+          type="text"
+          name="slug"
+          placeholder="how-to-make-a-widget"
+          class="input"
+          required
+          maxlength="100"
+          pattern="[a-zA-Z0-9_\-]+"
+          title="Only letters, numbers, hyphens and underscores"
+        >
+      </fieldset>
+      <div class="alert alert-error form-error" role="alert" hidden></div>
+      <button type="submit" class="btn btn-primary">
+        <span class="btn-label">Create Document</span>
+        <span class="loading loading-sm btn-spinner"></span>
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

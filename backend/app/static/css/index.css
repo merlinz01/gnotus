@@ -1,0 +1,41 @@
+/*
+ * Global stylesheet entry point.
+ *
+ * The backend inlines the @import rules below into a single bundle served at
+ * /_static/gnotus.css.
+ *
+ * Theme, base and component styles live in cascade layers, so the unlayered
+ * layout and page styles always take precedence over them regardless of
+ * selector specificity.
+ */
+@layer theme, base, components;
+
+@import './theme.css';
+@import './base.css';
+@import './components/buttons.css';
+@import './components/forms.css';
+@import './components/cards.css';
+@import './components/feedback.css';
+@import './components/navigation.css';
+@import './components/modal.css';
+@import './components/drawer.css';
+@import './components/table.css';
+@import './common.css';
+@import './content.css';
+@import './layout/app.css';
+@import './layout/header.css';
+@import './layout/sidebar.css';
+@import './layout/search.css';
+@import './layout/shell.css';
+@import './pages/doc.css';
+@import './pages/home.css';
+@import './pages/share-dialog.css';
+@import './pages/auth.css';
+@import './admin/index.css';
+@import './admin/pagination.css';
+@import './admin/users.css';
+@import './admin/uploads.css';
+@import './admin/settings.css';
+@import './admin/revisions.css';
+@import './editor/new.css';
+@import './editor/edit.css';

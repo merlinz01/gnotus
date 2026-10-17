@@ -1,0 +1,150 @@
+{% block head_meta %}
+<title>Uploads - {{ site_name }}</title>
+<meta name="robots" content="noindex" data-page-meta>
+{% endblock %}
+
+{% block main %}
+<div class="admin-page" data-scroll>
+  {% with page_title = "Uploads" %}{% include "admin/breadcrumbs.html" %}{% endwith %}
+  <div class="card admin-panel">
+    <div class="card-body">
+      <div class="admin-panel-header">
+        <h1 class="card-title page-heading">Uploads</h1>
+        <button class="btn btn-primary" data-action="new-upload">New Upload</button>
+      </div>
+      <div class="alert alert-error" role="alert" data-page-error hidden></div>
+      <div class="admin-table-wrapper">
+        <table class="table admin-table">
+          <thead>
+            <tr>
+              <th>Filename</th>
+              <th class="uploads-document-column">Document</th>
+              <th class="uploads-public-column">Public</th>
+              <th class="uploads-size-column">Size</th>
+              <th class="uploads-actions-column">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for upload in uploads %}
+            <tr
+              data-upload-id="{{ upload.id }}"
+              data-filename="{{ upload.filename }}"
+              data-public="{{ 'true' if upload.public else 'false' }}"
+              data-doc-id="{{ upload.doc_id or '' }}"
+            >
+              <td class="uploads-filename">{{ upload.filename }}</td>
+              <td>
+                {% if upload.doc_id %}
+                <a href="/_edit/{{ upload.doc_id }}" class="btn btn-ghost btn-xs uploads-doc-link" title="Edit document">
+                  {{ icon('file-text') }}
+                  <span class="uploads-doc-title">
+                    {{ docs[upload.doc_id].title if upload.doc_id in docs else '#' ~ upload.doc_id }}
+                  </span>
+                </a>
+                {% else %}
+                <span class="uploads-no-doc">None</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if upload.public %}
+                <span class="badge badge-primary">Public</span>
+                {% else %}
+                <span class="badge badge-secondary">Private</span>
+                {% endif %}
+              </td>
+              <td class="uploads-size">{{ upload.size | format_size }}</td>
+              <td class="uploads-actions">
+                <a
+                  href="/api/uploads/{{ upload.id }}/download/{{ upload.filename | urlencode }}?download=false"
+                  class="btn btn-primary btn-square btn-sm"
+                  target="_blank"
+                  title="View"
+                >{{ icon('eye') }}</a>
+                <a
+                  href="/api/uploads/{{ upload.id }}/download/{{ upload.filename | urlencode }}"
+                  class="btn btn-primary btn-square btn-sm"
+                  title="Download"
+                  download
+                >{{ icon('download') }}</a>
+                <button class="btn btn-secondary btn-sm btn-square" title="Edit" data-action="edit-upload">
+                  {{ icon('square-pen') }}
+                </button>
+                <button class="btn btn-error btn-square btn-sm" title="Delete" data-action="delete-upload">
+                  {{ icon('trash', 'btn-label') }}
+                  <span class="loading loading-xs btn-spinner"></span>
+                </button>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="5" class="admin-table-empty">No uploads found.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% include "admin/pagination.html" %}
+    </div>
+  </div>
+  <dialog id="new-upload-dialog" class="modal">
+    <form class="modal-box" data-form="create-upload">
+      <h3 class="modal-title">Upload a file</h3>
+      <fieldset class="fieldset">
+        <label for="upload-file-file" class="label">File</label>
+        <input
+          id="upload-file-file"
+          name="file"
+          type="file"
+          class="file-input file-input-secondary"
+          required
+          data-on-change="fill-filename"
+          data-filename-input="#upload-file-filename"
+        >
+        <label for="upload-file-filename" class="label">Filename</label>
+        <input id="upload-file-filename" name="filename" type="text" class="input" placeholder="Enter filename" required minlength="3">
+        <label for="upload-file-public" class="label">
+          <input id="upload-file-public" name="public" type="checkbox" class="toggle toggle-primary">
+          Public
+        </label>
+      </fieldset>
+      <div class="alert alert-error form-error" role="alert" hidden></div>
+      <div class="modal-action">
+        <button class="btn btn-primary uploads-dialog-submit" type="submit">
+          <span class="btn-label">Upload</span>
+          <span class="loading loading-sm btn-spinner"></span>
+        </button>
+        <button class="btn" type="button" data-action="close-dialog">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog id="edit-upload-dialog" class="modal">
+    <form class="modal-box" data-form="save-upload">
+      <h3 class="modal-title">Edit Upload</h3>
+      <fieldset class="fieldset">
+        <label for="edit-upload-filename" class="label">Filename</label>
+        <input id="edit-upload-filename" name="filename" type="text" class="input" placeholder="Enter new filename" required minlength="3">
+        <label for="edit-upload-doc-id" class="label">Document</label>
+        <select id="edit-upload-doc-id" name="doc_id" class="select" data-on-change="upload-document">
+          <option value="">None (not attached to any document)</option>
+          {% for doc in doc_options %}
+          <option value="{{ doc.id }}" data-public="{{ 'true' if doc.public else 'false' }}">{{ doc.title }}</option>
+          {% endfor %}
+        </select>
+        <label for="edit-upload-public" class="label">
+          <input id="edit-upload-public" name="public" type="checkbox" class="toggle toggle-primary">
+          Public
+          <span class="uploads-inherited-hint" hidden>(inherited from document)</span>
+        </label>
+      </fieldset>
+      <div class="alert alert-error form-error" role="alert" hidden></div>
+      <div class="modal-action">
+        <button class="btn btn-primary uploads-dialog-submit" type="submit">
+          <span class="btn-label">Save</span>
+          <span class="loading loading-sm btn-spinner"></span>
+        </button>
+        <button class="btn" type="button" data-action="close-dialog">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+</div>
+{% endblock %}

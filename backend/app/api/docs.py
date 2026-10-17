@@ -1,34 +1,28 @@
-import datetime
 from logging import getLogger
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Body, HTTPException, status
-from fastapi.responses import PlainTextResponse
 from tortoise.exceptions import DoesNotExist
 from tortoise.transactions import in_transaction
 
 from ..auth.dependencies import LoggedInUser, OptionalUser
-from ..models.doc import Doc
+from ..models.doc import Doc, render_markdown
 from ..models.revision import Revision
 from ..models.upload import Upload
 from ..schemas.doc import (
     DocCreate,
-    DocInfo,
     DocMetadata,
+    DocPreview,
     DocResponse,
     DocSearchResponse,
-    DocTreeNode,
     DocUpdate,
 )
-from ..schemas.revision import RevisionResponse
-from ..schemas.role import Role
 from ..settings import settings
 from ..utils.indexing import (
     delete_document_from_index,
     index_document,
     search_documents,
 )
-from .pagination import PaginatedResponse, PaginationParams
 
 logger = getLogger(__name__)
 router = APIRouter(prefix="/docs", tags=["docs"])
@@ -50,7 +44,7 @@ async def create_doc(
     """
     Create a new document.
     """
-    if current_user.role != Role.ADMIN and current_user.role != Role.USER:
+    if not current_user.can_edit:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have permission to create documents",
@@ -106,209 +100,6 @@ async def create_doc(
     )
 
 
-@router.get("/outline")
-async def get_doc_outline(
-    current_user: OptionalUser,
-    depth: int = 100,
-) -> DocTreeNode:
-    """
-    Get the outline of documents as a tree structure.
-    """
-
-    async def get_children(doc_id: int | None, depth: int) -> list[DocTreeNode]:
-        query = Doc.filter(parent_id=doc_id).order_by("order", "title")
-        if not current_user:
-            query = query.filter(public=True)
-        return [
-            DocTreeNode(
-                id=doc.id,
-                title=doc.title,
-                urlpath=doc.urlpath,
-                public=doc.public,
-                children=await get_children(doc.id, depth - 1) if depth > 0 else [],
-            )
-            async for doc in query
-        ]
-
-    # Get the home page (document with no parent)
-    home = await Doc.get_or_none(parent_id=None)
-    if home is None:
-        # Fallback if home page doesn't exist
-        return DocTreeNode(
-            id=0,
-            title="Home",
-            urlpath="/",
-            public=True,
-            children=await get_children(None, depth - 1),
-        )
-
-    return DocTreeNode(
-        id=home.id,
-        title=home.title,
-        urlpath=home.urlpath,
-        public=home.public,
-        children=await get_children(home.id, depth - 1),
-    )
-
-
-@router.get("/{doc_id}")
-async def get_doc(
-    current_user: OptionalUser,
-    doc_id: int | Literal["by_path"],
-    path: str | None = None,
-    include_source: bool = False,
-    timestamp: datetime.datetime | None = None,
-) -> DocResponse:
-    """
-    Get a document by ID or by URL path.
-    """
-    try:
-        if doc_id == "by_path":
-            if path is None:  # pragma: no cover
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Path is required when using 'by_path'",
-                )
-            doc = await Doc.get(urlpath=path if path.startswith("/") else "/" + path)
-        else:
-            doc = await Doc.get(id=doc_id)
-    except DoesNotExist:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Document not found"
-        )
-
-    if not doc.public and not current_user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Document not found"
-        )
-
-    if timestamp and doc.updated_at == timestamp:
-        raise HTTPException(
-            status_code=status.HTTP_304_NOT_MODIFIED, detail="Not Modified"
-        )
-
-    children = doc.children
-    if not current_user:
-        children = children.filter(public=True)
-    return DocResponse(
-        id=doc.id,
-        parent_id=doc.parent_id,
-        title=doc.title,
-        slug=doc.slug,
-        urlpath=doc.urlpath,
-        markdown=doc.markdown if include_source else "",
-        html=doc.html,
-        public=doc.public,
-        metadata=doc.metadata,
-        created_at=doc.created_at,
-        updated_at=doc.updated_at,
-        updated_by_id=doc.updated_by_id if current_user else None,
-        parents=[
-            DocInfo(
-                id=parent.id,
-                urlpath=parent.urlpath,
-                title=parent.title,
-            )
-            async for parent in doc.parents()
-        ],
-        children=[
-            DocInfo(
-                id=child.id,
-                urlpath=child.urlpath,
-                title=child.title,
-            )
-            async for child in children
-        ],
-    )
-
-
-@router.get("/markdown/{path:path}", response_class=PlainTextResponse)
-async def get_doc_markdown(
-    current_user: OptionalUser,
-    path: str,
-) -> str:
-    """
-    Get document content as plain Markdown with title and child links.
-    """
-    try:
-        urlpath = path.removesuffix(".md")
-        doc = await Doc.get(
-            urlpath=urlpath if urlpath.startswith("/") else "/" + urlpath
-        )
-    except DoesNotExist:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Document not found"
-        )
-
-    if not doc.public and not current_user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Document not found"
-        )
-
-    children = doc.children
-    if not current_user:
-        children = children.filter(public=True)
-
-    lines = []
-    lines.append(f"# {doc.title}\n")
-
-    child_list = [child async for child in children]
-    if child_list:
-        lines.append("\n")
-        for child in child_list:
-            lines.append(f"- [{child.title}]({child.urlpath})\n")
-
-    lines.append(f"\n{doc.markdown}")
-
-    return "".join(lines)
-
-
-@router.get("/{doc_id}/revisions")
-async def get_doc_revisions(
-    current_user: LoggedInUser,
-    doc_id: int,
-    pagination: PaginationParams,
-) -> PaginatedResponse[RevisionResponse]:
-    """
-    Get all revisions of a document by ID.
-    """
-    try:
-        doc = await Doc.get(id=doc_id)
-    except DoesNotExist:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Document not found"
-        )
-
-    if current_user.role != Role.ADMIN and current_user.role != Role.USER:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have permission to view document revisions",
-        )
-
-    revisions = doc.revisions.all().prefetch_related("created_by")
-    total = await revisions.count()
-    revisions = pagination.apply(revisions)
-    return PaginatedResponse[RevisionResponse](
-        items=[
-            RevisionResponse(
-                id=revision.id,
-                doc_id=revision.doc_id,
-                markdown=revision.markdown,
-                html=revision.html,
-                created_by_id=revision.created_by_id,
-                created_by_username=revision.created_by.username
-                if revision.created_by
-                else None,
-                created_at=revision.created_at,
-            )
-            async for revision in revisions
-        ],
-        page=pagination.page,
-        size=pagination.size,
-        total=total,
-    )
-
-
 @router.put("/{doc_id}")
 async def update_doc(
     current_user: LoggedInUser,
@@ -325,7 +116,7 @@ async def update_doc(
             status_code=status.HTTP_404_NOT_FOUND, detail="Document not found"
         )
 
-    if current_user.role != Role.ADMIN and current_user.role != Role.USER:
+    if not current_user.can_edit:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have permission to update this document",
@@ -449,7 +240,7 @@ async def move_doc(
             detail="Cannot move the home page",
         )
 
-    if current_user.role != Role.ADMIN and current_user.role != Role.USER:
+    if not current_user.can_edit:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have permission to edit this document",
@@ -493,7 +284,7 @@ async def restore_doc_revision(
             status_code=status.HTTP_404_NOT_FOUND, detail="Document not found"
         )
 
-    if current_user.role != Role.ADMIN and current_user.role != Role.USER:
+    if not current_user.can_edit:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have permission to edit this document",
@@ -544,7 +335,7 @@ async def delete_doc(
             detail="Cannot delete the home page",
         )
 
-    if current_user.role != Role.ADMIN and current_user.role != Role.USER:
+    if not current_user.can_edit:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have permission to delete this document",
@@ -556,41 +347,21 @@ async def delete_doc(
     logger.info(f"Document '{doc.title}' deleted by user {current_user.username}.")
 
 
-@router.get("/")
-async def list_docs(
+@router.post("/preview")
+async def preview_doc(
     current_user: LoggedInUser,
-    pagination: PaginationParams,
-    include_content: bool = False,
-) -> PaginatedResponse[DocResponse]:
+    markdown: Annotated[str, Body(embed=True)],
+) -> DocPreview:
     """
-    Get a list of documents with pagination.
+    Render Markdown the same way as document content, for previewing edits.
     """
-    docs = Doc.all()
-    total = await docs.count()
-    docs = pagination.apply(docs)
-
-    return PaginatedResponse[DocResponse](
-        items=[
-            DocResponse(
-                id=doc.id,
-                parent_id=doc.parent_id,
-                title=doc.title,
-                slug=doc.slug,
-                urlpath=doc.urlpath,
-                markdown=doc.markdown if include_content else "",
-                html=doc.html if include_content else "",
-                public=doc.public,
-                metadata=doc.metadata,
-                created_at=doc.created_at,
-                updated_at=doc.updated_at,
-                updated_by_id=doc.updated_by_id,
-            )
-            async for doc in docs
-        ],
-        page=pagination.page,
-        size=pagination.size,
-        total=total,
-    )
+    if not current_user.can_edit:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to edit documents",
+        )
+    html, _ = render_markdown(markdown)
+    return DocPreview(html=html)
 
 
 @router.post("/search")

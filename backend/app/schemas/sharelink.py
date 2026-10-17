@@ -27,12 +27,3 @@ class ShareLinkResponse(BaseModel):
     access_count: int
     created_at: datetime.datetime
     updated_at: datetime.datetime
-
-
-class ShareLinkPublicInfo(BaseModel):
-    """
-    Minimal public information about a shareable link (for access validation).
-    """
-
-    doc_id: int
-    is_expired: bool

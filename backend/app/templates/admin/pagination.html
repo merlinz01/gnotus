@@ -1,0 +1,27 @@
+{# Pagination controls for the `pagination` in the context #}
+<form class="pagination" method="get">
+  <div>
+    Page {{ pagination.page }} of {{ pagination.pages }} ({{ pagination.total }} item{{ '' if pagination.total == 1 else 's' }})
+  </div>
+  <div class="pagination-controls">
+    <input type="hidden" name="page" value="1">
+    <select name="size" class="select select-sm pagination-size" aria-label="Items per page" data-on-change="autosubmit">
+      <option value="-1"{% if pagination.size == -1 %} selected{% endif %}>All</option>
+      {% for size in pagination.sizes %}
+      <option{% if pagination.size == size %} selected{% endif %}>{{ size }}</option>
+      {% endfor %}
+    </select>
+    <span class="pagination-label">items per page</span>
+    <noscript><button class="btn btn-sm">Show</button></noscript>
+    {% if pagination.page > 1 %}
+    <a href="{{ pagination.url(pagination.page - 1) }}" class="btn btn-sm">Previous</a>
+    {% else %}
+    <button type="button" class="btn btn-sm" disabled>Previous</button>
+    {% endif %}
+    {% if pagination.page < pagination.pages %}
+    <a href="{{ pagination.url(pagination.page + 1) }}" class="btn btn-sm">Next</a>
+    {% else %}
+    <button type="button" class="btn btn-sm" disabled>Next</button>
+    {% endif %}
+  </div>
+</form>

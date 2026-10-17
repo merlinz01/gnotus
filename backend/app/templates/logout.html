@@ -1,0 +1,18 @@
+{% block head_meta %}
+<title>Logging out - {{ site_name }}</title>
+<meta name="robots" content="noindex" data-page-meta>
+{% endblock %}
+
+{% block main %}
+<div class="auth-page">
+  <div class="logout-status"{% if user %} data-init="logout"{% endif %}>
+    {% if user %}
+    <div class="alert alert-error form-error" role="alert" hidden></div>
+    <span class="loading" role="status"></span>
+    {% else %}
+    <p>You are not logged in.</p>
+    <a href="/" class="btn btn-primary">Go to Home</a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

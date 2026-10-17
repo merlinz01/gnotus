@@ -1,0 +1,21 @@
+.new-doc-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding-inline: 1rem;
+  overflow-y: auto;
+}
+
+.new-doc-card {
+  width: 100%;
+  max-width: 37.5rem;
+  max-height: 100%;
+  margin: 1rem auto;
+  overflow-y: auto;
+  background-color: var(--color-base-200);
+  box-shadow: var(--shadow-lg);
+}
+
+.new-doc-form {
+  gap: 1rem;
+}
