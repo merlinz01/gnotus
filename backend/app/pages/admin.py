@@ -156,7 +156,7 @@ async def settings_page(request: Request, current_user: OptionalUser) -> Respons
     return page_response(request, "admin/settings.html", context)
 
 
-@router.get("/_revisions/{doc_id}")
+@router.get("/_revisions/{doc_id:int}")
 async def revisions_page(
     request: Request, current_user: OptionalUser, doc_id: int
 ) -> Response:

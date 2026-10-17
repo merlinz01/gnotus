@@ -17,19 +17,24 @@ router = APIRouter(route_class=PageRoute)
 
 @router.get("/_new")
 async def new_doc_page(
-    request: Request, current_user: OptionalUser, parent: int | None = None
+    request: Request, current_user: OptionalUser, parent: str | None = None
 ) -> Response:
     tree, context, denied = await restricted_page(request, current_user, EDITOR_ROLES)
     if denied:
         return denied
+    # Taken as a string so that an invalid ID is ignored instead of failing validation
+    try:
+        parent_id = int(parent) if parent else None
+    except ValueError:
+        parent_id = None
     return page_response(
         request,
         "editor/new.html",
-        {**context, "parent_options": tree.flatten(), "parent_id": parent},
+        {**context, "parent_options": tree.flatten(), "parent_id": parent_id},
     )
 
 
-@router.get("/_edit/{doc_id}")
+@router.get("/_edit/{doc_id:int}")
 async def edit_doc_page(
     request: Request, current_user: OptionalUser, doc_id: int
 ) -> Response:

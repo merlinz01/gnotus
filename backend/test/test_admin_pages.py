@@ -208,6 +208,9 @@ async def test_revisions_page_not_found(api_client: TestClient, user_user: User)
     api_client.set_session_user(user_user)
     response = api_client.get("/_revisions/999")
     assert response.status_code == status.HTTP_404_NOT_FOUND
+    response = api_client.get("/_revisions/abc")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert "text/html" in response.headers["content-type"]
     response = api_client.get("/_partial/revision/999")
     assert response.status_code == status.HTTP_404_NOT_FOUND
 

@@ -139,10 +139,28 @@ async def test_edit_home_page(
     assert 'data-action="delete-doc"' not in html
 
 
-async def test_edit_doc_page_not_found(api_client: TestClient, user_user: User):
+async def test_new_doc_page_invalid_parent(
+    api_client: TestClient, user_user: User, docs: dict[str, Doc]
+):
+    """
+    Test that an invalid parent ID is ignored instead of failing validation.
+    """
     api_client.set_session_user(user_user)
-    response = api_client.get("/_edit/999")
+    response = api_client.get("/_new?parent=abc")
+    assert response.status_code == status.HTTP_200_OK, response.text
+    html = response.text
+    assert "disabled selected>Select a parent document</option>" in html
+    assert html.count(" selected>") == 1
+
+
+@pytest.mark.parametrize("path", ["/_edit/999", "/_edit/abc"])
+async def test_edit_doc_page_not_found(
+    api_client: TestClient, user_user: User, path: str
+):
+    api_client.set_session_user(user_user)
+    response = api_client.get(path)
     assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert "text/html" in response.headers["content-type"]
 
 
 async def test_attachments_partial(
