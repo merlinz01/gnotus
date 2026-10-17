@@ -103,7 +103,6 @@ class DocIndexSchema(BaseModel):
 
     id: str
     urlpath: str
-    urlpathbase: str
     title: str
     text: str
     public: bool

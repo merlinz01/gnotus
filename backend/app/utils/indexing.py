@@ -17,7 +17,7 @@ from ..schemas.doc import DocIndexSchema, DocSearchResult
 from ..settings import settings
 
 index_settings = MeilisearchSettings(
-    searchable_attributes=["title", "text", "urlpath", "urlpathbase"],
+    searchable_attributes=["title", "text", "urlpath"],
     displayed_attributes=["id", "title", "urlpath", "text", "public"],
     stop_words=[
         "the",
@@ -44,7 +44,6 @@ index_settings = MeilisearchSettings(
     filterable_attributes=["public"],
     typo_tolerance=TypoTolerance(
         enabled=True,
-        disable_on_words=["urlpathbase"],
         min_word_size_for_typos=MinWordSizeForTypos(
             one_typo=5,
             two_typos=10,
@@ -109,7 +108,6 @@ async def index_document(doc: Doc, index: AsyncIndex | None = None):  # pragma: 
     doc_schema = DocIndexSchema(
         id=str(doc.id),
         urlpath=doc.urlpath,
-        urlpathbase=doc.urlpath.split("/")[0],
         title=doc.title,
         text=text,
         public=doc.public,
