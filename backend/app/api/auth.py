@@ -1,3 +1,4 @@
+import asyncio
 import time
 from logging import getLogger
 
@@ -37,7 +38,7 @@ async def login(
         return LoginResponse(user=UserResponse.from_user(user))
     except Exception as e:
         logger.error(f"Login failed for user {login_request.username}: {e}")
-        time.sleep(max(0, 1.0 - (time.monotonic() - start)))
+        await asyncio.sleep(max(0, 1.0 - (time.monotonic() - start)))
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
