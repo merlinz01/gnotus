@@ -161,19 +161,22 @@ async def update_doc(
         doc.title = doc_update.title
     if doc_update.slug is not None:
         Doc.validate_slug(doc_update.slug)
-        # Check for duplicate slug among siblings
-        existing = await Doc.get_or_none(parent_id=doc.parent_id, slug=doc_update.slug)
-        if existing and existing.id != doc.id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"A sibling document with slug '{doc_update.slug}' already exists",
-            )
         if doc_update.slug != doc.slug:
             doc.slug = doc_update.slug
             needs_urlpath_update = True
-    # Moved or renamed under the home page
-    if needs_urlpath_update and await Doc.exists(id=doc.parent_id, parent_id=None):
-        Doc.validate_top_level_slug(doc.slug)
+    # Moved or renamed, so the slug must be free among the new siblings
+    if needs_urlpath_update:
+        if await Doc.exists(id=doc.parent_id, parent_id=None):
+            Doc.validate_top_level_slug(doc.slug)
+        if (
+            await Doc.filter(parent_id=doc.parent_id, slug=doc.slug)
+            .exclude(id=doc.id)
+            .exists()
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"A sibling document with slug '{doc.slug}' already exists",
+            )
     if doc_update.markdown is not None:
         doc.markdown = doc_update.markdown
         create_revision = True

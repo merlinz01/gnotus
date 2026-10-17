@@ -1221,3 +1221,72 @@ async def test_update_doc_with_reserved_slug(
     response = api_client.put(f"/api/docs/{nested.id}", json={"slug": "api"})
     assert response.status_code == status.HTTP_200_OK, response.text
     assert response.json()["urlpath"] == "/section/api"
+
+
+async def test_update_doc_with_existing_slug(
+    api_client: "TestClient", user_admin: "User"
+):
+    """
+    Test that documents can't be renamed or moved onto a sibling's slug.
+    """
+    api_client.set_session_user(user_admin)
+    home = await Doc.create(
+        title="Home",
+        slug="",
+        urlpath="/",
+        public=True,
+        metadata={},
+        markdown="",
+        html="",
+    )
+    existing = await Doc.create(
+        parent_id=home.id,
+        title="Existing",
+        slug="existing",
+        urlpath="/existing",
+        public=True,
+        metadata={},
+        markdown="",
+        html="",
+    )
+    section = await Doc.create(
+        parent_id=home.id,
+        title="Section",
+        slug="section",
+        urlpath="/section",
+        public=True,
+        metadata={},
+        markdown="",
+        html="",
+    )
+    nested = await Doc.create(
+        parent_id=section.id,
+        title="Nested",
+        slug="existing",
+        urlpath="/section/existing",
+        public=True,
+        metadata={},
+        markdown="",
+        html="",
+    )
+    response = api_client.put(f"/api/docs/{section.id}", json={"slug": "existing"})
+    assert response.status_code == status.HTTP_400_BAD_REQUEST, response.text
+    assert (
+        response.json()["detail"]
+        == "A sibling document with slug 'existing' already exists"
+    )
+    response = api_client.put(f"/api/docs/{nested.id}", json={"parent_id": home.id})
+    assert response.status_code == status.HTTP_400_BAD_REQUEST, response.text
+    assert (
+        response.json()["detail"]
+        == "A sibling document with slug 'existing' already exists"
+    )
+    await nested.refresh_from_db()
+    assert nested.parent_id == section.id
+    assert nested.urlpath == "/section/existing"
+
+    # Keeping a document's own slug is fine
+    response = api_client.put(
+        f"/api/docs/{existing.id}", json={"slug": "existing", "parent_id": home.id}
+    )
+    assert response.status_code == status.HTTP_200_OK, response.text
