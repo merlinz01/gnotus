@@ -1,3 +1,4 @@
+import pytest
 from fastapi import status
 from utils import TestClient
 
@@ -27,6 +28,39 @@ async def test_update_config(api_client: TestClient, user_admin: User):
     # Verify persisted
     assert await Setting.get_value("site_name") == "Updated Site"
     assert await Setting.get_value("primary_color") == "#00FF00"
+
+
+@pytest.mark.parametrize("color", ["#abc", "#abcd", "#AABBCC", "#aabbcc80"])
+async def test_update_config_valid_colors(
+    api_client: TestClient, user_admin: User, color: str
+):
+    api_client.set_session_user(user_admin)
+    response = api_client.put("/api/config", json={"secondary_color_dark": color})
+    assert response.status_code == status.HTTP_200_OK, response.text
+    assert response.json()["secondary_color_dark"] == color
+
+
+@pytest.mark.parametrize(
+    "color", ["", "red", "#12345", "#ggg", "4A90E2", "#4A90E2; color: red", "#abc\n"]
+)
+async def test_update_config_invalid_colors(
+    api_client: TestClient, user_admin: User, color: str
+):
+    """
+    Test that colors must be hex colors.
+    """
+    await Setting.set_value("primary_color", "#111111")
+    api_client.set_session_user(user_admin)
+    response = api_client.put(
+        "/api/config", json={"site_name": "New Name", "primary_color": color}
+    )
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT, response.text
+    assert response.json()["detail"][0]["msg"] == (
+        f"{color!r} is not a hex color such as #4A90E2"
+    )
+    # Nothing is changed
+    assert await Setting.get_value("primary_color") == "#111111"
+    assert await Setting.get_value("site_name") != "New Name"
 
 
 async def test_update_config_partial(api_client: TestClient, user_admin: User):
