@@ -35,7 +35,7 @@
         <input id="drawer-toggle" type="checkbox" class="drawer-toggle" aria-label="Toggle sidebar">
         <div class="app-sidebar app-sidebar-auto drawer-side">
           <label for="drawer-toggle" class="drawer-overlay"></label>
-          <div class="app-sidebar-content" id="sidebar">{{ sidebar }}</div>
+          <div class="app-sidebar-content" id="sidebar">{% include "sidebar.html" %}</div>
         </div>
         <main id="main" class="drawer-content app-main" tabindex="-1">{{ main }}</main>
       </div>

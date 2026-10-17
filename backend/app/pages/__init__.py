@@ -8,7 +8,6 @@ when navigating between pages.
 
 from typing import Any
 
-from bs4 import BeautifulSoup
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import RedirectResponse, Response
 from starlette.convertors import Convertor, register_url_convertor
@@ -27,6 +26,7 @@ from .rendering import (
     get_static_asset,
     html_response,
     page_response,
+    render_template,
 )
 from .tree import load_doc_tree
 
@@ -53,19 +53,6 @@ _NOT_FOUND_MESSAGE = (
     "The document you are looking for does not exist, "
     "or you do not have permission to view it."
 )
-
-
-def summarize(html: str, length: int = 160) -> str:
-    """
-    Get a plain-text summary of HTML content for the meta description.
-    """
-    soup = BeautifulSoup(html, "html.parser")
-    for anchor in soup.select("a.heading-anchor"):
-        anchor.decompose()
-    text = " ".join(soup.get_text(" ").split())
-    if len(text) <= length:
-        return text
-    return text[:length].rsplit(" ", 1)[0] + "…"
 
 
 def not_found_response(request: Request, context: dict[str, Any]) -> Response:
@@ -101,7 +88,9 @@ async def sidebar_partial(
 ) -> Response:
     tree = await load_doc_tree(current_user)
     context = await page_context(request, current_user, tree, path)
-    return html_response(request, context["sidebar"], partial=True)
+    return html_response(
+        request, render_template("sidebar.html", context), partial=True
+    )
 
 
 def safe_next_path(next: str | None) -> str:
@@ -213,7 +202,7 @@ async def doc_page(request: Request, current_user: OptionalUser, path: str) -> R
                 **context,
                 "home": home,
                 "sections": context["outline"].children if context["outline"] else [],
-                "description": summarize(home.html) if home else "",
+                "description": await home.get_summary() if home else "",
             },
         )
 
@@ -231,6 +220,6 @@ async def doc_page(request: Request, current_user: OptionalUser, path: str) -> R
             "doc": doc,
             "parents": tree.parents(node.parent_id),
             "children": node.children,
-            "description": summarize(doc.html),
+            "description": await doc.get_summary(),
         },
     )

@@ -64,6 +64,19 @@ def render_markdown(markdown: str) -> tuple[str, list[DocSubtitle]]:
     return str(soup), subtitles
 
 
+def summarize(html: str, length: int = 160) -> str:
+    """
+    Get a plain-text summary of HTML content for the meta description.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    for anchor in soup.select("a.heading-anchor"):
+        anchor.decompose()
+    text = " ".join(soup.get_text(" ").split())
+    if len(text) <= length:
+        return text
+    return text[:length].rsplit(" ", 1)[0] + "…"
+
+
 class Doc(TimestampedModel):
     """
     Model representing a document.
@@ -81,6 +94,7 @@ class Doc(TimestampedModel):
     metadata = fields.JSONField()
     markdown = fields.TextField()
     html = fields.TextField()
+    summary = fields.TextField(null=True)
     updated_by_id: int | None
     updated_by: fields.ForeignKeyNullableRelation["User"] = fields.ForeignKeyField(
         "gnotus.User", null=True, on_delete=fields.SET_NULL
@@ -119,6 +133,15 @@ class Doc(TimestampedModel):
                 status_code=400,
                 detail=f"The URL slug '{slug}' is reserved and can't be used at the top level.",
             )
+
+    async def get_summary(self) -> str:
+        """
+        Get the summary, computing it for documents saved before summaries were stored.
+        """
+        if self.summary is None:
+            self.summary = summarize(self.html)
+            await Doc.filter(id=self.id).update(summary=self.summary)
+        return self.summary
 
     async def parents(self) -> AsyncGenerator["Doc", None]:
         """
@@ -176,6 +199,7 @@ class Doc(TimestampedModel):
         This method should be called after any changes to the markdown content.
         """
         self.html, subtitles = render_markdown(self.markdown)
+        self.summary = summarize(self.html)
         self.metadata["subtitles"] = [
             subtitle.model_dump(mode="json") for subtitle in subtitles
         ]

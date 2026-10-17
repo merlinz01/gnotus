@@ -9,13 +9,12 @@ from urllib.parse import quote
 
 from fastapi import Request, status
 from fastapi.responses import RedirectResponse, Response
-from markupsafe import Markup
 
 from ..models.setting import get_site_config
 from ..models.user import User
 from ..schemas.role import Role
 from ..settings import settings
-from .rendering import page_response, render_template
+from .rendering import page_response
 from .tree import DocTree, load_doc_tree, outline_version
 
 # CSS custom properties set from the site configuration
@@ -54,13 +53,13 @@ async def page_context(
     request: Request, user: User | None, tree: DocTree, path: str | None = None
 ) -> dict[str, Any]:
     """
-    Get the template context shared by all pages, including the rendered sidebar.
+    Get the template context shared by all pages.
     """
     if path is None:
         path = request.url.path
     config = await load_site_config()
     outline = tree.home
-    context = {
+    return {
         "config": config,
         "site_name": config["site_name"],
         "theme_style": theme_style(config),
@@ -74,8 +73,6 @@ async def page_context(
         "sidebar_open": request.cookies.get("sidebar_open") == "1",
         "base_url": settings.base_url,
     }
-    context["sidebar"] = Markup(render_template("sidebar.html", context))
-    return context
 
 
 def message_response(

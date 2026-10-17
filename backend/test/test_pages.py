@@ -101,6 +101,26 @@ async def test_doc_page(api_client: TestClient, docs: dict[str, Doc]):
     assert 'name="robots"' not in html
 
 
+async def test_doc_page_summary(api_client: TestClient, docs: dict[str, Doc]):
+    """
+    Test that the summary is stored when the content changes, and computed once
+    for documents saved before summaries were stored.
+    """
+    guide = docs["guide"]
+    assert guide.summary is None
+    response = api_client.get("/guide")
+    assert 'content="Intro Hello world" data-page-meta' in response.text
+    await guide.refresh_from_db()
+    assert guide.summary == "Intro Hello world"
+
+    guide.markdown = "New *content*"
+    await guide.update_content()
+    assert guide.summary == "New content"
+    await guide.save()
+    response = api_client.get("/guide")
+    assert 'content="New content" data-page-meta' in response.text
+
+
 async def test_doc_page_partial(api_client: TestClient, docs: dict[str, Doc]):
     """
     Test rendering a document page as a partial.
@@ -579,7 +599,7 @@ def test_summarize():
     Test that page descriptions leave out heading anchors and are shortened.
     """
     from app.models.doc import render_markdown
-    from app.pages import summarize
+    from app.models.doc import summarize
 
     html, _ = render_markdown("# Intro\n\nSome text")
     assert summarize(html) == "Intro Some text"
