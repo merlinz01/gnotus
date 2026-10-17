@@ -57,6 +57,8 @@ async def create_doc(
             detail="Parent document not found",
         )
     Doc.validate_slug(doc_create.slug)
+    if parent.parent_id is None:
+        Doc.validate_top_level_slug(doc_create.slug)
     # Check for duplicate slug among siblings
     existing = await Doc.get_or_none(parent_id=parent.id, slug=doc_create.slug)
     if existing:
@@ -169,6 +171,9 @@ async def update_doc(
         if doc_update.slug != doc.slug:
             doc.slug = doc_update.slug
             needs_urlpath_update = True
+    # Moved or renamed under the home page
+    if needs_urlpath_update and await Doc.exists(id=doc.parent_id, parent_id=None):
+        Doc.validate_top_level_slug(doc.slug)
     if doc_update.markdown is not None:
         doc.markdown = doc_update.markdown
         create_revision = True

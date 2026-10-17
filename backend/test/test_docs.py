@@ -1,3 +1,4 @@
+import pytest
 from fastapi import status
 from utils import TestClient
 
@@ -1129,3 +1130,94 @@ async def test_get_doc_markdown_public_anonymous(api_client: "TestClient"):
     assert response.status_code == status.HTTP_200_OK
     assert "# Public Document" in response.text
     assert "Public content." in response.text
+
+
+@pytest.mark.parametrize("slug", ["_share", "_admin", "_static", "api"])
+async def test_create_doc_with_reserved_slug(
+    api_client: "TestClient", user_admin: "User", slug: str
+):
+    """
+    Test that top-level documents can't use slugs reserved for the app's routes.
+    """
+    api_client.set_session_user(user_admin)
+    home = await Doc.create(
+        title="Home",
+        slug="",
+        urlpath="/",
+        public=True,
+        metadata={},
+        markdown="",
+        html="",
+    )
+    response = api_client.post(
+        "/api/docs/",
+        json={"title": "Reserved", "slug": slug, "parent_id": home.id},
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST, response.text
+    assert "reserved" in response.json()["detail"]
+
+    # The slugs are fine below the top level
+    response = api_client.post(
+        "/api/docs/",
+        json={"title": "Section", "slug": "section", "parent_id": home.id},
+    )
+    assert response.status_code == status.HTTP_201_CREATED, response.text
+    response = api_client.post(
+        "/api/docs/",
+        json={"title": "Nested", "slug": slug, "parent_id": response.json()["id"]},
+    )
+    assert response.status_code == status.HTTP_201_CREATED, response.text
+    assert response.json()["urlpath"] == f"/section/{slug}"
+
+
+async def test_update_doc_with_reserved_slug(
+    api_client: "TestClient", user_admin: "User"
+):
+    """
+    Test that documents can't be renamed or moved to a reserved top-level URL.
+    """
+    api_client.set_session_user(user_admin)
+    home = await Doc.create(
+        title="Home",
+        slug="",
+        urlpath="/",
+        public=True,
+        metadata={},
+        markdown="",
+        html="",
+    )
+    section = await Doc.create(
+        parent_id=home.id,
+        title="Section",
+        slug="section",
+        urlpath="/section",
+        public=True,
+        metadata={},
+        markdown="",
+        html="",
+    )
+    nested = await Doc.create(
+        parent_id=section.id,
+        title="Nested",
+        slug="_nested",
+        urlpath="/section/_nested",
+        public=True,
+        metadata={},
+        markdown="",
+        html="",
+    )
+    response = api_client.put(f"/api/docs/{section.id}", json={"slug": "_share"})
+    assert response.status_code == status.HTTP_400_BAD_REQUEST, response.text
+    assert "reserved" in response.json()["detail"]
+    response = api_client.put(f"/api/docs/{nested.id}", json={"parent_id": home.id})
+    assert response.status_code == status.HTTP_400_BAD_REQUEST, response.text
+    assert "reserved" in response.json()["detail"]
+    await section.refresh_from_db()
+    await nested.refresh_from_db()
+    assert section.urlpath == "/section"
+    assert nested.urlpath == "/section/_nested"
+
+    # Renaming a nested document to a reserved slug is fine
+    response = api_client.put(f"/api/docs/{nested.id}", json={"slug": "api"})
+    assert response.status_code == status.HTTP_200_OK, response.text
+    assert response.json()["urlpath"] == "/section/api"

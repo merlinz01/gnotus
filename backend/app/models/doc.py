@@ -109,6 +109,17 @@ class Doc(TimestampedModel):
                 detail="URL slug must be 100 characters or less.",
             )
 
+    @staticmethod
+    def validate_top_level_slug(slug: str) -> None:
+        """
+        Check that a top-level document's slug doesn't give it a URL used by the app.
+        """
+        if slug.startswith("_") or slug == "api":
+            raise HTTPException(
+                status_code=400,
+                detail=f"The URL slug '{slug}' is reserved and can't be used at the top level.",
+            )
+
     async def parents(self) -> AsyncGenerator["Doc", None]:
         """
         Asynchronously yield all parent documents of this document.
