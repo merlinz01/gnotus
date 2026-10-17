@@ -1,5 +1,4 @@
 .env
-/config.yml
 /icon.svg
 /data
 .*_cache/

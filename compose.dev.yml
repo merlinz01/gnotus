@@ -19,7 +19,6 @@ services:
       - GNOTUS_CSRF_SECRET_KEY=dev_csrf_secret_key
       - GNOTUS_MEILISEARCH_URL=http://search:7700
       - GNOTUS_MEILISEARCH_API_KEY=dev_meilisearch_api_key
-      - GNOTUS_CONFIG_FILE=/app/config.yml
     ports:
       - "127.0.0.1:5173:8000"
     volumes:

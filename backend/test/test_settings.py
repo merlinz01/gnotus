@@ -1,5 +1,4 @@
 import sys
-from pathlib import Path
 
 from pytest import MonkeyPatch
 
@@ -9,7 +8,6 @@ def test_load_settings(monkeypatch: MonkeyPatch):
     Sanity check to ensure settings can be loaded.
     """
     sys.modules.pop("app.settings", None)
-    monkeypatch.delenv("GNOTUS_CONFIG_FILE", raising=False)
     monkeypatch.delenv("GNOTUS_MEILISEARCH_API_KEY", raising=False)
 
     from app.settings import settings
@@ -17,16 +15,15 @@ def test_load_settings(monkeypatch: MonkeyPatch):
     assert settings.meilisearch_api_key.get_secret_value() == "changeme"
 
 
-def test_settings_file(tmp_path: Path, monkeypatch: MonkeyPatch):
+def test_settings_from_environment(monkeypatch: MonkeyPatch):
     """
-    Test that settings can be overridden by a config file specified in an environment variable.
+    Test that settings can be overridden by environment variables.
     """
     sys.modules.pop("app.settings", None)
+    monkeypatch.setenv("GNOTUS_LOG_LEVEL", "DEBUG")
+    monkeypatch.setenv("GNOTUS_ALLOWED_UPLOAD_FILENAME_EXTENSIONS", '["png", "pdf"]')
 
-    config_file = tmp_path / "config.yml"
-    monkeypatch.setenv("GNOTUS_CONFIG_FILE", str(config_file))
-    with open(config_file, "w") as f:
-        f.write("log_level: DEBUG")
     from app.settings import settings
 
     assert settings.log_level == "DEBUG"
+    assert settings.allowed_upload_filename_extensions == ["png", "pdf"]

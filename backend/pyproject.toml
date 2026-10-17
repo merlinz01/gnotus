@@ -19,7 +19,6 @@ dependencies = [
     "nh3>=0.2.21",
     "pydantic-settings>=2.9.1",
     "python-multipart>=0.0.21",
-    "pyyaml>=6.0.2",
     "starlette-csrf>=3.0.0",
     "tortoise-orm>=0.25.1",
     "uvicorn[standard]>=0.34.3",

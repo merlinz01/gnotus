@@ -9,6 +9,9 @@ from ..settings import settings
 from .upload import Upload
 from .utils import TimestampedModel
 
+# Shown until an icon is uploaded in the site settings
+_DEFAULT_ICON = Path(__file__).resolve().parents[2] / "icon.svg"
+
 _DEFAULT_CONFIG: dict[str, Any] = {
     "site_name": "Gnotus",
     "primary_color": "#4A90E2",
@@ -70,4 +73,4 @@ async def get_site_icon() -> tuple[Path, str]:
         # The custom icon may have been deleted
         if upload is not None:
             return settings.uploads_dir / upload.storage_path, upload.content_type
-    return settings.icon_file_path, "image/svg+xml"
+    return _DEFAULT_ICON, "image/svg+xml"

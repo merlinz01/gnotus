@@ -2,11 +2,11 @@
 
 import os
 import secrets
+from logging import getLogger
 from pathlib import Path
 from typing import Literal
 
-import yaml
-from pydantic import Field, FilePath, SecretStr
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _secrets_dir = os.environ.get("GNOTUS_SECRETS_DIR")
@@ -93,21 +93,14 @@ class Settings(BaseSettings):
     ]
     max_icon_size: int = 512 * 1024  # 512 KB
 
-    # Site config
-    icon_file_path: FilePath
 
+if os.environ.get("GNOTUS_CONFIG_FILE"):  # pragma: no cover
+    getLogger(__name__).warning(
+        "Config files are no longer supported, so GNOTUS_CONFIG_FILE is ignored. "
+        "Set the settings as GNOTUS_* environment variables instead."
+    )
 
-config_file = os.environ.get("GNOTUS_CONFIG_FILE", "")
-if config_file:
-    with open(config_file, "r") as f:
-        config = yaml.safe_load(f)
-else:
-    config = {}
-
-# Since we can't set a default for FilePath in Pydantic, set it here
-config.setdefault("icon_file_path", "./icon.svg")
-
-settings = Settings(**config)
+settings = Settings()
 
 # Trim the base URL to ensure it does not end with a slash
 if settings.base_url.endswith("/"):  # pragma: no cover

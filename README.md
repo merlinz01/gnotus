@@ -54,7 +54,7 @@ The recommended way to install Gnotus is with Docker Compose.
    curl -L https://raw.githubusercontent.com/merlinz01/gnotus/main/compose.yml -o compose.yml
    ```
 
-   If you are serving Gnotus on a public domain, you may want edit the `compose.yml` file to open ports 80 and 443 on the frontend service instead of 5173.
+   The frontend service publishes ports 80 and 443.
 
 1. **Configure the environment variables**
 
@@ -64,8 +64,7 @@ The recommended way to install Gnotus is with Docker Compose.
    # .env
 
    # The domain name of your Gnotus instance.
-   # If you are serving Gnotus on a public domain, set this to your domain name
-   # and make sure to open ports 80 and 443 in the frontend service.
+   # If you are serving Gnotus on a public domain, set this to your domain name.
    CADDY_DOMAIN=my.domain.com
    # The email address to use for Let's Encrypt registration.
    # This is required for the Caddy service to obtain SSL certificates.
@@ -73,10 +72,15 @@ The recommended way to install Gnotus is with Docker Compose.
    # GNOTUS_BASE_URL is the base URL of your Gnotus instance.
    # If you are serving Gnotus on a public domain, set this to your domain name.
    GNOTUS_BASE_URL=https://my.domain.com
-   # The secret key for the backend service.
-   # This must be changed a long, securely generated random string.
-   GNOTUS_SECRET_KEY=your-secret-key
+   # The secret key for the backend and search services.
+   # This must be changed to a long, securely generated random string,
+   # for example the output of `openssl rand -base64 32`.
+   SECRET_KEY=your-secret-key
    ```
+
+   The backend accepts other settings as environment variables prefixed with `GNOTUS_`
+   (see `backend/app/settings.py` for the available options).
+   Add them to the `environment` section of the backend service in `compose.yml`.
 
 1. **Start the services**
 
@@ -98,7 +102,7 @@ The recommended way to install Gnotus is with Docker Compose.
 
 1. **Access the application**
 
-   You can now access the Gnotus application at `http://localhost:5173` (or your configured domain if you set it up for public access).
+   You can now access the Gnotus application at `http://localhost` (or your configured domain if you set it up for public access).
 
    You can log in with the admin user you just created.
 
@@ -186,7 +190,9 @@ You can also set up the development environment without Docker Compose, but this
 
 1. **Configure environment**
 
-   You can use the provided `config-dev.yml` or create your own `config-custom.yml` to customize the site title and appearance.
+   Settings are read from environment variables prefixed with `GNOTUS_`,
+   which you can put in a `.env` file in the `backend` directory.
+   See `app/settings.py` for the available options.
 
 1. **Activate the virtual environment**
 
@@ -209,7 +215,7 @@ You can also set up the development environment without Docker Compose, but this
    To index all documents in Meilisearch, you can use the following command:
 
    ```bash
-   GNOTUS_CONFIG_FILE=config-dev.yml python -m app.manage index
+   python -m app.manage index
    ```
 
    To stop and remove the Meilisearch container, you can run:
@@ -222,7 +228,7 @@ You can also set up the development environment without Docker Compose, but this
 1. **Run the backend server**
 
    ```bash
-   GNOTUS_CONFIG_FILE=config-dev.yml fastapi dev
+   fastapi dev
    ```
 
    The app will be available at `http://localhost:8000` and will auto-reload when you modify backend code.
