@@ -52,8 +52,8 @@ export default function Sidebar() {
     }
   })
   return (
-    <div className="flex h-full w-64 flex-col overflow-y-auto p-2">
-      <ul className="menu w-full">
+    <div className="sidebar">
+      <ul className="menu sidebar-menu">
         {outline && (
           <>
             <OutlineNode node={outline} showChildren={false} />
@@ -64,21 +64,21 @@ export default function Sidebar() {
         )}
         {user && (user.role === Role.ADMIN || user.role === Role.USER) && (
           <li>
-            <HighlightedLink to="/_new" className="opacity-75">
+            <HighlightedLink to="/_new" className="sidebar-action">
               <span>Create new document</span>
             </HighlightedLink>
           </li>
         )}
         {user && (user.role === Role.ADMIN || user.role === Role.USER) && (
           <li>
-            <HighlightedLink to="/_admin" className="opacity-75">
+            <HighlightedLink to="/_admin" className="sidebar-action">
               <span>Administration</span>
             </HighlightedLink>
           </li>
         )}
       </ul>
-      <div className="grow"></div>
-      <div className="text-sm text-gray-500">
+      <div className="sidebar-spacer"></div>
+      <div className="sidebar-footer">
         {user ? (
           <span>
             Logged in as <i>{user.username}</i>
@@ -93,7 +93,7 @@ export default function Sidebar() {
           </Link>
         )}
       </div>
-      <div className="text-sm text-gray-500">
+      <div className="sidebar-footer">
         Powered by{' '}
         <a href="https://github.com/merlinz01/gnotus" target="_blank" rel="noopener noreferrer">
           Gnotus
@@ -108,36 +108,29 @@ function OutlineNode({ node, showChildren = true }: { node: DocTreeNode; showChi
   const hasVisibleChildren = showChildren && node.children.length > 0
 
   return (
-    <li className="flex flex-col">
-      <div className="has-[a.active]:bg-base-100 flex items-center gap-0 p-0">
+    <li>
+      <div className="sidebar-item">
         {hasVisibleChildren && (
           <button
-            className="hover:text-secondary cursor-pointer px-1 py-2"
+            className="sidebar-toggle"
             onClick={(event) => {
               event.preventDefault()
               setOpen(!open)
             }}
           >
-            <ChevronRightIcon
-              className="h-4 w-4 transform transition-transform"
-              style={{ transform: open ? 'rotate(90deg)' : 'rotate(0deg)' }}
-            />
-            <span className="sr-only">Toggle children</span>
+            <ChevronRightIcon className={`sidebar-toggle-icon ${open ? 'open' : ''}`} />
+            <span className="visually-hidden">Toggle children</span>
           </button>
         )}
         <HighlightedLink
           to={node.urlpath}
-          className={`flex h-8 grow items-center ${hasVisibleChildren ? '' : 'pl-6'}`}
-          activeClassName="text-primary active"
+          className={`sidebar-link ${hasVisibleChildren ? '' : 'sidebar-link-leaf'}`}
         >
           <span>{node.title}</span>
         </HighlightedLink>
       </div>
       {hasVisibleChildren && (
-        <ul
-          className="menu border-base-300 ml-3 w-auto overflow-y-hidden border-l p-0 pl-2 before:hidden"
-          style={{ display: open ? 'block' : 'none' }}
-        >
+        <ul className="menu sidebar-children" hidden={!open}>
           {node.children.map((child) => (
             <OutlineNode key={child.id} node={child} />
           ))}
@@ -151,18 +144,16 @@ function HighlightedLink({
   to,
   children,
   className = '',
-  activeClassName = 'not-hover:bg-base-100 text-primary',
 }: {
   to: string
   children: React.ReactNode
   className?: string
-  activeClassName?: string
 }) {
   const location = useLocation()
   return (
     <Link
       to={to}
-      className={`${className} ${location.pathname === to ? activeClassName : ''}`}
+      className={`${className} ${location.pathname === to ? 'active' : ''}`}
       onClick={closeDrawer}
     >
       {children}

@@ -3,6 +3,7 @@ import axios from '../axios'
 import useUser from '../stores/user'
 import { useNavigate } from 'react-router-dom'
 import useConfig from '../stores/config'
+import './AuthPage.css'
 
 export default function LogoutPage() {
   const setUser = useUser((state) => state.setUser)
@@ -32,14 +33,14 @@ export default function LogoutPage() {
   })
 
   return (
-    <div className="flex h-full flex-row items-center justify-center">
-      <div className="flex max-w-100 grow flex-col items-center">
+    <div className="auth-page">
+      <div className="logout-status">
         {error && (
-          <div className="alert alert-error shadow-lg">
+          <div className="alert alert-error form-error">
             <span>{error}</span>
           </div>
         )}
-        {loading && <span className="loading loading-spinner" role="status"></span>}
+        {loading && <span className="loading" role="status"></span>}
       </div>
     </div>
   )

@@ -4,6 +4,7 @@ import axios from '../axios'
 import useUser from '../stores/user'
 import type Doc from '../types/doc'
 import useConfig from '../stores/config'
+import './NewDocPage.css'
 
 export default function NewDocPage() {
   const [loading, setLoading] = useState(false)
@@ -88,11 +89,9 @@ export default function NewDocPage() {
   }, [title])
 
   return (
-    <div className="card bg-base-200 mx-auto my-4 w-full max-h-full max-w-150 overflow-y-auto shadow-lg">
-      <form className="card-body flex flex-col gap-4" onSubmit={submit} role="form">
-        <div className="card-title">
-          <h2 className="text-2xl font-bold">Create New Document</h2>
-        </div>
+    <div className="card new-doc-card">
+      <form className="card-body new-doc-form" onSubmit={submit} role="form">
+        <h2 className="card-title page-heading">Create New Document</h2>
         <fieldset className="fieldset">
           <label className="label" htmlFor="new-doc-parent">
             Parent document
@@ -100,7 +99,7 @@ export default function NewDocPage() {
           <select
             id="new-doc-parent"
             name="parentId"
-            className="select select-bordered w-full"
+            className="select"
             value={parentId}
             onChange={(e) => setParentId(e.target.value)}
             required
@@ -126,7 +125,7 @@ export default function NewDocPage() {
             type="text"
             name="titleField"
             placeholder="How to make a widget"
-            className="input input-bordered w-full"
+            className="input"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
@@ -139,19 +138,19 @@ export default function NewDocPage() {
             type="text"
             name="slug"
             placeholder="how-to-make-a-widget"
-            className="input input-bordered w-full"
+            className="input"
             value={slug}
             onChange={(e) => setSlug(e.target.value)}
             required
           />
         </fieldset>
         {error && (
-          <div className="alert alert-error shadow-lg">
+          <div className="alert alert-error form-error">
             <span>{error}</span>
           </div>
         )}
         <button type="submit" className="btn btn-primary">
-          {saving ? <span className="loading loading-spinner"></span> : 'Create Document'}
+          {saving ? <span className="loading"></span> : 'Create Document'}
         </button>
       </form>
     </div>

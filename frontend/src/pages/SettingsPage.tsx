@@ -4,6 +4,7 @@ import axios, { getErrorMessage } from '../axios'
 import useUser from '../stores/user'
 import useConfig from '../stores/config'
 import Role from '../types/role'
+import './SettingsPage.css'
 
 export default function SettingsPage() {
   const user = useUser((state) => state.user)
@@ -126,8 +127,8 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="m-4 flex max-h-full flex-col overflow-y-auto">
-      <nav className="breadcrumbs text-sm" aria-label="Breadcrumbs">
+    <div className="admin-page">
+      <nav className="breadcrumbs" aria-label="Breadcrumbs">
         <ul>
           <li>
             <Link to="/_admin">Administration</Link>
@@ -135,40 +136,38 @@ export default function SettingsPage() {
           <li>Settings</li>
         </ul>
       </nav>
-      <div className="card border-base-300 bg-base-200 border shadow-lg">
+      <div className="card admin-panel">
         <div className="card-body">
-          <h1 className="card-title text-2xl">Site Settings</h1>
+          <h1 className="card-title page-heading">Site Settings</h1>
           {loading ? (
-            <div className="flex justify-center p-4">
-              <span className="loading loading-spinner loading-md"></span>
+            <div className="settings-loading">
+              <span className="loading loading-md"></span>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              {error && <div className="alert alert-error text-sm">{error}</div>}
-              {success && (
-                <div className="alert alert-success text-sm">Settings saved successfully</div>
-              )}
+            <form onSubmit={handleSubmit} className="settings-form">
+              {error && <div className="alert alert-error">{error}</div>}
+              {success && <div className="alert alert-success">Settings saved successfully</div>}
               <fieldset className="fieldset">
                 <label className="label">Site Icon</label>
-                <div className="flex items-center gap-4">
-                  <div className="bg-base-100 border-base-300 rounded-lg border p-2">
+                <div className="settings-icon-row">
+                  <div className="settings-icon-preview">
                     <img
                       src={iconPreviewUrl}
                       alt="Current site icon"
-                      className="h-12 w-12 object-contain"
+                      className="settings-icon-image"
                     />
                   </div>
-                  <div className="flex flex-col gap-2">
+                  <div className="settings-icon-actions">
                     <label className="btn btn-secondary btn-sm">
                       <input
                         type="file"
-                        className="hidden"
+                        hidden
                         accept=".svg,.png,.jpg,.jpeg,.ico,.webp,.gif,image/*"
                         onChange={handleIconUpload}
                         disabled={saving || uploadingIcon}
                       />
                       {uploadingIcon ? (
-                        <span className="loading loading-spinner loading-sm"></span>
+                        <span className="loading loading-sm"></span>
                       ) : (
                         'Upload New Icon'
                       )}
@@ -185,7 +184,7 @@ export default function SettingsPage() {
                     )}
                   </div>
                 </div>
-                <p className="text-base-content/60 mt-1 text-xs">
+                <p className="settings-hint">
                   Recommended: 48x48 to 512x512 pixels. Max 512KB. Supported: SVG, PNG, JPG, ICO,
                   WebP, GIF
                 </p>
@@ -197,29 +196,29 @@ export default function SettingsPage() {
                 <input
                   id="site-name"
                   type="text"
-                  className="input input-bordered w-full"
+                  className="input"
                   value={siteName}
                   onChange={(e) => setSiteName(e.target.value)}
                   disabled={saving}
                 />
               </fieldset>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="settings-colors">
                 <fieldset className="fieldset">
                   <label className="label" htmlFor="primary-color">
                     Primary Color
                   </label>
-                  <div className="flex gap-2">
+                  <div className="settings-color-row">
                     <input
                       id="primary-color"
                       type="color"
-                      className="input input-bordered h-10 w-14 p-1"
+                      className="input settings-color-swatch"
                       value={primaryColor}
                       onChange={(e) => setPrimaryColor(e.target.value)}
                       disabled={saving}
                     />
                     <input
                       type="text"
-                      className="input input-bordered flex-1"
+                      className="input settings-color-value"
                       value={primaryColor}
                       onChange={(e) => setPrimaryColor(e.target.value)}
                       disabled={saving}
@@ -230,18 +229,18 @@ export default function SettingsPage() {
                   <label className="label" htmlFor="secondary-color">
                     Secondary Color
                   </label>
-                  <div className="flex gap-2">
+                  <div className="settings-color-row">
                     <input
                       id="secondary-color"
                       type="color"
-                      className="input input-bordered h-10 w-14 p-1"
+                      className="input settings-color-swatch"
                       value={secondaryColor}
                       onChange={(e) => setSecondaryColor(e.target.value)}
                       disabled={saving}
                     />
                     <input
                       type="text"
-                      className="input input-bordered flex-1"
+                      className="input settings-color-value"
                       value={secondaryColor}
                       onChange={(e) => setSecondaryColor(e.target.value)}
                       disabled={saving}
@@ -252,18 +251,18 @@ export default function SettingsPage() {
                   <label className="label" htmlFor="primary-color-dark">
                     Primary Color (Dark)
                   </label>
-                  <div className="flex gap-2">
+                  <div className="settings-color-row">
                     <input
                       id="primary-color-dark"
                       type="color"
-                      className="input input-bordered h-10 w-14 p-1"
+                      className="input settings-color-swatch"
                       value={primaryColorDark}
                       onChange={(e) => setPrimaryColorDark(e.target.value)}
                       disabled={saving}
                     />
                     <input
                       type="text"
-                      className="input input-bordered flex-1"
+                      className="input settings-color-value"
                       value={primaryColorDark}
                       onChange={(e) => setPrimaryColorDark(e.target.value)}
                       disabled={saving}
@@ -274,18 +273,18 @@ export default function SettingsPage() {
                   <label className="label" htmlFor="secondary-color-dark">
                     Secondary Color (Dark)
                   </label>
-                  <div className="flex gap-2">
+                  <div className="settings-color-row">
                     <input
                       id="secondary-color-dark"
                       type="color"
-                      className="input input-bordered h-10 w-14 p-1"
+                      className="input settings-color-swatch"
                       value={secondaryColorDark}
                       onChange={(e) => setSecondaryColorDark(e.target.value)}
                       disabled={saving}
                     />
                     <input
                       type="text"
-                      className="input input-bordered flex-1"
+                      className="input settings-color-value"
                       value={secondaryColorDark}
                       onChange={(e) => setSecondaryColorDark(e.target.value)}
                       disabled={saving}
@@ -293,9 +292,9 @@ export default function SettingsPage() {
                   </div>
                 </fieldset>
               </div>
-              <div className="card-actions mt-2">
+              <div className="card-actions settings-actions">
                 <button type="submit" className="btn btn-primary" disabled={saving}>
-                  {saving ? <span className="loading loading-spinner loading-sm"></span> : 'Save'}
+                  {saving ? <span className="loading loading-sm"></span> : 'Save'}
                 </button>
               </div>
             </form>

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import axios, { getErrorMessage } from '../axios'
 import { CopyIcon, CheckIcon, TrashIcon, LoaderPinwheelIcon, LinkIcon } from 'lucide-react'
+import './ShareDialog.css'
 
 interface ShareLink {
   id: number
@@ -130,16 +131,16 @@ export default function ShareDialog({ docId, docTitle }: ShareDialogProps) {
 
   return (
     <dialog id="share_dialog" className="modal">
-      <div className="modal-box max-w-lg">
-        <h3 className="mb-4 text-lg font-bold">Share "{docTitle}"</h3>
+      <div className="modal-box share-dialog">
+        <h3 className="modal-title">Share "{docTitle}"</h3>
 
-        {error && <div className="alert alert-error mb-4 text-sm">{error}</div>}
+        {error && <div className="alert alert-error share-dialog-error">{error}</div>}
 
-        <div className="mb-4">
-          <h4 className="mb-2 font-semibold">Create New Link</h4>
-          <div className="flex items-center gap-2">
+        <div className="share-dialog-section">
+          <h4 className="share-dialog-heading">Create New Link</h4>
+          <div className="share-dialog-create">
             <select
-              className="select select-bordered select-sm flex-1"
+              className="select select-sm share-dialog-expiration"
               value={expiration}
               onChange={(e) => setExpiration(e.target.value as Expiration)}
             >
@@ -147,16 +148,12 @@ export default function ShareDialog({ docId, docTitle }: ShareDialogProps) {
               <option value="30days">Expires in 30 days</option>
               <option value="never">Never expires</option>
             </select>
-            <button
-              className="btn btn-primary btn-sm"
-              onClick={createLink}
-              disabled={creating}
-            >
+            <button className="btn btn-primary btn-sm" onClick={createLink} disabled={creating}>
               {creating ? (
-                <LoaderPinwheelIcon className="h-4 w-4 animate-spin" />
+                <LoaderPinwheelIcon className="icon-spin" />
               ) : (
                 <>
-                  <LinkIcon className="h-4 w-4" />
+                  <LinkIcon />
                   Create
                 </>
               )}
@@ -167,39 +164,35 @@ export default function ShareDialog({ docId, docTitle }: ShareDialogProps) {
         <div className="divider"></div>
 
         <div>
-          <h4 className="mb-2 font-semibold">Existing Links</h4>
+          <h4 className="share-dialog-heading">Existing Links</h4>
           {loading ? (
-            <div className="flex justify-center py-4">
-              <LoaderPinwheelIcon className="text-primary h-6 w-6 animate-spin" />
+            <div className="share-dialog-loading">
+              <LoaderPinwheelIcon className="page-spinner" />
             </div>
           ) : links.length === 0 ? (
-            <p className="py-4 text-center text-sm text-gray-500">
-              No share links yet. Create one above.
-            </p>
+            <p className="share-dialog-empty">No share links yet. Create one above.</p>
           ) : (
-            <ul className="space-y-2">
+            <ul className="share-links">
               {links.map((link) => (
                 <li
                   key={link.id}
-                  className={`bg-base-200 flex items-center justify-between rounded-lg p-2 ${
-                    isExpired(link.expires_at) ? 'opacity-50' : ''
-                  }`}
+                  className={`share-link ${isExpired(link.expires_at) ? 'share-link-expired' : ''}`}
                 >
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate font-mono text-xs">
-                      {link.token.slice(0, 16)}...
-                    </div>
-                    <div className="mt-1 flex gap-2 text-xs text-gray-500">
+                  <div className="share-link-info">
+                    <div className="share-link-token">{link.token.slice(0, 16)}...</div>
+                    <div className="share-link-meta">
                       <span
-                        className={isExpired(link.expires_at) ? 'text-error' : ''}
+                        className={isExpired(link.expires_at) ? 'share-link-expiry-expired' : ''}
                       >
-                        {isExpired(link.expires_at) ? 'Expired' : `Expires: ${formatExpiration(link.expires_at)}`}
+                        {isExpired(link.expires_at)
+                          ? 'Expired'
+                          : `Expires: ${formatExpiration(link.expires_at)}`}
                       </span>
                       <span>&middot;</span>
                       <span>{link.access_count} views</span>
                     </div>
                   </div>
-                  <div className="flex gap-1">
+                  <div className="share-link-actions">
                     <button
                       className="btn btn-ghost btn-xs"
                       onClick={() => copyLink(link)}
@@ -207,21 +200,21 @@ export default function ShareDialog({ docId, docTitle }: ShareDialogProps) {
                       title="Copy link"
                     >
                       {copiedId === link.id ? (
-                        <CheckIcon className="text-success h-4 w-4" />
+                        <CheckIcon className="share-link-copied" />
                       ) : (
-                        <CopyIcon className="h-4 w-4" />
+                        <CopyIcon />
                       )}
                     </button>
                     <button
-                      className="btn btn-ghost btn-xs text-error"
+                      className="btn btn-ghost btn-xs share-link-delete"
                       onClick={() => deleteLink(link.id)}
                       disabled={deletingId === link.id}
                       title="Delete link"
                     >
                       {deletingId === link.id ? (
-                        <LoaderPinwheelIcon className="h-4 w-4 animate-spin" />
+                        <LoaderPinwheelIcon className="icon-spin" />
                       ) : (
-                        <TrashIcon className="h-4 w-4" />
+                        <TrashIcon />
                       )}
                     </button>
                   </div>

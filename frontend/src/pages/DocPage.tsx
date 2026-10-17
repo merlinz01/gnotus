@@ -4,12 +4,12 @@ import axios from '../axios'
 import { LoaderPinwheelIcon, PencilIcon, Share2Icon, CheckIcon, FilePlusIcon } from 'lucide-react'
 import useUser from '../stores/user'
 import type Doc from '../types/doc'
-import '../assets/content.css'
 import DomPurify from 'dompurify'
 import useConfig from '../stores/config'
 import Role from '../types/role'
 import ShareDialog from '../components/ShareDialog'
 import useContentLinkHandler from '../hooks/useContentLinkHandler'
+import './DocLayout.css'
 
 export default function DocPage() {
   const [doc, setDoc] = useState<Doc | null>(null)
@@ -197,23 +197,20 @@ export default function DocPage() {
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <LoaderPinwheelIcon className="text-primary animate-spin" role="status" />
+      <div className="page-status">
+        <LoaderPinwheelIcon className="page-spinner" role="status" />
       </div>
     )
   }
   return (
     <>
-      {error && <div className="alert alert-error mt-6 max-w-100 self-center">{error}</div>}
+      {error && <div className="alert alert-error doc-error">{error}</div>}
       {doc && (
-        <div className="flex grow items-start overflow-hidden">
-          <div
-            className="flex h-full min-h-full grow flex-col overflow-y-auto"
-            style={{ scrollbarGutter: 'stable' }}
-          >
-            <div className="mx-auto flex w-full max-w-200 flex-col px-4 pt-2 pb-8 sm:px-4 md:px-8 lg:px-12 print:px-4">
-              <nav className="breadcrumbs shrink-0 text-sm" aria-label="Breadcrumbs">
-                <ul className="flex-wrap">
+        <div className="doc-layout">
+          <div className="doc-scroll">
+            <article className="doc-article">
+              <nav className="breadcrumbs doc-breadcrumbs" aria-label="Breadcrumbs">
+                <ul>
                   {doc.parents
                     ?.map((parent) => (
                       <li key={parent.id}>
@@ -224,24 +221,32 @@ export default function DocPage() {
                   <li>{doc.title}</li>
                 </ul>
               </nav>
-              <h1 className="text-primary my-2 flex flex-wrap items-center text-3xl font-bold">
-                <div className="me-auto">{doc.title}</div>
+              <h1 className="doc-title">
+                <div className="doc-title-text">{doc.title}</div>
                 {user && (
                   <>
                     {doc.public ? (
-                      <span className="badge-primary badge badge-lg text-sm">Public</span>
+                      <span className="badge badge-lg badge-primary doc-visibility">Public</span>
                     ) : (
-                      <span className="badge-accent badge badge-lg text-sm">Private</span>
+                      <span className="badge badge-lg badge-accent doc-visibility">Private</span>
                     )}
                   </>
                 )}
                 {user && user.role !== Role.VIEWER && (
                   <>
-                    <Link to={`/_new?parent=${doc.id}`} className="ml-2" title="Create child document">
-                      <FilePlusIcon className="h-5 w-5" />
+                    <Link
+                      to={`/_new?parent=${doc.id}`}
+                      className="doc-title-action"
+                      title="Create child document"
+                    >
+                      <FilePlusIcon />
                     </Link>
-                    <Link to={`/_edit/${doc.id}`} className="ml-2" title="Edit document">
-                      <PencilIcon className="h-5 w-5" />
+                    <Link
+                      to={`/_edit/${doc.id}`}
+                      className="doc-title-action"
+                      title="Edit document"
+                    >
+                      <PencilIcon />
                     </Link>
                   </>
                 )}
@@ -251,22 +256,18 @@ export default function DocPage() {
                 >
                   <button
                     onClick={handleShare}
-                    className="ml-2 cursor-pointer"
+                    className="doc-title-action doc-share-button"
                     title={!linkCopied ? 'Copy link to clipboard' : undefined}
                     aria-label={linkCopied ? 'Link copied!' : 'Copy link to clipboard'}
                   >
-                    {linkCopied ? (
-                      <CheckIcon className="text-success h-5 w-5" />
-                    ) : (
-                      <Share2Icon className="h-5 w-5" />
-                    )}
+                    {linkCopied ? <CheckIcon className="doc-share-copied" /> : <Share2Icon />}
                   </button>
                 </div>
               </h1>
               {doc.children.length > 0 && (
-                <nav className="mx-4" aria-label="Contents">
-                  <h2 className="text-lg">Contents</h2>
-                  <ul className="text-primary list-disc pl-6 font-semibold">
+                <nav className="doc-contents" aria-label="Contents">
+                  <h2 className="doc-contents-heading">Contents</h2>
+                  <ul className="doc-contents-list">
                     {doc.children.map((child) => (
                       <li key={child.id}>
                         <Link to={child.urlpath}>{child.title}</Link>
@@ -283,8 +284,8 @@ export default function DocPage() {
                   }}
                 />
               </div>
-              <div className="grow"></div>
-              <ul className="mt-2 list-none text-sm text-gray-600">
+              <div className="doc-spacer"></div>
+              <ul className="doc-dates">
                 <li>
                   <span>
                     Last updated:{' '}
@@ -306,14 +307,11 @@ export default function DocPage() {
                   </span>
                 </li>
               </ul>
-            </div>
+            </article>
           </div>
-          <aside
-            className="border-base-300 hidden max-h-full w-50 shrink-0 overflow-y-auto border-l py-4 ps-2 lg:block print:hidden"
-            style={{ scrollbarGutter: 'stable' }}
-          >
-            <h2 className="text-md text-secondary mb-2 font-semibold">In this page</h2>
-            <ul className="list-none pl-3 text-sm text-gray-500">
+          <aside className="doc-toc">
+            <h2 className="doc-toc-heading">In this page</h2>
+            <ul className="doc-toc-list">
               {doc.metadata.subtitles.map((heading) => (
                 <li key={heading.hash}>
                   <Link to={`#${heading.hash}`}>{heading.title}</Link>

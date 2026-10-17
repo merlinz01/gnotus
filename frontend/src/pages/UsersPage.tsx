@@ -14,6 +14,7 @@ import {
   EmptyPaginatedResponse,
 } from '../types/pagination'
 import TableSkeleton from '../components/TableSkeleton'
+import './UsersPage.css'
 
 export default function UsersPage() {
   const user = useUser((state) => state.user)
@@ -132,8 +133,8 @@ export default function UsersPage() {
     }
   }
   return (
-    <div className="m-4 flex max-h-full flex-col overflow-y-auto">
-      <nav className="breadcrumbs text-sm" aria-label="Breadcrumbs">
+    <div className="admin-page">
+      <nav className="breadcrumbs" aria-label="Breadcrumbs">
         <ul>
           <li>
             <Link to="/_admin">Administration</Link>
@@ -141,242 +142,236 @@ export default function UsersPage() {
           <li>Users</li>
         </ul>
       </nav>
-      <div className="card border-base-300 bg-base-200 border shadow-lg">
+      <div className="card admin-panel">
         <div className="card-body">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="card-title text-2xl">Users</h2>
-          <button
-            className="btn btn-primary btn-sm"
-            onClick={() => {
-              setIsNewUser(true)
-              setEditingUser({ id: 0, username: '', role: Role.USER, is_active: true })
-              setNewUsername('')
-              setNewRole(Role.USER)
-              setNewIsActive(true)
-              const dialog = document.getElementById('user_edit_dialog') as HTMLDialogElement | null
-              if (dialog) dialog.showModal()
-            }}
-          >
-            Add User
-          </button>
-        </div>
-        <div className="max-h-200 overflow-x-auto">
-          <table className="table w-full table-fixed">
-            <thead>
-              <tr>
-                <th>Username</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th className="w-50 text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <TableSkeleton width={4} height={Math.max(pagination.size, 1)} />
-              ) : (
-                users.items.map((user) => (
-                  <tr key={user.id} className={user.is_active ? '' : 'opacity-50'}>
-                    <td>{user.username}</td>
-                    <td>{roleToString(user.role)}</td>
-                    <td>
-                      {user.is_active ? (
-                        <span className="badge badge-success">Active</span>
-                      ) : (
-                        <span className="badge bg-gray-500">Inactive</span>
-                      )}
-                    </td>
-                    <td className="text-right">
-                      <button
-                        className="btn btn-xs btn-secondary"
-                        onClick={() => {
-                          setIsNewUser(false)
-                          setEditingUser(user)
-                          setNewUsername(user.username)
-                          setNewRole(user.role)
-                          setNewIsActive(user.is_active)
-                          const dialog = document.getElementById(
-                            'user_edit_dialog'
-                          ) as HTMLDialogElement | null
-                          if (dialog) dialog.showModal()
-                        }}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="btn btn-xs btn-accent ml-1"
-                        onClick={() => {
-                          setEditingUser(user)
-                          const dialog = document.getElementById(
-                            'change_password_dialog'
-                          ) as HTMLDialogElement | null
-                          if (dialog) dialog.showModal()
-                        }}
-                      >
-                        Password
-                      </button>
-                      <button
-                        className="btn btn-xs btn-error ml-1"
-                        onClick={() => deleteUser(user.id)}
-                      >
-                        {deleting[user.id] ? (
-                          <span className="loading loading-spinner"></span>
+          <div className="admin-panel-header">
+            <h2 className="card-title page-heading">Users</h2>
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => {
+                setIsNewUser(true)
+                setEditingUser({ id: 0, username: '', role: Role.USER, is_active: true })
+                setNewUsername('')
+                setNewRole(Role.USER)
+                setNewIsActive(true)
+                const dialog = document.getElementById(
+                  'user_edit_dialog'
+                ) as HTMLDialogElement | null
+                if (dialog) dialog.showModal()
+              }}
+            >
+              Add User
+            </button>
+          </div>
+          <div className="admin-table-wrapper">
+            <table className="table admin-table">
+              <thead>
+                <tr>
+                  <th>Username</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th className="users-actions-column">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <TableSkeleton width={4} height={Math.max(pagination.size, 1)} />
+                ) : (
+                  users.items.map((user) => (
+                    <tr key={user.id} className={user.is_active ? '' : 'user-inactive'}>
+                      <td>{user.username}</td>
+                      <td>{roleToString(user.role)}</td>
+                      <td>
+                        {user.is_active ? (
+                          <span className="badge badge-success">Active</span>
                         ) : (
-                          'Delete'
+                          <span className="badge user-status-inactive">Inactive</span>
                         )}
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-          <Pagination params={pagination} setParams={setPagination} total={users.total} />
+                      </td>
+                      <td className="users-actions">
+                        <button
+                          className="btn btn-xs btn-secondary"
+                          onClick={() => {
+                            setIsNewUser(false)
+                            setEditingUser(user)
+                            setNewUsername(user.username)
+                            setNewRole(user.role)
+                            setNewIsActive(user.is_active)
+                            const dialog = document.getElementById(
+                              'user_edit_dialog'
+                            ) as HTMLDialogElement | null
+                            if (dialog) dialog.showModal()
+                          }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="btn btn-xs btn-accent"
+                          onClick={() => {
+                            setEditingUser(user)
+                            const dialog = document.getElementById(
+                              'change_password_dialog'
+                            ) as HTMLDialogElement | null
+                            if (dialog) dialog.showModal()
+                          }}
+                        >
+                          Password
+                        </button>
+                        <button
+                          className="btn btn-xs btn-error"
+                          onClick={() => deleteUser(user.id)}
+                        >
+                          {deleting[user.id] ? <span className="loading"></span> : 'Delete'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+            <Pagination params={pagination} setParams={setPagination} total={users.total} />
+          </div>
         </div>
-      </div>
-      <dialog id="user_edit_dialog" className="modal">
-        <form className="modal-box" onSubmit={saveUserChanges}>
-          <h3 className="mb-2 text-xl font-bold">{isNewUser ? 'Add User' : 'Edit User'}</h3>
-          <fieldset className="fieldset">
-            <label className="label" htmlFor="user-edit-username">
-              Username{' '}
-            </label>
-            <input
-              id="user-edit-username"
-              type="text"
-              name="username"
-              placeholder="Username"
-              className="input input-bordered w-full"
-              value={newUsername}
-              onChange={(e) => setNewUsername(e.target.value)}
-              required
-            />
-            <label className="label" htmlFor="user-edit-role">
-              Role
-            </label>
-            <select
-              id="user-edit-role"
-              name="role"
-              className="select select-bordered w-full"
-              value={newRole}
-              onChange={(e) => setNewRole(Number.parseInt(e.target.value))}
-            >
-              {Object.values(Role).map((role) => (
-                <option key={role} value={role}>
-                  {roleToString(role)}
-                </option>
-              ))}
-            </select>
-            <label className="label" htmlFor="user-edit-active">
+        <dialog id="user_edit_dialog" className="modal">
+          <form className="modal-box users-dialog" onSubmit={saveUserChanges}>
+            <h3 className="modal-title">{isNewUser ? 'Add User' : 'Edit User'}</h3>
+            <fieldset className="fieldset">
+              <label className="label" htmlFor="user-edit-username">
+                Username{' '}
+              </label>
               <input
-                id="user-edit-active"
-                type="checkbox"
-                name="is_active"
-                checked={newIsActive}
-                onChange={(e) => setNewIsActive(e.target.checked)}
-                className="toggle toggle-primary"
+                id="user-edit-username"
+                type="text"
+                name="username"
+                placeholder="Username"
+                className="input"
+                value={newUsername}
+                onChange={(e) => setNewUsername(e.target.value)}
+                required
               />
-              Active
-            </label>
-            {isNewUser && (
-              <>
-                <label className="label" htmlFor="user-edit-password">
-                  Password
-                </label>
+              <label className="label" htmlFor="user-edit-role">
+                Role
+              </label>
+              <select
+                id="user-edit-role"
+                name="role"
+                className="select"
+                value={newRole}
+                onChange={(e) => setNewRole(Number.parseInt(e.target.value))}
+              >
+                {Object.values(Role).map((role) => (
+                  <option key={role} value={role}>
+                    {roleToString(role)}
+                  </option>
+                ))}
+              </select>
+              <label className="label" htmlFor="user-edit-active">
                 <input
-                  id="user-edit-password"
-                  type="password"
-                  name="password"
-                  placeholder="Password"
-                  className="input input-bordered w-full"
-                  required
+                  id="user-edit-active"
+                  type="checkbox"
+                  name="is_active"
+                  checked={newIsActive}
+                  onChange={(e) => setNewIsActive(e.target.checked)}
+                  className="toggle toggle-primary"
                 />
-              </>
-            )}
-          </fieldset>
-          {saveError && (
-            <div className="alert alert-error mt-4 shadow-lg">
-              <span>{saveError}</span>
-            </div>
-          )}
-          <div className="modal-action">
-            <button type="submit" className="btn btn-primary">
-              Save
-            </button>
-            <button
-              type="button"
-              className="btn"
-              onClick={() =>
-                (document.getElementById('user_edit_dialog') as HTMLDialogElement | null)?.close()
-              }
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      </dialog>
-      <dialog id="change_password_dialog" className="modal">
-        <form method="dialog" className="modal-box" onSubmit={changePassword}>
-          <h3 className="mb-2 text-xl font-bold">Change Password</h3>
-          <fieldset className="fieldset">
-            <legend className="fieldset-legend">Old Password</legend>
-            <input
-              type="password"
-              name="oldPassword"
-              placeholder="Enter old password"
-              className="input input-bordered w-full"
-              autoComplete="current-password"
-              required={user?.role !== Role.ADMIN}
-            />
-          </fieldset>
-          <fieldset className="fieldset">
-            <legend className="fieldset-legend">New Password</legend>
-            <input
-              type="password"
-              name="newPassword"
-              placeholder="Enter new password"
-              className="input input-bordered w-full"
-              autoComplete="new-password"
-              required
-            />
-          </fieldset>
-          <fieldset className="fieldset">
-            <legend className="fieldset-legend">Confirm Password</legend>
-            <input
-              type="password"
-              name="confirmPassword"
-              placeholder="Confirm new password"
-              className="input input-bordered w-full"
-              autoComplete="new-password"
-              required
-            />
-          </fieldset>
-          {saveError && (
-            <div className="alert alert-error mt-4 shadow-lg">
-              <span>{passwordError}</span>
-            </div>
-          )}
-          <div className="modal-action">
-            <button type="submit" className="btn btn-primary">
-              {settingPassword ? (
-                <span className="loading loading-spinner"></span>
-              ) : (
-                'Change Password'
+                Active
+              </label>
+              {isNewUser && (
+                <>
+                  <label className="label" htmlFor="user-edit-password">
+                    Password
+                  </label>
+                  <input
+                    id="user-edit-password"
+                    type="password"
+                    name="password"
+                    placeholder="Password"
+                    className="input"
+                    required
+                  />
+                </>
               )}
-            </button>
-            <button
-              type="button"
-              className="btn"
-              onClick={() =>
-                (
-                  document.getElementById('change_password_dialog') as HTMLDialogElement | null
-                )?.close()
-              }
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      </dialog>
+            </fieldset>
+            {saveError && (
+              <div className="alert alert-error form-error">
+                <span>{saveError}</span>
+              </div>
+            )}
+            <div className="modal-action">
+              <button type="submit" className="btn btn-primary">
+                Save
+              </button>
+              <button
+                type="button"
+                className="btn"
+                onClick={() =>
+                  (document.getElementById('user_edit_dialog') as HTMLDialogElement | null)?.close()
+                }
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </dialog>
+        <dialog id="change_password_dialog" className="modal">
+          <form method="dialog" className="modal-box users-dialog" onSubmit={changePassword}>
+            <h3 className="modal-title">Change Password</h3>
+            <fieldset className="fieldset">
+              <legend className="fieldset-legend">Old Password</legend>
+              <input
+                type="password"
+                name="oldPassword"
+                placeholder="Enter old password"
+                className="input"
+                autoComplete="current-password"
+                required={user?.role !== Role.ADMIN}
+              />
+            </fieldset>
+            <fieldset className="fieldset">
+              <legend className="fieldset-legend">New Password</legend>
+              <input
+                type="password"
+                name="newPassword"
+                placeholder="Enter new password"
+                className="input"
+                autoComplete="new-password"
+                required
+              />
+            </fieldset>
+            <fieldset className="fieldset">
+              <legend className="fieldset-legend">Confirm Password</legend>
+              <input
+                type="password"
+                name="confirmPassword"
+                placeholder="Confirm new password"
+                className="input"
+                autoComplete="new-password"
+                required
+              />
+            </fieldset>
+            {saveError && (
+              <div className="alert alert-error form-error">
+                <span>{passwordError}</span>
+              </div>
+            )}
+            <div className="modal-action">
+              <button type="submit" className="btn btn-primary">
+                {settingPassword ? <span className="loading"></span> : 'Change Password'}
+              </button>
+              <button
+                type="button"
+                className="btn"
+                onClick={() =>
+                  (
+                    document.getElementById('change_password_dialog') as HTMLDialogElement | null
+                  )?.close()
+                }
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </dialog>
       </div>
     </div>
   )

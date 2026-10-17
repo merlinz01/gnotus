@@ -9,7 +9,7 @@ import type Doc from '../types/doc'
 import DomPurify from 'dompurify'
 import Role from '../types/role'
 import useContentLinkHandler from '../hooks/useContentLinkHandler'
-import '../assets/content.css'
+import './HomePage.css'
 
 interface ToplevelDocRef {
   id: string
@@ -97,24 +97,24 @@ export default function HomePage() {
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <LoaderPinwheelIcon className="text-primary animate-spin" role="status" />
+      <div className="page-status">
+        <LoaderPinwheelIcon className="page-spinner" role="status" />
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="flex h-full flex-col items-center justify-center">
-        <span className="text-error text-center">{error}</span>
+      <div className="page-status">
+        <span className="page-error">{error}</span>
       </div>
     )
   }
 
   return (
-    <div className="flex h-full grow flex-col items-center justify-center overflow-y-auto p-4">
+    <div className="home-page">
       {doc?.html ? (
-        <div className="gnotus-content gnotus-home-content max-w-200 text-center">
+        <div className="gnotus-content gnotus-home-content home-intro">
           <div
             onClick={handleLinkClicks}
             dangerouslySetInnerHTML={{
@@ -123,22 +123,16 @@ export default function HomePage() {
           />
         </div>
       ) : (
-        <h1 className="text-center text-4xl font-bold">{config.site_name}</h1>
+        <h1 className="home-title">{config.site_name}</h1>
       )}
       {outline && outline.length > 0 && (
-        <div className="mt-4 flex w-full justify-center">
-          <ul className="text-primary flex max-w-120 grow flex-col font-semibold">
+        <div className="home-sections">
+          <ul className="home-section-list">
             {outline.map((item) => (
-              <li
-                key={item.id}
-                className="border-base-300 bg-base-200 hover:bg-base-300 m-1 rounded-lg border"
-              >
-                <Link
-                  to={item.urlpath}
-                  className="flex items-center overflow-hidden px-4 py-2 text-wrap"
-                >
+              <li key={item.id} className="home-section">
+                <Link to={item.urlpath} className="home-section-link">
                   {item.title}
-                  <ChevronRightIcon className="ml-auto" />
+                  <ChevronRightIcon className="home-section-chevron" />
                 </Link>
               </li>
             ))}
@@ -146,8 +140,8 @@ export default function HomePage() {
         </div>
       )}
       {user && user.role !== Role.VIEWER && doc && (
-        <Link to={`/_edit/${doc.id}`} className="btn btn-ghost mt-4" title="Edit home page">
-          <PencilIcon className="h-4 w-4" />
+        <Link to={`/_edit/${doc.id}`} className="btn btn-ghost home-edit" title="Edit home page">
+          <PencilIcon />
           Edit
         </Link>
       )}

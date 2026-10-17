@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import useConfig from '../stores/config'
 import { Link } from 'react-router-dom'
 import SearchBox from './SearchBox'
+import './Header.css'
 
 export default function Header() {
   const [colorMode, setColorMode] = useState(localStorage.getItem('color-mode') || 'light')
@@ -13,9 +14,9 @@ export default function Header() {
   const config = useConfig((state) => state.config)
 
   return (
-    <header className="navbar bg-base-300 z-20 flex min-h-12 w-screen max-w-screen items-center p-1 shadow-md print:hidden">
+    <header className="navbar app-header">
       <button
-        className="btn btn-ghost btn-square me-2"
+        className="btn btn-ghost btn-square app-header-menu"
         title="Toggle drawer"
         onClick={() => {
           const drawerToggle = document.getElementById('drawer-toggle') as HTMLInputElement | null
@@ -26,13 +27,11 @@ export default function Header() {
       >
         <MenuIcon />
       </button>
-      <div className="flex grow items-center gap-2">
+      <div className="app-header-bar">
         <Link to="/">
-          <img src="/api/icon" alt="Icon" className="mr-2 h-6 sm:h-8" />
+          <img src="/api/icon" alt="Icon" className="app-header-logo" />
         </Link>
-        <h1 className="me-auto overflow-hidden text-lg font-bold text-ellipsis whitespace-nowrap sm:text-xl">
-          {config.site_name}
-        </h1>
+        <h1 className="app-header-title">{config.site_name}</h1>
         <SearchBox />
         <button
           className="btn btn-ghost btn-square"

@@ -1,0 +1,31 @@
+/* Login and logout pages */
+
+.auth-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.auth-card {
+  flex-grow: 1;
+  max-width: 25rem;
+  background-color: var(--color-base-200);
+  box-shadow: var(--shadow-lg);
+}
+
+.auth-actions {
+  justify-content: flex-end;
+}
+
+.auth-submit {
+  width: 6.25rem;
+}
+
+.logout-status {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  align-items: center;
+  max-width: 25rem;
+}

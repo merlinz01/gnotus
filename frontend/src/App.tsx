@@ -7,6 +7,7 @@ import useConfig from './stores/config'
 import { LoaderPinwheelIcon } from 'lucide-react'
 import axios, { getErrorMessage } from './axios'
 import useUser from './stores/user'
+import './App.css'
 
 function App() {
   const loaded = useConfig((state) => state.loaded)
@@ -73,25 +74,23 @@ function App() {
   if (error) {
     return (
       <ErrorBoundary>
-        <div className="bg-base-100 flex h-screen items-center justify-center">
-          <div className="bg-base-200 border-base-300 rounded-lg border p-4 text-sm text-red-500">
-            {error}
-          </div>
+        <div className="app-status">
+          <div className="app-error">{error}</div>
         </div>
       </ErrorBoundary>
     )
   } else if (!loaded) {
     return (
       <ErrorBoundary>
-        <div className="bg-base-100 flex h-screen items-center justify-center">
-          <LoaderPinwheelIcon className="text-primary animate-spin" role="status" />
+        <div className="app-status">
+          <LoaderPinwheelIcon className="page-spinner" role="status" />
         </div>
       </ErrorBoundary>
     )
   } else {
     return (
       <ErrorBoundary>
-        <div className="bg-base-100 flex h-screen w-screen flex-col print:h-auto">
+        <div className="app">
           <Header />
           <SidebarHolder>
             <Outlet />
@@ -132,7 +131,7 @@ function SidebarHolder({ children }: { children: React.ReactNode }) {
   }, [isMobile])
 
   return (
-    <div className="drawer flex grow flex-row overflow-y-hidden">
+    <div className="drawer app-body">
       <input
         id="drawer-toggle"
         type="checkbox"
@@ -142,20 +141,15 @@ function SidebarHolder({ children }: { children: React.ReactNode }) {
         onChange={(e) => setShowDrawer(e.target.checked)}
       />
       <div
-        className={
-          'print:hidden ' +
-          (isMobile
-            ? `drawer-side z-30 ${showDrawer ? 'drawer-open' : ''}`
-            : 'border-base-300 transition-width flex w-64 shrink-0 flex-col overflow-hidden border-r duration-300 ease-out')
-        }
+        className={`app-sidebar ${isMobile ? 'drawer-side' : 'app-sidebar-docked'}`}
         style={{ width: showDrawer ? undefined : 0 }}
       >
         <label htmlFor="drawer-toggle" className="drawer-overlay"></label>
-        <div className="bg-base-200 h-full">
+        <div className="app-sidebar-content">
           <Sidebar />
         </div>
       </div>
-      <div className="drawer-content flex grow flex-col">
+      <div className="drawer-content app-main">
         <ErrorBoundary>{children}</ErrorBoundary>
       </div>
     </div>

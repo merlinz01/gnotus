@@ -38,8 +38,7 @@ describe('TableSkeleton', () => {
       </table>
     )
     const skeletonDiv = screen.getByRole('cell').querySelector('.skeleton')
-    expect(skeletonDiv).toHaveClass('h-6')
-    expect(skeletonDiv).toHaveClass('w-full')
+    expect(skeletonDiv).toHaveClass('table-skeleton-bar')
   })
 
   it('renders nothing if height is 0', () => {

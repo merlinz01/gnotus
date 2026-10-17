@@ -1,0 +1,102 @@
+/* Modal dialogs */
+
+@layer components {
+  /* Modals */
+  .modal {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    display: grid;
+    place-items: center;
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    overflow: clip;
+    overscroll-behavior: contain;
+    background-color: transparent;
+    color: inherit;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      visibility 0.3s allow-discrete,
+      background-color 0.3s ease-out,
+      opacity 0.1s ease-out;
+  }
+
+  .modal::backdrop {
+    display: none;
+  }
+
+  .modal[open] {
+    background-color: oklch(0% 0 0 / 0.4);
+    visibility: visible;
+    pointer-events: auto;
+    opacity: 1;
+    transition:
+      visibility 0s allow-discrete,
+      background-color 0.3s ease-out,
+      opacity 0.1s ease-out;
+  }
+
+  @starting-style {
+    .modal[open] {
+      opacity: 0;
+    }
+  }
+
+  .modal-box {
+    grid-row-start: 1;
+    grid-column-start: 1;
+    width: 91.6667%;
+    max-width: 32rem;
+    max-height: 100vh;
+    padding: 1.5rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-radius: var(--radius-box);
+    background-color: var(--color-base-100);
+    box-shadow: 0 25px 50px -12px oklch(0% 0 0 / 0.25);
+    opacity: 0;
+    scale: 95%;
+    transition:
+      translate 0.3s ease-out,
+      scale 0.3s ease-out,
+      opacity 0.2s ease-out 50ms,
+      box-shadow 0.3s ease-out;
+  }
+
+  .modal[open] .modal-box {
+    opacity: 1;
+    scale: 1;
+  }
+
+  .modal-title {
+    margin-bottom: 1rem;
+    font-size: 1.125rem;
+    line-height: calc(1.75 / 1.125);
+    font-weight: 700;
+  }
+
+  .modal-action {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .modal-backdrop {
+    z-index: -1;
+    display: grid;
+    grid-row-start: 1;
+    grid-column-start: 1;
+    place-self: stretch;
+    color: transparent;
+  }
+
+  .modal-backdrop button {
+    cursor: pointer;
+  }
+}

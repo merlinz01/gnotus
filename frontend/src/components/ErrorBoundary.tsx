@@ -1,4 +1,5 @@
 import { Component, type ReactNode } from 'react'
+import './ErrorBoundary.css'
 
 interface Props {
   children: ReactNode
@@ -26,15 +27,13 @@ export default class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex h-full flex-col items-center justify-center gap-4 p-8">
-          <h2 className="text-error text-2xl font-bold">Something went wrong</h2>
-          <p className="text-sm opacity-70">
+        <div className="error-boundary">
+          <h2 className="error-boundary-title">Something went wrong</h2>
+          <p className="error-boundary-message">
             An unexpected error occurred. Please try refreshing the page.
           </p>
           {this.state.error && (
-            <div className="bg-base-300 max-w-md overflow-auto rounded p-2 text-xs">
-              {this.state.error.message}
-            </div>
+            <div className="error-boundary-details">{this.state.error.message}</div>
           )}
           <button className="btn btn-primary" onClick={() => window.location.reload()}>
             Refresh Page

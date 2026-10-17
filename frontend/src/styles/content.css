@@ -1,3 +1,5 @@
+/* Rendered Markdown document content */
+
 /* Adapted from MVP.css v1.17.2 - https://github.com/andybrewer/mvp */
 /* MIT License
 
@@ -127,7 +129,7 @@ SOFTWARE. */
 }
 
 .gnotus-content .heading-anchor {
-  color: var(--color-gray-500);
+  color: var(--color-subtle);
   font-size: 1rem;
   margin-left: 0.5rem;
   opacity: 0.5;
@@ -198,7 +200,7 @@ SOFTWARE. */
   color: var(--color-base-content);
   white-space: pre;
   overflow-x: auto;
-  border: 1px solid var(--color-base-300);
+  border: var(--border-subtle);
   border-radius: var(--border-radius);
 }
 
@@ -267,7 +269,7 @@ SOFTWARE. */
 
 /* Tables */
 .gnotus-content table {
-  border: 1px solid var(--color-base-300);
+  border: var(--border-subtle);
   border-radius: var(--border-radius);
   border-spacing: 0;
   table-layout: fixed;

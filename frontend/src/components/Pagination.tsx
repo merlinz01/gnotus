@@ -1,4 +1,5 @@
 import type { PaginationParams } from '../types/pagination'
+import './Pagination.css'
 export default function Pagination({
   params,
   setParams,
@@ -25,24 +26,24 @@ export default function Pagination({
   }
 
   return (
-    <div className="flex items-center justify-between p-4">
+    <div className="pagination">
       <div>
         <span>
           Page {params.page} of {totalPages} ({total} item{total !== 1 ? 's' : ''})
         </span>
       </div>
-      <div className="flex items-center space-x-2">
+      <div className="pagination-controls">
         <select
           value={params.size}
           onChange={(e) => handleSizeChange(Number(e.target.value))}
-          className="select select-sm w-20"
+          className="select select-sm pagination-size"
         >
           <option value="-1">All</option>
           {pageSizeOptions.map((size) => (
             <option key={size}>{size}</option>
           ))}
         </select>
-        <span className="text-sm">items per page</span>
+        <span className="pagination-label">items per page</span>
         <button
           disabled={params.page <= 1}
           onClick={() => handlePageChange(params.page - 1)}

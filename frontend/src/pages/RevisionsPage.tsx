@@ -10,6 +10,7 @@ import DOMPurify from 'dompurify'
 import { DEFAULT_PAGE_SIZE, type PaginationParams } from '../types/pagination'
 import Pagination from '../components/Pagination'
 import TableSkeleton from '../components/TableSkeleton'
+import './RevisionsPage.css'
 
 interface Revision {
   id: string
@@ -80,29 +81,29 @@ export default function RevisionsPage() {
   }, [docId, user, userLoaded, navigate])
 
   return (
-    <div className="card bg-base-200 m-4 shadow-lg">
+    <div className="card revisions-card">
       <div className="card-body">
-        <h1 className="card-title text-2xl">Document Revisions</h1>
+        <h1 className="card-title page-heading">Document Revisions</h1>
         {error && (
-          <div className="alert alert-error shadow-lg">
+          <div className="alert alert-error form-error">
             <span>{error}</span>
           </div>
         )}{' '}
         {doc && (
           <p>
             For
-            <Link to={doc.urlpath} className="link link-primary ml-1">
+            <Link to={doc.urlpath} className="link link-primary revisions-doc-link">
               <strong>{doc.title}</strong>
             </Link>
             .
           </p>
         )}
-        <table className="mt-4 table w-full">
+        <table className="table revisions-table">
           <thead>
             <tr>
               <th>Created At</th>
               <th>Created By</th>
-              <th className="w-35 text-center">Actions</th>
+              <th className="revisions-actions-column">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -152,9 +153,9 @@ function DiffViewer({
   className?: string
 }) {
   return (
-    <div className={`whitespace-pre-wrap ${className}`}>
+    <div className={`revision-diff ${className}`}>
       {diffWordsWithSpace(oldText, newText).map((part, index) => {
-        const className = part.added ? 'bg-green-500' : part.removed ? 'bg-red-500' : ''
+        const className = part.added ? 'diff-added' : part.removed ? 'diff-removed' : ''
         return (
           <span key={index} className={className}>
             {part.value}
@@ -200,10 +201,10 @@ function RevisionDialog({
   }
   return (
     <dialog id="revision-modal" className="modal">
-      <form method="dialog" className="modal-box max-w-3xl">
-        <h3 className="text-lg font-bold">Revision Details</h3>
+      <form method="dialog" className="modal-box revision-dialog">
+        <h3 className="modal-title revision-dialog-title">Revision Details</h3>
         <button
-          className="btn btn-sm btn-circle btn-ghost absolute top-2 right-2"
+          className="btn btn-sm btn-circle btn-ghost revision-dialog-close"
           onClick={() => {
             const modal = document.getElementById('revision-modal') as HTMLDialogElement | null
             if (modal) {
@@ -215,7 +216,7 @@ function RevisionDialog({
         </button>
         {doc && revision && (
           <>
-            <p className="mt-2">
+            <p className="revision-meta">
               Created{' '}
               {revision.created_by_username && (
                 <>
@@ -224,7 +225,7 @@ function RevisionDialog({
               )}
               on <strong>{new Date(revision.created_at).toLocaleString()}</strong>
             </p>
-            <div className="tabs tabs-border mt-2">
+            <div className="tabs tabs-border revision-tabs">
               <input
                 type="radio"
                 name="revision-tab"
@@ -232,7 +233,7 @@ function RevisionDialog({
                 aria-label="Content"
                 defaultChecked
               />
-              <div className="border-accent bg-base-100 tab-content h-[70vh]! w-[90vw] overflow-auto rounded-lg border p-4">
+              <div className="tab-content revision-pane revision-pane-content">
                 <div
                   className="gnotus-content"
                   dangerouslySetInnerHTML={{
@@ -245,16 +246,14 @@ function RevisionDialog({
                 <DiffViewer
                   newText={revision.markdown}
                   oldText={prevRevision.markdown || ''}
-                  className="tab-content border-accent bg-base-200 h-[70vh]! w-[90vw] overflow-auto rounded-lg border p-4 text-xs"
+                  className="tab-content revision-pane revision-pane-diff"
                 />
               ) : (
-                <div className="tab-content h-[70vh]! w-[90vw] p-4">
-                  This is the first revision.
-                </div>
+                <div className="tab-content revision-pane">This is the first revision.</div>
               )}
             </div>
             {error && (
-              <div className="alert alert-error mt-4 shadow-lg">
+              <div className="alert alert-error form-error">
                 <span>{error}</span>
               </div>
             )}
@@ -262,7 +261,7 @@ function RevisionDialog({
         )}
         <div className="modal-action">
           <button className="btn btn-secondary" onClick={restoreRevision}>
-            {loading ? <span className="loading loading-spinner loading-sm"></span> : 'Restore'}
+            {loading ? <span className="loading loading-sm"></span> : 'Restore'}
           </button>
           <button className="btn">Close</button>
         </div>

@@ -96,18 +96,15 @@ export default function SearchBox() {
         onClick={() => setShow(!show)}
         id="doc-search-toggle"
       >
-        <SearchIcon className="h-5 w-5 text-gray-500" />
+        <SearchIcon className="search-trigger-icon" />
       </button>
-      <dialog className="modal items-start" id="doc-search-modal" onClose={() => setShow(false)}>
-        <div className="modal-box bg-base-100 m-4 rounded-lg p-0">
-          <div className="relative m-4 mb-0 shadow-lg">
+      <dialog className="modal search-modal" id="doc-search-modal" onClose={() => setShow(false)}>
+        <div className="modal-box search-box">
+          <div className="search-field">
             {loading ? (
-              <span
-                className="loading loading-spinner text-secondary absolute top-2 left-2 z-10"
-                role="status"
-              />
+              <span className="loading search-spinner" role="status" />
             ) : (
-              <SearchIcon className="pointer-events-none absolute top-3 left-3 z-10 h-4 w-4 text-gray-500" />
+              <SearchIcon className="search-field-icon" />
             )}
             <input
               id="doc-search-input"
@@ -115,11 +112,11 @@ export default function SearchBox() {
               placeholder="Search..."
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              className="input w-full px-10"
+              className="input search-input"
             />
             {value && (
               <button
-                className="absolute top-3 right-3 z-10 cursor-pointer text-gray-500 hover:text-gray-700"
+                className="search-clear"
                 onClick={() => {
                   setValue('')
                   const input = document.getElementById(
@@ -131,36 +128,30 @@ export default function SearchBox() {
                 }}
                 title="Clear search"
               >
-                <XIcon className="h-4 w-4" />
+                <XIcon />
               </button>
             )}
           </div>
-          <ul
-            className="bg-base-100 search-results max-h-100 overflow-y-auto py-2 pr-1 pl-4"
-            style={{ scrollbarGutter: 'stable' }}
-          >
-            {error && <li className="text-error text-center text-sm">{error}</li>}
+          <ul className="search-results">
+            {error && <li className="search-message search-error">{error}</li>}
             {results.length > 0 ? (
               results.map((result, index) => (
-                <li
-                  key={index}
-                  className="hover:bg-base-200 border-base-300 my-1 rounded-lg border p-2"
-                >
+                <li key={index} className="search-result">
                   <Link to={result.urlpath} onClick={() => setShow(false)}>
-                    <div className="flex">
+                    <div className="search-result-header">
                       <strong
                         dangerouslySetInnerHTML={{
                           __html: DOMPurify.sanitize(result.title),
                         }}
                       ></strong>
                       {!result.public && user && (
-                        <span className="badge badge-sm badge-secondary text-base-content ml-auto">
+                        <span className="badge badge-sm badge-secondary search-result-badge">
                           Private
                         </span>
                       )}
                     </div>
                     <p
-                      className="text-sm text-gray-600"
+                      className="search-result-text"
                       dangerouslySetInnerHTML={{
                         __html: DOMPurify.sanitize(result.text),
                       }}
@@ -169,7 +160,7 @@ export default function SearchBox() {
                 </li>
               ))
             ) : (
-              <li className="text-center text-sm text-gray-500">No results</li>
+              <li className="search-message">No results</li>
             )}
           </ul>
         </div>

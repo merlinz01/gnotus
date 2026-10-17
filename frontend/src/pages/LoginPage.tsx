@@ -3,6 +3,7 @@ import axios, { getErrorMessage } from '../axios'
 import useUser from '../stores/user'
 import { useNavigate } from 'react-router-dom'
 import useConfig from '../stores/config'
+import './AuthPage.css'
 
 export default function LoginPage() {
   const setUser = useUser((state) => state.setUser)
@@ -48,12 +49,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex h-full flex-row items-center justify-center">
-      <form className="card card-border bg-base-200 max-w-100 grow shadow-lg" onSubmit={submit}>
+    <div className="auth-page">
+      <form className="card card-border auth-card" onSubmit={submit}>
         <div className="card-body">
-          <div className="card-title">
-            <h2 className="text-2xl font-bold">Log in</h2>
-          </div>
+          <h2 className="card-title page-heading">Log in</h2>
           <fieldset className="fieldset">
             <label className="label" htmlFor="login-username">
               Username
@@ -63,7 +62,7 @@ export default function LoginPage() {
               id="login-username"
               name="username"
               placeholder="Enter your username"
-              className="input input-bordered w-full"
+              className="input"
               required
             />
             <label className="label" htmlFor="login-password">
@@ -74,18 +73,18 @@ export default function LoginPage() {
               type="password"
               name="password"
               placeholder="Enter your password"
-              className="input input-bordered w-full"
+              className="input"
               required
             />
           </fieldset>
           {error && (
-            <div className="alert alert-error shadow-lg">
+            <div className="alert alert-error form-error">
               <span>{error}</span>
             </div>
           )}
-          <div className="card-actions justify-end">
-            <button type="submit" className="btn btn-primary w-25">
-              {loading ? <span className="loading loading-spinner loading-sm"></span> : 'Log in'}
+          <div className="card-actions auth-actions">
+            <button type="submit" className="btn btn-primary auth-submit">
+              {loading ? <span className="loading loading-sm"></span> : 'Log in'}
             </button>
           </div>
         </div>

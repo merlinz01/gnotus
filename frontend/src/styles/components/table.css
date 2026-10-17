@@ -1,0 +1,32 @@
+/* Tables */
+
+@layer components {
+  /* Tables */
+  .table {
+    position: relative;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: var(--radius-box);
+    font-size: 0.875rem;
+    text-align: left;
+  }
+
+  .table :where(th, td) {
+    padding-block: 0.75rem;
+    padding-inline: 1rem;
+    vertical-align: middle;
+  }
+
+  .table :where(thead) {
+    color: color-mix(in oklab, var(--color-base-content) 60%, transparent);
+    font-size: 0.875rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .table :where(thead tr :is(td, th), tbody tr:not(:last-child) :is(td, th)) {
+    border-bottom: var(--border) solid
+      color-mix(in oklch, var(--color-base-content) 5%, transparent);
+  }
+}

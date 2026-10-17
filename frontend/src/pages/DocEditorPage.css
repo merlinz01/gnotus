@@ -1,0 +1,219 @@
+.editor-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1rem;
+  overflow: hidden;
+}
+
+.editor-form {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 0;
+}
+
+/* Header with title, actions and document metadata */
+.editor-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: var(--radius-box);
+  background-color: var(--color-base-200);
+  box-shadow: var(--shadow-sm);
+}
+
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.editor-toolbar .btn-square svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.editor-heading {
+  font-size: var(--text-xl);
+  line-height: var(--leading-xl);
+  font-weight: 700;
+}
+
+.editor-toolbar-spacer {
+  flex-grow: 1;
+}
+
+.editor-history {
+  color: var(--color-primary);
+}
+
+.editor-move {
+  color: var(--color-secondary);
+}
+
+.editor-delete {
+  color: var(--color-error);
+}
+
+.editor-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.editor-field {
+  flex: 1;
+  min-width: 12rem;
+}
+
+.editor-field > :is(.input, .select) {
+  width: 100%;
+}
+
+.editor-field-label,
+.editor-public-toggle > span {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
+.editor-public-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-bottom: 0.5rem;
+  cursor: pointer;
+}
+
+/* Side-by-side Markdown editor and preview */
+.editor-panes {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
+  min-height: 0;
+}
+
+@media (min-width: 768px) {
+  .editor-panes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.editor-pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 16rem;
+}
+
+.editor-pane-label {
+  padding-block: 0.25rem;
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  font-weight: 500;
+}
+
+.editor-textarea {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  resize: none;
+}
+
+.editor-upload-progress {
+  margin-top: 0.5rem;
+}
+
+.editor-preview {
+  flex: 1;
+  min-height: 0;
+  padding: 1rem;
+  overflow: auto;
+  border: var(--border-subtle);
+  border-radius: var(--radius-box);
+  background-color: var(--color-base-100);
+}
+
+/* Attachments */
+.editor-attachments {
+  border-radius: var(--radius-box);
+  background-color: var(--color-base-200);
+  box-shadow: var(--shadow-sm);
+}
+
+.editor-attachments-summary {
+  padding: 0.75rem;
+  border-radius: var(--radius-box);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.editor-attachments-body {
+  padding: 0.75rem;
+  border-top: var(--border-subtle);
+}
+
+.editor-attachments-loading {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.editor-attachments-empty {
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
+.editor-attachment-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.editor-attachment {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-box);
+  background-color: var(--color-base-100);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
+.editor-attachment .btn svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.editor-attachment-name {
+  max-width: 8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.editor-attachment-delete {
+  color: var(--color-error);
+}
+
+.editor-attachment-upload {
+  margin-top: 0.75rem;
+}
+
+/* Visually hidden but still focusable through its label */
+.editor-attachment-input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}

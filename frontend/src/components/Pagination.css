@@ -1,0 +1,21 @@
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pagination-size {
+  width: 5rem;
+}
+
+.pagination-label {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}

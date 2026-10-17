@@ -1,0 +1,26 @@
+.users-actions-column {
+  width: 12.5rem;
+  text-align: center;
+}
+
+.users-actions {
+  text-align: right;
+}
+
+.users-actions > .btn + .btn {
+  margin-left: 0.25rem;
+}
+
+.user-inactive {
+  opacity: 0.5;
+}
+
+.user-status-inactive {
+  background-color: var(--color-gray-500);
+}
+
+.users-dialog .modal-title {
+  margin-bottom: 0.5rem;
+  font-size: var(--text-xl);
+  line-height: var(--leading-xl);
+}

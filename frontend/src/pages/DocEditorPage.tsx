@@ -6,7 +6,6 @@ import { useNavigate } from 'react-router-dom'
 import type Doc from '../types/doc'
 import markdownit from 'markdown-it'
 import DOMPurify from 'dompurify'
-import '../assets/content.css'
 import {
   ChevronDownIcon,
   ChevronUpIcon,
@@ -18,6 +17,7 @@ import {
 } from 'lucide-react'
 import useConfig from '../stores/config'
 import type Upload from '../types/upload'
+import './DocEditorPage.css'
 
 const md = markdownit({
   html: true,
@@ -436,75 +436,71 @@ export default function DocEditorPage() {
   }
 
   return (
-    <div className="flex h-full flex-col overflow-hidden p-4">
-      <form className="flex min-h-0 flex-1 flex-col gap-4" onSubmit={saveDoc}>
+    <div className="editor-page">
+      <form className="editor-form" onSubmit={saveDoc}>
         {/* Header and metadata */}
-        <div className="bg-base-200 flex flex-col gap-3 rounded-lg p-3 shadow">
+        <div className="editor-meta">
           {/* Row 1: Title and actions */}
-          <div className="flex items-center gap-2">
-            <h2 className="text-xl font-bold">Edit document</h2>
-            {loading && <span className="loading loading-spinner loading-md" role="status"></span>}
+          <div className="editor-toolbar">
+            <h2 className="editor-heading">Edit document</h2>
+            {loading && <span className="loading loading-md" role="status"></span>}
             {!loading && hasUnsavedChanges() && (
               <span className="badge badge-warning badge-sm">Unsaved</span>
             )}
-            <div className="grow"></div>
+            <div className="editor-toolbar-spacer"></div>
             <button type="submit" className="btn btn-primary" disabled={loading || saving}>
-              {saving ? <span className="loading loading-spinner loading-sm"></span> : 'Save'}
+              {saving ? <span className="loading loading-sm"></span> : 'Save'}
             </button>
             <Link to={doc?.urlpath || '/'} className="btn">
               Discard
             </Link>
             <Link
               to={`/_revisions/${doc?.id}`}
-              className="btn btn-square text-primary"
+              className="btn btn-square editor-history"
               title="View document history"
             >
-              <HistoryIcon className="h-5 w-5" />
+              <HistoryIcon />
             </Link>
             {!isHomePage && (
               <>
                 <button
                   type="button"
-                  className="btn btn-square text-secondary"
+                  className="btn btn-square editor-move"
                   onClick={() => moveDoc('up')}
                   title="Move document up"
                 >
-                  <ChevronUpIcon className="h-5 w-5" />
+                  <ChevronUpIcon />
                 </button>
                 <button
                   type="button"
-                  className="btn btn-square text-secondary"
+                  className="btn btn-square editor-move"
                   onClick={() => moveDoc('down')}
                   title="Move document down"
                 >
-                  <ChevronDownIcon className="h-5 w-5" />
+                  <ChevronDownIcon />
                 </button>
                 <button
                   type="button"
-                  className="btn btn-square text-error"
+                  className="btn btn-square editor-delete"
                   onClick={deleteDoc}
                   title="Delete document"
                 >
-                  {deleting ? (
-                    <span className="loading loading-spinner loading-sm"></span>
-                  ) : (
-                    <TrashIcon className="h-5 w-5" />
-                  )}
+                  {deleting ? <span className="loading loading-sm"></span> : <TrashIcon />}
                 </button>
               </>
             )}
           </div>
           {/* Row 2: Parent and URL slug (hidden for home page) */}
           {!isHomePage && (
-            <div className="flex flex-wrap items-end gap-4">
-              <div className="min-w-48 flex-1">
-                <label className="label text-sm" htmlFor="doc-edit-parent">
+            <div className="editor-fields">
+              <div className="editor-field">
+                <label className="label editor-field-label" htmlFor="doc-edit-parent">
                   Parent
                 </label>
                 <select
                   id="doc-edit-parent"
                   name="parentId"
-                  className="select select-bordered w-full"
+                  className="select"
                   value={parentId}
                   onChange={(e) => setParentId(e.target.value)}
                   disabled={loading || saving || loadingDocs}
@@ -531,8 +527,8 @@ export default function DocEditorPage() {
                   })()}
                 </select>
               </div>
-              <div className="min-w-48 flex-1">
-                <label className="label text-sm" htmlFor="doc-edit-slug">
+              <div className="editor-field">
+                <label className="label editor-field-label" htmlFor="doc-edit-slug">
                   URL slug
                 </label>
                 <input
@@ -541,7 +537,7 @@ export default function DocEditorPage() {
                   name="slug"
                   value={slug}
                   onChange={(e) => setSlug(e.target.value)}
-                  className="input input-bordered w-full"
+                  className="input"
                   disabled={loading || saving}
                   required
                 />
@@ -549,9 +545,9 @@ export default function DocEditorPage() {
             </div>
           )}
           {/* Row 3: Title and Public */}
-          <div className="flex flex-wrap items-end gap-4">
-            <div className="min-w-48 flex-1">
-              <label className="label text-sm" htmlFor="doc-edit-title">
+          <div className="editor-fields">
+            <div className="editor-field">
+              <label className="label editor-field-label" htmlFor="doc-edit-title">
                 Title
               </label>
               <input
@@ -560,15 +556,12 @@ export default function DocEditorPage() {
                 name="doctitle"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="input input-bordered w-full"
+                className="input"
                 disabled={loading || saving}
                 required
               />
             </div>
-            <label
-              htmlFor="doc-edit-public"
-              className="flex cursor-pointer items-center gap-2 pb-2"
-            >
+            <label htmlFor="doc-edit-public" className="editor-public-toggle">
               <input
                 type="checkbox"
                 name="public"
@@ -578,25 +571,25 @@ export default function DocEditorPage() {
                 onChange={(e) => setIsPublic(e.target.checked)}
                 disabled={loading || saving}
               />
-              <span className="text-sm">Public</span>
+              <span>Public</span>
             </label>
           </div>
         </div>
 
         {error && (
-          <div className="alert alert-error shadow-lg">
+          <div className="alert alert-error form-error">
             <span>{error}</span>
           </div>
         )}
 
         {/* Editor and Preview - side by side */}
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 md:grid-cols-2">
+        <div className="editor-panes">
           {/* Editor */}
-          <div className="flex min-h-64 flex-col">
-            <label className="label py-1 text-sm font-medium">Markdown</label>
+          <div className="editor-pane">
+            <label className="label editor-pane-label">Markdown</label>
             <textarea
               name="content"
-              className="textarea textarea-bordered min-h-0 w-full flex-1 resize-none font-mono text-sm"
+              className="textarea editor-textarea"
               placeholder="Write your document content here..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
@@ -605,14 +598,16 @@ export default function DocEditorPage() {
               onPaste={textAreaPaste}
               onDrop={textAreaDrop}
             ></textarea>
-            {uploadingFile && <progress className="progress progress-primary mt-2"></progress>}
+            {uploadingFile && (
+              <progress className="progress progress-primary editor-upload-progress"></progress>
+            )}
           </div>
 
           {/* Preview */}
-          <div className="flex min-h-64 flex-col">
-            <label className="label py-1 text-sm font-medium">Preview</label>
+          <div className="editor-pane">
+            <label className="label editor-pane-label">Preview</label>
             <div
-              className="border-base-300 bg-base-100 gnotus-content min-h-0 flex-1 overflow-auto rounded-lg border p-4"
+              className="gnotus-content editor-preview"
               dangerouslySetInnerHTML={{
                 __html: DOMPurify.sanitize(md.render(content)),
               }}
@@ -621,34 +616,31 @@ export default function DocEditorPage() {
         </div>
 
         {/* Attachments Section */}
-        <details className="bg-base-200 rounded-lg shadow">
-          <summary className="cursor-pointer rounded-lg p-3 font-medium">
+        <details className="editor-attachments">
+          <summary className="editor-attachments-summary">
             Attachments ({docUploads.length})
           </summary>
-          <div className="border-base-300 border-t p-3">
+          <div className="editor-attachments-body">
             {loadingUploads ? (
-              <div className="flex justify-center p-4">
-                <span className="loading loading-spinner loading-md"></span>
+              <div className="editor-attachments-loading">
+                <span className="loading loading-md"></span>
               </div>
             ) : docUploads.length === 0 ? (
-              <p className="text-base-content/60 text-sm">
+              <p className="editor-attachments-empty">
                 No attachments yet. Drag files into the editor, paste, or use the button below.
               </p>
             ) : (
-              <div className="flex flex-wrap gap-2">
+              <div className="editor-attachment-list">
                 {docUploads.map((upload) => (
-                  <div
-                    key={upload.id}
-                    className="bg-base-100 flex items-center gap-1 rounded-lg px-2 py-1 text-sm"
-                  >
-                    <span className="max-w-32 truncate">{upload.filename}</span>
+                  <div key={upload.id} className="editor-attachment">
+                    <span className="editor-attachment-name">{upload.filename}</span>
                     <button
                       type="button"
                       className="btn btn-ghost btn-xs"
                       title="Insert link"
                       onClick={() => insertUploadLink(upload)}
                     >
-                      <Link2Icon className="h-3 w-3" />
+                      <Link2Icon />
                     </button>
                     <a
                       href={`/api/uploads/${upload.id}/download/${upload.filename}?download=false`}
@@ -656,41 +648,37 @@ export default function DocEditorPage() {
                       target="_blank"
                       title="View"
                     >
-                      <EyeIcon className="h-3 w-3" />
+                      <EyeIcon />
                     </a>
                     <a
                       href={`/api/uploads/${upload.id}/download/${upload.filename}`}
                       className="btn btn-ghost btn-xs"
                       title="Download"
                     >
-                      <DownloadIcon className="h-3 w-3" />
+                      <DownloadIcon />
                     </a>
                     <button
                       type="button"
-                      className="btn btn-ghost btn-xs text-error"
+                      className="btn btn-ghost btn-xs editor-attachment-delete"
                       title="Delete"
                       onClick={() => deleteUpload(upload.id)}
                     >
-                      <TrashIcon className="h-3 w-3" />
+                      <TrashIcon />
                     </button>
                   </div>
                 ))}
               </div>
             )}
-            <div className="mt-3">
+            <div className="editor-attachment-upload">
               <label className="btn btn-secondary btn-sm">
                 <input
                   type="file"
-                  className="absolute m-0 h-0 w-0 overflow-hidden p-0"
+                  className="editor-attachment-input"
                   multiple
                   onChange={handleAttachmentUpload}
                   disabled={uploadingFile}
                 />
-                {uploadingFile ? (
-                  <span className="loading loading-spinner loading-sm"></span>
-                ) : (
-                  'Add Attachment'
-                )}
+                {uploadingFile ? <span className="loading loading-sm"></span> : 'Add Attachment'}
               </label>
             </div>
           </div>

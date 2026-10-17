@@ -1,0 +1,69 @@
+/* Cards and dividers */
+
+@layer components {
+  /* Cards */
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--radius-box);
+    outline: 0 solid transparent;
+    outline-offset: 2px;
+    transition: outline 0.2s ease-in-out;
+  }
+
+  .card:focus-visible {
+    outline: 2px solid currentColor;
+  }
+
+  .card-border {
+    border: var(--border) solid var(--color-base-200);
+  }
+
+  .card-body {
+    display: flex;
+    flex: auto;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1.5rem;
+    font-size: 0.875rem;
+  }
+
+  .card-body :where(p) {
+    flex-grow: 1;
+  }
+
+  .card-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+
+  .card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .divider {
+    display: flex;
+    flex-direction: row;
+    align-self: stretch;
+    align-items: center;
+    height: 1rem;
+    margin: 1rem 0;
+    white-space: nowrap;
+  }
+
+  .divider::before,
+  .divider::after {
+    content: '';
+    flex-grow: 1;
+    width: 100%;
+    height: 0.125rem;
+    background-color: color-mix(in oklab, var(--color-base-content) 10%, transparent);
+  }
+}

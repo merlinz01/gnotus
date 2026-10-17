@@ -124,7 +124,7 @@ describe('UploadsPage', () => {
       return promise
     })
     render(<UploadsPage />)
-    expect(screen.getByRole('status')).toHaveClass('loading-spinner')
+    expect(screen.getByRole('status')).toHaveClass('loading')
     expect(screen.getByText('Loading uploads...')).toBeInTheDocument()
     resolvePromise!({ data: { items: [], total: 0, page: 1, size: DEFAULT_PAGE_SIZE } })
     waitFor(() => {

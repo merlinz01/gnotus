@@ -1,0 +1,73 @@
+.settings-loading {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.settings-icon-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.settings-icon-preview {
+  padding: 0.5rem;
+  border: var(--border-subtle);
+  border-radius: var(--radius-box);
+  background-color: var(--color-base-100);
+}
+
+.settings-icon-image {
+  width: 3rem;
+  height: 3rem;
+  object-fit: contain;
+}
+
+.settings-icon-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.settings-hint {
+  margin-top: 0.25rem;
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+  line-height: var(--leading-xs);
+}
+
+.settings-colors {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .settings-colors {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.settings-color-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.settings-color-swatch {
+  width: 3.5rem;
+  height: 2.5rem;
+  padding: 0.25rem;
+}
+
+.settings-color-value {
+  flex: 1;
+}
+
+.settings-actions {
+  margin-top: 0.5rem;
+}
