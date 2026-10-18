@@ -30,7 +30,6 @@ async def docs() -> dict[str, Doc]:
         slug="",
         urlpath="/",
         public=True,
-        metadata={},
         markdown="",
         html="<p>Welcome to the docs</p>",
     )
@@ -40,7 +39,7 @@ async def docs() -> dict[str, Doc]:
         slug="guide",
         urlpath="/guide",
         public=True,
-        metadata={"subtitles": [{"title": "Intro", "hash": "section-intro"}]},
+        subtitles=[{"title": "Intro", "hash": "section-intro"}],
         markdown="",
         html='<h2 id="section-intro">Intro</h2><p>Hello world</p>',
     )
@@ -50,7 +49,6 @@ async def docs() -> dict[str, Doc]:
         slug="public-child",
         urlpath="/guide/public-child",
         public=True,
-        metadata={},
         markdown="",
         html="<p>Public child</p>",
     )
@@ -60,7 +58,6 @@ async def docs() -> dict[str, Doc]:
         slug="private-child",
         urlpath="/guide/private-child",
         public=False,
-        metadata={},
         markdown="",
         html="<p>Secret</p>",
     )
@@ -397,7 +394,6 @@ async def test_sidebar_partial(
         slug="new-doc",
         urlpath="/new-doc",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -451,7 +447,6 @@ async def test_shared_doc_page_children(
             slug=slug,
             urlpath=f"{secret.urlpath}/{slug}",
             public=public,
-            metadata={},
             markdown="",
             html="",
         )
@@ -477,7 +472,6 @@ async def test_private_parent_hidden(
         slug="public-grandchild",
         urlpath=f"{secret.urlpath}/public-grandchild",
         public=True,
-        metadata={},
         markdown="",
         html="<p>Out in the open</p>",
     )

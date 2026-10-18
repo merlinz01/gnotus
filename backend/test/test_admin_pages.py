@@ -23,7 +23,6 @@ async def doc() -> Doc:
         slug="",
         urlpath="/",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -33,7 +32,6 @@ async def doc() -> Doc:
         slug="guide",
         urlpath="/guide",
         public=False,
-        metadata={},
         markdown="",
         html="",
     )

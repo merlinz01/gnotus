@@ -12,7 +12,6 @@ from ..models.revision import Revision
 from ..models.upload import Upload
 from ..schemas.doc import (
     DocCreate,
-    DocMetadata,
     DocPreview,
     DocReindexResponse,
     DocResponse,
@@ -83,7 +82,6 @@ async def create_doc(
         markdown="",
         html="",
         public=doc_create.public,
-        metadata=DocMetadata().model_dump(mode="json"),
         updated_by_id=current_user.id,
     )
     await doc.save()
@@ -99,7 +97,7 @@ async def create_doc(
         markdown=doc.markdown,
         html=doc.html,
         public=doc.public,
-        metadata=doc.metadata,
+        subtitles=doc.subtitles,
         created_at=doc.created_at,
         updated_at=doc.updated_at,
         updated_by_id=doc.updated_by_id,
@@ -223,7 +221,7 @@ async def update_doc(
         markdown=doc.markdown,
         html=doc.html,
         public=doc.public,
-        metadata=doc.metadata,
+        subtitles=doc.subtitles,
         created_at=doc.created_at,
         updated_at=doc.updated_at,
         updated_by_id=doc.updated_by_id,

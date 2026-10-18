@@ -15,7 +15,6 @@ async def test_csrf_protected_endpoint(api_client: TestClient, user_admin: User)
         slug="",
         urlpath="/",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )

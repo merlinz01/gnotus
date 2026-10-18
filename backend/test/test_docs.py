@@ -35,7 +35,6 @@ async def test_create_doc_under_home(api_client: "TestClient", user_admin: "User
         slug="",
         urlpath="/",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -61,7 +60,7 @@ async def test_create_doc_under_home(api_client: "TestClient", user_admin: "User
         "updated_by_id": user_admin.id,
         "markdown": "",
         "html": "",
-        "metadata": {"subtitles": []},
+        "subtitles": [],
     }
     await Doc.get(id=data["id"])
 
@@ -76,7 +75,6 @@ async def test_create_child_doc(api_client: "TestClient", user_admin: "User"):
         slug="",
         urlpath="/",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -86,7 +84,6 @@ async def test_create_child_doc(api_client: "TestClient", user_admin: "User"):
         slug="parent",
         urlpath="/parent",
         public=False,
-        metadata={},
         markdown="",
         html="",
     )
@@ -112,7 +109,7 @@ async def test_create_child_doc(api_client: "TestClient", user_admin: "User"):
         "updated_by_id": user_admin.id,
         "markdown": "",
         "html": "",
-        "metadata": {"subtitles": []},
+        "subtitles": [],
     }
     await Doc.get(id=data["id"])
 
@@ -149,7 +146,6 @@ async def test_create_doc_with_existing_slug(
         slug="",
         urlpath="/",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -159,7 +155,6 @@ async def test_create_doc_with_existing_slug(
         slug="existing",
         urlpath="/existing",
         public=False,
-        metadata={},
         markdown="",
         html="",
     )
@@ -188,7 +183,6 @@ async def test_create_doc_with_invalid_slug(
         slug="",
         urlpath="/",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -215,7 +209,6 @@ async def test_create_doc_unauthorized(api_client: "TestClient", user_viewer: "U
         slug="",
         urlpath="/",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -242,7 +235,6 @@ async def test_update_doc(api_client: "TestClient", user_admin: "User"):
         slug="",
         urlpath="/",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -252,7 +244,6 @@ async def test_update_doc(api_client: "TestClient", user_admin: "User"):
         slug="doc-to-update",
         urlpath="/doc-to-update",
         public=False,
-        metadata={"subtitles": []},
         markdown="",
         html="",
         updated_by_id=user_admin.id,
@@ -263,7 +254,6 @@ async def test_update_doc(api_client: "TestClient", user_admin: "User"):
         slug="another-doc",
         urlpath="/another-doc",
         public=False,
-        metadata={"subtitles": []},
         markdown="",
         html="",
         updated_by_id=user_admin.id,
@@ -275,7 +265,6 @@ async def test_update_doc(api_client: "TestClient", user_admin: "User"):
             "title": "Updated Document Title",
             "slug": "updated-doc",
             "public": True,
-            "metadata": {"subtitles": ["en", "es"]},
             "markdown": "# Updated Markdown Content",
         },
     )
@@ -293,14 +282,12 @@ async def test_update_doc(api_client: "TestClient", user_admin: "User"):
         "updated_by_id": user_admin.id,
         "markdown": "# Updated Markdown Content",
         "html": '<h1 id="section-updated-markdown-content">Updated Markdown Content<a class="heading-anchor" href="#section-updated-markdown-content">#</a></h1>\n',
-        "metadata": {
-            "subtitles": [
-                {
-                    "hash": "section-updated-markdown-content",
-                    "title": "Updated Markdown Content",
-                }
-            ],
-        },
+        "subtitles": [
+            {
+                "hash": "section-updated-markdown-content",
+                "title": "Updated Markdown Content",
+            }
+        ],
     }
     assert await doc.revisions.all().count() == 1
 
@@ -332,7 +319,6 @@ async def test_update_doc_unauthorized(api_client: "TestClient", user_viewer: "U
         slug="unauthorized-update",
         urlpath="/unauthorized-update",
         public=False,
-        metadata={"subtitles": []},
         markdown="",
         html="",
     )
@@ -360,7 +346,6 @@ async def test_update_doc_parent_zero_rejected(
         slug="",
         urlpath="/",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -370,7 +355,6 @@ async def test_update_doc_parent_zero_rejected(
         slug="parent-doc",
         urlpath="/parent-doc",
         public=False,
-        metadata={},
         markdown="",
         html="",
     )
@@ -380,7 +364,6 @@ async def test_update_doc_parent_zero_rejected(
         slug="doc-with-parent",
         urlpath="/parent-doc/doc-with-parent",
         public=False,
-        metadata={"subtitles": []},
         markdown="",
         html="",
         updated_by_id=user_admin.id,
@@ -408,7 +391,6 @@ async def test_update_doc_with_invalid_parent(
         slug="",
         urlpath="/",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -418,7 +400,6 @@ async def test_update_doc_with_invalid_parent(
         slug="doc-invalid-parent",
         urlpath="/doc-invalid-parent",
         public=False,
-        metadata={"subtitles": []},
         markdown="",
         html="",
         updated_by_id=user_admin.id,
@@ -444,7 +425,6 @@ async def test_update_doc_with_same_parent(
         slug="",
         urlpath="/",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -454,7 +434,6 @@ async def test_update_doc_with_same_parent(
         slug="doc-same-parent",
         urlpath="/doc-same-parent",
         public=False,
-        metadata={"subtitles": []},
         markdown="",
         html="",
         updated_by_id=user_admin.id,
@@ -482,7 +461,6 @@ async def test_update_doc_with_circular_parent(
         slug="",
         urlpath="/",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -492,7 +470,6 @@ async def test_update_doc_with_circular_parent(
         slug="circular-parent",
         urlpath="/circular-parent",
         public=False,
-        metadata={},
         markdown="",
         html="",
     )
@@ -502,7 +479,6 @@ async def test_update_doc_with_circular_parent(
         slug="circular-child",
         urlpath="/circular-parent/circular-child",
         public=False,
-        metadata={"subtitles": []},
         markdown="",
         html="",
         updated_by_id=user_admin.id,
@@ -530,7 +506,6 @@ async def test_update_home_page_slug_forbidden(
         slug="",
         urlpath="/",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -555,7 +530,6 @@ async def test_update_home_page_parent_forbidden(
         slug="",
         urlpath="/",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -565,7 +539,6 @@ async def test_update_home_page_parent_forbidden(
         slug="other",
         urlpath="/other",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -590,7 +563,6 @@ async def test_update_home_page_content_allowed(
         slug="",
         urlpath="/",
         public=True,
-        metadata={"subtitles": []},
         markdown="",
         html="",
     )
@@ -613,7 +585,6 @@ async def test_move_doc_up(api_client: "TestClient", user_admin: "User"):
         slug="",
         urlpath="/",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -623,7 +594,6 @@ async def test_move_doc_up(api_client: "TestClient", user_admin: "User"):
         slug="move-doc-1",
         urlpath="/move-doc-1",
         public=False,
-        metadata={},
         markdown="",
         html="",
         order=99,
@@ -634,7 +604,6 @@ async def test_move_doc_up(api_client: "TestClient", user_admin: "User"):
         slug="move-doc-2",
         urlpath="/move-doc-2",
         public=False,
-        metadata={},
         markdown="",
         html="",
         order=100,
@@ -645,7 +614,6 @@ async def test_move_doc_up(api_client: "TestClient", user_admin: "User"):
         slug="move-doc-3",
         urlpath="/move-doc-3",
         public=False,
-        metadata={},
         markdown="",
         html="",
         order=98,
@@ -672,7 +640,6 @@ async def test_move_doc_down(api_client: "TestClient", user_admin: "User"):
         slug="",
         urlpath="/",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -682,7 +649,6 @@ async def test_move_doc_down(api_client: "TestClient", user_admin: "User"):
         slug="move-down-doc-1",
         urlpath="/move-down-doc-1",
         public=False,
-        metadata={},
         markdown="",
         html="",
         order=99,
@@ -693,7 +659,6 @@ async def test_move_doc_down(api_client: "TestClient", user_admin: "User"):
         slug="move-down-doc-2",
         urlpath="/move-down-doc-2",
         public=False,
-        metadata={},
         markdown="",
         html="",
         order=100,
@@ -704,7 +669,6 @@ async def test_move_doc_down(api_client: "TestClient", user_admin: "User"):
         slug="move-down-doc-3",
         urlpath="/move-down-doc-3",
         public=False,
-        metadata={},
         markdown="",
         html="",
         order=98,
@@ -745,7 +709,6 @@ async def test_move_doc_unauthorized(api_client: "TestClient", user_viewer: "Use
         slug="",
         urlpath="/",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -755,7 +718,6 @@ async def test_move_doc_unauthorized(api_client: "TestClient", user_viewer: "Use
         slug="unauthorized-move",
         urlpath="/unauthorized-move",
         public=False,
-        metadata={"subtitles": []},
         markdown="",
         html="",
     )
@@ -775,7 +737,6 @@ async def test_move_home_page_forbidden(api_client: "TestClient", user_admin: "U
         slug="",
         urlpath="/",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -795,7 +756,6 @@ async def test_restore_doc_revision(api_client: "TestClient", user_admin: "User"
         slug="doc-to-restore",
         urlpath="/doc-to-restore",
         public=False,
-        metadata={"subtitles": []},
         markdown="Initial content",
         html="<p>Initial content</p>\n",
         updated_by_id=user_admin.id,
@@ -844,7 +804,6 @@ async def test_restore_doc_revision_invalid_revision(
         slug="doc-invalid-rev",
         urlpath="/doc-invalid-rev",
         public=False,
-        metadata={"subtitles": []},
         markdown="",
         html="",
         updated_by_id=user_admin.id,
@@ -869,7 +828,6 @@ async def test_restore_doc_revision_unauthorized(
         slug="unauthorized-restore",
         urlpath="/unauthorized-restore",
         public=False,
-        metadata={"subtitles": []},
         markdown="",
         html="",
     )
@@ -897,7 +855,6 @@ async def test_delete_doc(api_client: "TestClient", user_admin: "User"):
         slug="",
         urlpath="/",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -907,7 +864,6 @@ async def test_delete_doc(api_client: "TestClient", user_admin: "User"):
         slug="doc-to-delete",
         urlpath="/doc-to-delete",
         public=False,
-        metadata={"subtitles": []},
         markdown="",
         html="",
         updated_by_id=user_admin.id,
@@ -938,7 +894,6 @@ async def test_delete_doc_unauthorized(api_client: "TestClient", user_viewer: "U
         slug="",
         urlpath="/",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -948,7 +903,6 @@ async def test_delete_doc_unauthorized(api_client: "TestClient", user_viewer: "U
         slug="unauthorized-delete",
         urlpath="/unauthorized-delete",
         public=False,
-        metadata={"subtitles": []},
         markdown="",
         html="",
     )
@@ -968,7 +922,6 @@ async def test_delete_home_page_forbidden(api_client: "TestClient", user_admin: 
         slug="",
         urlpath="/",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -992,7 +945,6 @@ async def test_search_docs_with_short_query(
         slug="search-doc-1",
         urlpath="/search-doc-1",
         public=False,
-        metadata={},
         markdown="This is a test document.",
         html="<p>This is a test document.</p>",
     )
@@ -1053,7 +1005,6 @@ async def test_get_doc_markdown(api_client: "TestClient", user_admin: "User"):
         slug="test-doc",
         urlpath="/test-doc",
         public=True,
-        metadata={},
         markdown="This is the content.",
         html="",
     )
@@ -1075,7 +1026,6 @@ async def test_get_doc_markdown_with_children(
         slug="parent",
         urlpath="/parent",
         public=True,
-        metadata={},
         markdown="Parent content.",
         html="",
     )
@@ -1085,7 +1035,6 @@ async def test_get_doc_markdown_with_children(
         urlpath="/parent/child-one",
         parent_id=parent.id,
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -1095,7 +1044,6 @@ async def test_get_doc_markdown_with_children(
         urlpath="/parent/child-two",
         parent_id=parent.id,
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -1126,7 +1074,6 @@ async def test_get_doc_markdown_private_anonymous(api_client: "TestClient"):
         slug="private-doc",
         urlpath="/private-doc",
         public=False,
-        metadata={},
         markdown="Secret content.",
         html="",
     )
@@ -1143,7 +1090,6 @@ async def test_get_doc_markdown_public_anonymous(api_client: "TestClient"):
         slug="public-doc",
         urlpath="/public-doc",
         public=True,
-        metadata={},
         markdown="Public content.",
         html="",
     )
@@ -1166,7 +1112,6 @@ async def test_create_doc_with_reserved_slug(
         slug="",
         urlpath="/",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -1203,7 +1148,6 @@ async def test_update_doc_with_reserved_slug(
         slug="",
         urlpath="/",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -1213,7 +1157,6 @@ async def test_update_doc_with_reserved_slug(
         slug="section",
         urlpath="/section",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -1223,7 +1166,6 @@ async def test_update_doc_with_reserved_slug(
         slug="_nested",
         urlpath="/section/_nested",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -1256,7 +1198,6 @@ async def test_update_doc_with_existing_slug(
         slug="",
         urlpath="/",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -1266,7 +1207,6 @@ async def test_update_doc_with_existing_slug(
         slug="existing",
         urlpath="/existing",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -1276,7 +1216,6 @@ async def test_update_doc_with_existing_slug(
         slug="section",
         urlpath="/section",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )
@@ -1286,7 +1225,6 @@ async def test_update_doc_with_existing_slug(
         slug="existing",
         urlpath="/section/existing",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )

@@ -39,7 +39,6 @@ async def test_sitemap(api_client: TestClient) -> None:
         urlpath="/test-document",
         html="",
         public=True,
-        metadata={},
         markdown="",
     )
     doc2 = await Doc.create(
@@ -48,7 +47,6 @@ async def test_sitemap(api_client: TestClient) -> None:
         urlpath="/another-document",
         html="",
         public=True,
-        metadata={},
         markdown="",
     )
 

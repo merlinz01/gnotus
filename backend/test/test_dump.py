@@ -19,7 +19,6 @@ async def test_dump_docs(api_client, tmpdir: Path, user_admin: User):
         public=True,
         markdown="This is a test document.",
         html="",
-        metadata={},
     )
     doc2 = await Doc.create(
         parent_id=doc1.id,
@@ -29,7 +28,6 @@ async def test_dump_docs(api_client, tmpdir: Path, user_admin: User):
         public=True,
         markdown="This is another test document.",
         html="",
-        metadata={},
         updated_by_id=user_admin.id,
     )
     await dump_to_dir(str(tmpdir), include_revisions=False)
@@ -86,7 +84,6 @@ async def test_dump_docs_with_revisions(api_client, tmpdir: Path, user_admin: Us
         public=True,
         markdown="This is a test document.",
         html="",
-        metadata={},
     )
     rev1 = await Revision.create(
         doc_id=doc1.id,
@@ -173,7 +170,6 @@ async def test_dump_docs_to_zip(api_client, tmpdir: Path, user_admin: User):
         public=True,
         markdown="This is a test document.",
         html="",
-        metadata={},
     )
     doc2 = await Doc.create(
         parent_id=doc1.id,
@@ -183,7 +179,6 @@ async def test_dump_docs_to_zip(api_client, tmpdir: Path, user_admin: User):
         public=True,
         markdown="This is another test document.",
         html="",
-        metadata={},
         updated_by_id=user_admin.id,
     )
     zip_path = tmpdir / "dump.zip"
@@ -245,7 +240,6 @@ async def test_dump_docs_to_zip_with_revisions(
         public=True,
         markdown="This is a test document.",
         html="",
-        metadata={},
     )
     rev1 = await Revision.create(
         doc_id=doc1.id,
@@ -285,7 +279,6 @@ async def test_dump_docs_public_only(api_client, tmpdir: Path, user_admin: User)
         public=True,
         markdown="This is a public document.",
         html="",
-        metadata={},
     )
     await Doc.create(
         title="Private Doc",
@@ -294,7 +287,6 @@ async def test_dump_docs_public_only(api_client, tmpdir: Path, user_admin: User)
         public=False,
         markdown="This is a private document.",
         html="",
-        metadata={},
     )
     await dump_to_dir(str(tmpdir), public_only=True)
     assert (tmpdir / "public-doc.md").exists()
@@ -330,7 +322,6 @@ async def test_dump_docs_to_zip_public_only(api_client, tmpdir: Path, user_admin
         public=True,
         markdown="This is a public document.",
         html="",
-        metadata={},
     )
     await Doc.create(
         title="Private Doc",
@@ -339,7 +330,6 @@ async def test_dump_docs_to_zip_public_only(api_client, tmpdir: Path, user_admin
         public=False,
         markdown="This is a private document.",
         html="",
-        metadata={},
     )
     zip_path = tmpdir / "dump.zip"
     await dump_to_zip(str(zip_path), public_only=True)
@@ -378,7 +368,6 @@ async def test_dump_docs_with_attachments(api_client, tmpdir: Path, user_admin: 
         public=True,
         markdown="This is a test document.",
         html="",
-        metadata={},
     )
     # Create upload directory and file
     settings.uploads_dir.mkdir(parents=True, exist_ok=True)
@@ -412,7 +401,6 @@ async def test_dump_docs_to_zip_with_attachments(
         public=True,
         markdown="This is a test document.",
         html="",
-        metadata={},
     )
     # Create upload directory and file
     settings.uploads_dir.mkdir(parents=True, exist_ok=True)
@@ -447,7 +435,6 @@ async def test_dump_to_single_file(api_client, tmpdir: Path, user_admin: User):
         public=True,
         markdown="Content of first doc.",
         html="",
-        metadata={},
     )
     await Doc.create(
         title="Second Doc",
@@ -456,7 +443,6 @@ async def test_dump_to_single_file(api_client, tmpdir: Path, user_admin: User):
         public=True,
         markdown="Content of second doc.",
         html="",
-        metadata={},
     )
     file_path = tmpdir / "dump.md"
     await dump_to_single_file(str(file_path))
@@ -483,7 +469,6 @@ async def test_dump_to_single_file_public_only(
         public=True,
         markdown="Public content.",
         html="",
-        metadata={},
     )
     await Doc.create(
         title="Private Doc",
@@ -492,7 +477,6 @@ async def test_dump_to_single_file_public_only(
         public=False,
         markdown="Private content.",
         html="",
-        metadata={},
     )
     file_path = tmpdir / "dump.md"
     await dump_to_single_file(str(file_path), public_only=True)

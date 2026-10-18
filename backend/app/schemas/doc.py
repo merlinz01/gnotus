@@ -35,6 +35,15 @@ class DocUpdate(BaseModel):
     public: bool | None = None
 
 
+class DocSubtitle(BaseModel):
+    """
+    Model for document subtitle information.
+    """
+
+    title: str
+    hash: str
+
+
 class DocResponse(DocBase):
     """
     Model for document response data.
@@ -47,24 +56,7 @@ class DocResponse(DocBase):
     updated_by_id: int | None
     markdown: str
     html: str
-    metadata: dict
-
-
-class DocSubtitle(BaseModel):
-    """
-    Model for document subtitle information.
-    """
-
-    title: str
-    hash: str
-
-
-class DocMetadata(BaseModel):
-    """
-    Model for document metadata.
-    """
-
-    subtitles: list[DocSubtitle] = []
+    subtitles: list[DocSubtitle]
 
 
 class DocPreview(BaseModel):

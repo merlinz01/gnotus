@@ -14,7 +14,6 @@ async def docs() -> dict[str, Doc]:
         slug="",
         urlpath="/",
         public=True,
-        metadata={},
         markdown="Welcome",
         html="<p>Welcome</p>",
     )
@@ -24,7 +23,6 @@ async def docs() -> dict[str, Doc]:
         slug="guide",
         urlpath="/guide",
         public=False,
-        metadata={},
         markdown="\nStarts with a blank line & <b>",
         html="<p>Starts with a blank line &amp; &lt;b&gt;</p>",
     )
@@ -34,7 +32,6 @@ async def docs() -> dict[str, Doc]:
         slug="child",
         urlpath="/guide/child",
         public=False,
-        metadata={},
         markdown="",
         html="",
     )
@@ -44,7 +41,6 @@ async def docs() -> dict[str, Doc]:
         slug="other",
         urlpath="/other",
         public=True,
-        metadata={},
         markdown="",
         html="",
     )

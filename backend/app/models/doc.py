@@ -91,7 +91,7 @@ class Doc(TimestampedModel):
     slug = fields.CharField(max_length=100)
     urlpath = fields.CharField(max_length=255, unique=True)
     public = fields.BooleanField(default=False)
-    metadata = fields.JSONField()
+    subtitles = fields.JSONField(default=list)
     markdown = fields.TextField()
     html = fields.TextField()
     summary = fields.TextField(null=True)
@@ -194,12 +194,10 @@ class Doc(TimestampedModel):
 
     async def update_content(self) -> None:
         """
-        Update the metadata of the document as well as the HTML content.
+        Update the HTML content and the content derived from it.
         This includes generating subtitles and ensuring unique IDs for headings.
         This method should be called after any changes to the markdown content.
         """
         self.html, subtitles = render_markdown(self.markdown)
         self.summary = summarize(self.html)
-        self.metadata["subtitles"] = [
-            subtitle.model_dump(mode="json") for subtitle in subtitles
-        ]
+        self.subtitles = [subtitle.model_dump(mode="json") for subtitle in subtitles]
