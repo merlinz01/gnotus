@@ -105,6 +105,8 @@ The recommended way to install Gnotus is with Docker Compose.
    You can now access the Gnotus application at `http://localhost` (or your configured domain if you set it up for public access).
 
    You can log in with the admin user you just created.
+   Then go to **Administration > Search Index** and click **Rebuild Index** to set up the search index.
+   Do the same after restoring a backup, or if search results are missing or out of date.
 
 1. (Optional) **Configure IPv6**
 
@@ -164,7 +166,8 @@ docker compose -f compose.dev.yml up --build
 ```
 
 This will start the backend and the search service in development mode.
-On startup, the backend applies any pending database migrations and indexes the documents for search.
+On startup, the backend applies any pending database migrations.
+To index the documents for search, go to **Administration > Search Index** and click **Rebuild Index**.
 The app will be available at `http://localhost:5173`, and will reload when you modify the backend code, templates, styles or scripts.
 If you want to override settings, you can set them as environment variables in a `.env` file in the `backend` directory.
 
@@ -213,7 +216,7 @@ You can also set up the development environment without Docker Compose, but this
 
    Make sure to set the `GNOTUS_MEILISEARCH_URL` and `GNOTUS_MEILISEARCH_API_KEY` environment variables (or the corresponding options in your configuration file) to connect to Meilisearch.
 
-   To index all documents in Meilisearch, you can use the following command:
+   To index all documents in Meilisearch, go to **Administration > Search Index** in the app, or use the following command:
 
    ```bash
    python -m app.manage index

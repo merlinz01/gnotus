@@ -4,8 +4,6 @@ set -e
 source /venv/.venv/bin/activate
 # Run the database migrations
 aerich upgrade
-# Create the index for the document search
-python -m app.manage index
 # Run the FastAPI application with Uvicorn
 uvicorn \
     --host 0.0.0.0 \

@@ -1,0 +1,10 @@
+.search-index-stats {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  align-items: center;
+  gap: 0.5rem 1.5rem;
+}
+
+.search-index-stats dt {
+  color: var(--color-muted);
+}

@@ -35,6 +35,11 @@
     color: var(--color-success-content);
   }
 
+  .alert-warning {
+    --alert-color: var(--color-warning);
+    color: var(--color-warning-content);
+  }
+
   /* Badges */
   .badge {
     --size: calc(var(--spacing) * 6);
@@ -93,6 +98,11 @@
   .badge-warning {
     --badge-color: var(--color-warning);
     --badge-fg: var(--color-warning-content);
+  }
+
+  .badge-error {
+    --badge-color: var(--color-error);
+    --badge-fg: var(--color-error-content);
   }
 
   /* Tooltips */

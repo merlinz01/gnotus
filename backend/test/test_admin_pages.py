@@ -1,3 +1,6 @@
+import re
+from datetime import UTC, datetime
+
 import pytest
 from fastapi import status
 from utils import TestClient
@@ -10,6 +13,7 @@ from app.models.upload import Upload
 from app.pages.admin import word_diff
 from app.pages.rendering import format_size
 from app.schemas.role import Role
+from app.utils.indexing import IndexStatus
 
 
 @pytest.fixture
@@ -36,7 +40,15 @@ async def doc() -> Doc:
 
 
 @pytest.mark.parametrize(
-    "path", ["/_admin", "/_users", "/_uploads", "/_settings", "/_revisions/1"]
+    "path",
+    [
+        "/_admin",
+        "/_users",
+        "/_uploads",
+        "/_settings",
+        "/_search-index",
+        "/_revisions/1",
+    ],
 )
 async def test_admin_pages_require_login(api_client: TestClient, path: str):
     """
@@ -55,6 +67,7 @@ async def test_admin_pages_require_login(api_client: TestClient, path: str):
         ("/_revisions/1", Role.VIEWER),
         ("/_users", Role.USER),
         ("/_settings", Role.USER),
+        ("/_search-index", Role.USER),
     ],
 )
 async def test_admin_pages_forbidden(api_client: TestClient, path: str, role: Role):
@@ -171,6 +184,92 @@ async def test_settings_page(api_client: TestClient, user_admin: User):
     await Setting.set_value("site_icon_upload_id", 5)
     response = api_client.get("/_settings")
     assert 'data-action="revert-icon" hidden' not in response.text
+
+
+async def test_search_index_page_disabled(
+    api_client: TestClient, user_admin: User, doc: Doc
+):
+    """
+    Test that the search index page can't rebuild the index when search is disabled.
+    """
+    api_client.set_session_user(user_admin)
+    response = api_client.get("/_admin")
+    assert 'href="/_search-index"' in response.text
+    response = api_client.get("/_search-index")
+    assert response.status_code == status.HTTP_200_OK, response.text
+    html = response.text
+    # Search is disabled in the tests
+    assert "Search is disabled" in html
+    assert re.search(r'type="submit" class="btn btn-primary"\s+disabled', html)
+    assert "search-index-stats" not in html
+
+
+@pytest.mark.parametrize(
+    "index_status,label,hint",
+    [
+        (IndexStatus(error="Connection refused"), "Unavailable", "Connection refused"),
+        (IndexStatus(), "Not created", "been created yet"),
+        (
+            IndexStatus(exists=True, document_count=2),
+            "Not set up",
+            "missing settings",
+        ),
+        (
+            IndexStatus(exists=True, configured=True, is_indexing=True),
+            "Indexing",
+            "processing changes",
+        ),
+        (
+            IndexStatus(exists=True, configured=True, document_count=1),
+            "Out of date",
+            "number of indexed documents",
+        ),
+        (
+            IndexStatus(
+                exists=True,
+                configured=True,
+                document_count=2,
+                updated_at=datetime(2026, 1, 2, 3, 4, tzinfo=UTC),
+            ),
+            "Up to date",
+            None,
+        ),
+    ],
+)
+async def test_search_index_page_status(
+    api_client: TestClient,
+    user_admin: User,
+    doc: Doc,
+    monkeypatch: pytest.MonkeyPatch,
+    index_status: IndexStatus,
+    label: str,
+    hint: str | None,
+):
+    """
+    Test that the search index page shows the state of the index.
+    """
+    from app.settings import settings
+
+    async def get_index_status() -> IndexStatus:
+        return index_status
+
+    monkeypatch.setattr("app.pages.admin.get_index_status", get_index_status)
+    monkeypatch.setattr(settings, "disable_search", False)
+    api_client.set_session_user(user_admin)
+    response = api_client.get("/_search-index")
+    assert response.status_code == status.HTTP_200_OK, response.text
+    html = response.text
+    assert "Search is disabled" not in html
+    assert re.search(r'type="submit" class="btn btn-primary"\s*>', html)
+    assert f">{label}</span>" in html
+    assert re.search(r"<dt>Documents</dt>\s*<dd>2</dd>", html)
+    assert ("<dt>Indexed documents</dt>" in html) == index_status.exists
+    if hint:
+        assert hint in html
+    else:
+        assert "settings-hint" not in html
+    if index_status.updated_at:
+        assert 'datetime="2026-01-02T03:04:00+00:00"' in html
 
 
 async def test_revisions_page(api_client: TestClient, user_user: User, doc: Doc):

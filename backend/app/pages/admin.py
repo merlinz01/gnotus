@@ -19,6 +19,8 @@ from ..models.revision import Revision
 from ..models.upload import Upload
 from ..models.user import User
 from ..schemas.role import ADMIN_ROLES, EDITOR_ROLES, Role
+from ..settings import settings
+from ..utils.indexing import get_index_status
 from .common import message_response, restricted_page
 from .rendering import PageRoute, html_response, page_response, render_template
 
@@ -154,6 +156,23 @@ async def settings_page(request: Request, current_user: OptionalUser) -> Respons
     if denied:
         return denied
     return page_response(request, "admin/settings.html", context)
+
+
+@router.get("/_search-index")
+async def search_index_page(request: Request, current_user: OptionalUser) -> Response:
+    _, context, denied = await restricted_page(request, current_user, ADMIN_ROLES)
+    if denied:
+        return denied
+    return page_response(
+        request,
+        "admin/search_index.html",
+        {
+            **context,
+            "doc_count": await Doc.all().count(),
+            "search_disabled": settings.disable_search,
+            "index": None if settings.disable_search else await get_index_status(),
+        },
+    )
 
 
 @router.get("/_revisions/{doc_id:int}")

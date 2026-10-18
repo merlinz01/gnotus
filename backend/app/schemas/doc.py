@@ -96,6 +96,14 @@ class DocSearchResponse(BaseModel):
     results: list[DocSearchResult] = []
 
 
+class DocReindexResponse(BaseModel):
+    """
+    Model for the response of rebuilding the search index.
+    """
+
+    indexed: int
+
+
 class DocIndexSchema(BaseModel):
     """
     Schema for indexing documents in Meilisearch.

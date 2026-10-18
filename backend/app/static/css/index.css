@@ -36,6 +36,7 @@
 @import './admin/users.css';
 @import './admin/uploads.css';
 @import './admin/settings.css';
+@import './admin/search-index.css';
 @import './admin/revisions.css';
 @import './editor/new.css';
 @import './editor/edit.css';

@@ -1115,6 +1115,20 @@ async function revertIcon(button) {
   })
 }
 
+async function reindexDocs(form, submitter) {
+  showError(form, null)
+  await whileBusy(submitter, async () => {
+    try {
+      await api('/api/docs/reindex', { method: 'POST' })
+    } catch (error) {
+      showError(form, error)
+      return
+    }
+    // Show the updated status of the index
+    await refreshPage()
+  })
+}
+
 async function viewRevision(button) {
   const dialog = document.getElementById('revision-modal')
   const body = dialog.querySelector('.revision-body')
@@ -1422,6 +1436,7 @@ const forms = {
   'create-upload': createUpload,
   'save-upload': saveUpload,
   'save-settings': saveSettings,
+  'reindex-docs': reindexDocs,
 }
 
 document.addEventListener('submit', (event) => {

@@ -1,9 +1,17 @@
 import html
+from dataclasses import dataclass
+from datetime import datetime
 
+import httpx2
 import nh3
 from bs4 import BeautifulSoup
-from meilisearch_python_sdk import AsyncClient, AsyncIndex
-from meilisearch_python_sdk.errors import MeilisearchApiError
+from meilisearch_python_sdk import AsyncClient
+from meilisearch_python_sdk.errors import (
+    MeilisearchApiError,
+    MeilisearchError,
+    MeilisearchTaskFailedError,
+    MeilisearchTimeoutError,
+)
 from meilisearch_python_sdk.models.search import SearchResults
 from meilisearch_python_sdk.models.settings import (
     MeilisearchSettings,
@@ -55,13 +63,21 @@ index_settings = MeilisearchSettings(
 )
 
 
-def get_meilisearch_client():  # pragma: no cover
+# How long to wait for Meilisearch to report the status of the index, in seconds
+STATUS_TIMEOUT = 5
+
+# How long to wait for a full reindex to finish before leaving it to run on its own
+REINDEX_WAIT_MS = 30_000
+
+
+def get_meilisearch_client(timeout: int | None = None):  # pragma: no cover
     """
     Create a Meilisearch client using the configured settings.
     """
     return AsyncClient(
         url=settings.meilisearch_url,
         api_key=settings.meilisearch_api_key.get_secret_value(),
+        timeout=timeout,
     )
 
 
@@ -85,37 +101,102 @@ async def create_or_update_index():  # pragma: no cover
     )
 
 
-async def index_all_documents():  # pragma: no cover
+async def index_all_documents() -> int:  # pragma: no cover
     """
-    Index all documents in the Meilisearch instance.
-    This function should be called after the database is populated.
+    Replace the contents of the Meilisearch index with all documents,
+    which also removes documents that were deleted while search was disabled.
+    Returns the number of documents indexed.
     """
-
     client = get_meilisearch_client()
     index = client.index(settings.meilisearch_index_name)
+    docs = [_index_schema(doc) for doc in await Doc.all()]
+    # Meilisearch processes the tasks in order, so the index is only briefly empty
+    task = await index.delete_all_documents()
+    if docs:
+        task = await index.add_documents(docs)
+    # Wait for the last task, so failures are reported and the index status
+    # is current afterwards, unless indexing takes long
+    try:
+        result = await client.wait_for_task(
+            task.task_uid, timeout_in_ms=REINDEX_WAIT_MS
+        )
+    except MeilisearchTimeoutError:
+        return len(docs)
+    if result.status == "failed":
+        message = (result.error or {}).get("message", "Unknown error")
+        raise MeilisearchTaskFailedError(message)
+    return len(docs)
 
-    for doc in await Doc.all():
-        await index_document(doc, index=index)
 
-
-async def index_document(doc: Doc, index: AsyncIndex | None = None):  # pragma: no cover
+@dataclass
+class IndexStatus:
     """
-    Index a single document in Meilisearch.
+    The state of the Meilisearch index.
+    error is set when Meilisearch could not be reached or returned an error.
+    configured is False when the index lacks the settings searches rely on,
+    such as when it was created by indexing a document before a full reindex.
+    """
+
+    error: str | None = None
+    exists: bool = False
+    configured: bool = False
+    document_count: int = 0
+    is_indexing: bool = False
+    updated_at: datetime | None = None
+
+
+async def get_index_status() -> IndexStatus:  # pragma: no cover
+    """
+    Get the state of the Meilisearch index, without raising errors.
+    """
+    async with get_meilisearch_client(timeout=STATUS_TIMEOUT) as client:
+        try:
+            index = await client.get_index(settings.meilisearch_index_name)
+            stats = await index.get_stats()
+            filterable = await index.get_filterable_attributes() or []
+        except MeilisearchApiError as e:
+            if e.code == "index_not_found":
+                return IndexStatus()
+            return IndexStatus(error=str(e))
+        except MeilisearchError as e:
+            return IndexStatus(error=str(e))
+        except httpx2.TransportError as e:
+            # The client only wraps connection errors, not timeouts
+            return IndexStatus(error=f"{type(e).__name__}: {e}")
+    return IndexStatus(
+        exists=True,
+        configured=all(
+            attr in filterable for attr in index_settings.filterable_attributes or []
+        ),
+        document_count=stats.number_of_documents,
+        is_indexing=stats.is_indexing,
+        updated_at=index.updated_at,
+    )
+
+
+def _index_schema(doc: Doc) -> dict:  # pragma: no cover
+    """
+    Get the representation of a document stored in the Meilisearch index.
     """
     soup = BeautifulSoup(doc.html, "html.parser")
     text = soup.get_text(separator="\n", strip=True)
     text = nh3.clean(text)
-    doc_schema = DocIndexSchema(
+    return DocIndexSchema(
         id=str(doc.id),
         urlpath=doc.urlpath,
         title=doc.title,
         text=text,
         public=doc.public,
     ).model_dump(mode="json")
-    if index is None:
-        client = get_meilisearch_client()
-        index = client.index(settings.meilisearch_index_name)
-    await index.update_documents([doc_schema])
+
+
+async def index_document(doc: Doc):  # pragma: no cover
+    """
+    Index a single document in Meilisearch.
+    """
+    client = get_meilisearch_client()
+    index = client.index(settings.meilisearch_index_name)
+    await index.update_documents([_index_schema(doc)])
 
 
 async def delete_document_from_index(doc_id: int):  # pragma: no cover

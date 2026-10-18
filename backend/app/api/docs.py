@@ -2,6 +2,7 @@ from logging import getLogger
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Body, HTTPException, status
+from meilisearch_python_sdk.errors import MeilisearchError
 from tortoise.exceptions import DoesNotExist
 from tortoise.transactions import in_transaction
 
@@ -13,13 +14,16 @@ from ..schemas.doc import (
     DocCreate,
     DocMetadata,
     DocPreview,
+    DocReindexResponse,
     DocResponse,
     DocSearchResponse,
     DocUpdate,
 )
 from ..settings import settings
 from ..utils.indexing import (
+    create_or_update_index,
     delete_document_from_index,
+    index_all_documents,
     index_document,
     search_documents,
 )
@@ -401,3 +405,33 @@ async def search_docs(
         results=results,
         total=len(results),
     )  # pragma: no cover
+
+
+@router.post("/reindex")
+async def reindex_docs(current_user: LoggedInUser) -> DocReindexResponse:
+    """
+    Rebuild the search index from all documents. Requires admin role.
+    """
+    if not current_user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only admins can rebuild the search index",
+        )
+    if settings.disable_search:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Search functionality is disabled",
+        )
+    try:  # pragma: no cover
+        await create_or_update_index()
+        indexed = await index_all_documents()
+    except MeilisearchError as e:  # pragma: no cover
+        logger.exception("Failed to rebuild the search index")
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Failed to rebuild the search index: {e}",
+        )
+    logger.info(
+        f"Search index rebuilt with {indexed} documents by user {current_user.username}."
+    )  # pragma: no cover
+    return DocReindexResponse(indexed=indexed)  # pragma: no cover

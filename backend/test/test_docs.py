@@ -1022,6 +1022,27 @@ async def test_search_docs_disabled(api_client: "TestClient", user_admin: "User"
     assert data["detail"] == "Search functionality is disabled"
 
 
+async def test_reindex_docs_disabled(api_client: "TestClient", user_admin: "User"):
+    """
+    Test rebuilding the search index when search is disabled.
+    """
+    api_client.set_session_user(user_admin)
+    response = api_client.post("/api/docs/reindex")
+    assert response.status_code == status.HTTP_503_SERVICE_UNAVAILABLE, response.text
+    assert response.json()["detail"] == "Search functionality is disabled"
+
+
+async def test_reindex_docs_forbidden(api_client: "TestClient", user_user: "User"):
+    """
+    Test that only admins can rebuild the search index.
+    """
+    response = api_client.post("/api/docs/reindex")
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED, response.text
+    api_client.set_session_user(user_user)
+    response = api_client.post("/api/docs/reindex")
+    assert response.status_code == status.HTTP_403_FORBIDDEN, response.text
+
+
 async def test_get_doc_markdown(api_client: "TestClient", user_admin: "User"):
     """
     Test getting document as markdown.

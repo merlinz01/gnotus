@@ -1,0 +1,67 @@
+{% block head_meta %}
+<title>Search Index - {{ site_name }}</title>
+<meta name="robots" content="noindex" data-page-meta />
+{% endblock %} {% block main %}
+<div class="admin-page" data-scroll>
+  {% with page_title = "Search Index" %}{% include "admin/breadcrumbs.html" %}{% endwith %}
+  <div class="card admin-panel">
+    <div class="card-body">
+      <h1 class="card-title page-heading">Search Index</h1>
+      <form class="settings-form" data-form="reindex-docs">
+        {% if search_disabled %}
+        <div class="alert alert-warning" role="status">
+          Search is disabled, so the index can't be rebuilt.
+        </div>
+        {% endif %}
+        <div class="alert alert-error" role="alert" hidden></div>
+        <p>
+          Documents are indexed for search when they are saved. Rebuild the index after setting up
+          the site, upgrading the site, restoring a backup, or when search results are missing or
+          out of date. Searches may return incomplete results while the index is rebuilt.
+        </p>
+        {% if index %}
+        {% if index.error %}
+          {% set badge, label = "badge-error", "Unavailable" %}
+          {% set hint = "Couldn't get the status of the index from Meilisearch: " ~ index.error %}
+        {% elif not index.exists %}
+          {% set badge, label = "badge-warning", "Not created" %}
+          {% set hint = "The index hasn't been created yet. Rebuild it to enable search." %}
+        {% elif not index.configured %}
+          {% set badge, label = "badge-warning", "Not set up" %}
+          {% set hint = "The index is missing settings that search relies on. Rebuild it to fix searches." %}
+        {% elif index.is_indexing %}
+          {% set badge, label = "badge-info", "Indexing" %}
+          {% set hint = "Meilisearch is processing changes to the index. Reload the page to see the result." %}
+        {% elif index.document_count != doc_count %}
+          {% set badge, label = "badge-warning", "Out of date" %}
+          {% set hint = "The number of indexed documents doesn't match. Rebuild the index to update it." %}
+        {% else %}
+          {% set badge, label, hint = "badge-success", "Up to date", "" %}
+        {% endif %}
+        <dl class="search-index-stats">
+          <dt>Status</dt>
+          <dd><span class="badge badge-sm {{ badge }}">{{ label }}</span></dd>
+          <dt>Documents</dt>
+          <dd>{{ doc_count }}</dd>
+          {% if index.exists %}
+          <dt>Indexed documents</dt>
+          <dd>{{ index.document_count }}</dd>
+          {% if index.updated_at %}
+          <dt>Last updated</dt>
+          <dd><time datetime="{{ index.updated_at.isoformat() }}" data-localize="datetime">{{ index.updated_at | format_datetime }}</time></dd>
+          {% endif %}
+          {% endif %}
+        </dl>
+        {% if hint %}<p class="settings-hint">{{ hint }}</p>{% endif %}
+        {% endif %}
+        <div class="card-actions settings-actions">
+          <button type="submit" class="btn btn-primary"{% if search_disabled %} disabled{% endif %}>
+            <span class="btn-label">Rebuild Index</span>
+            <span class="loading loading-sm btn-spinner"></span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
