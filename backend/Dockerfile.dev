@@ -6,7 +6,5 @@ COPY ./pyproject.toml ./uv.lock ./
 RUN uv sync --link-mode=copy --dev
 WORKDIR /app
 EXPOSE 8000
-CMD ["/venv/.venv/bin/fastapi", "dev", \
-    "--host", "0.0.0.0", \
-    "--port", "8000", \
-    "--reload"]
+# The app directory, including this script, is mounted by compose.dev.yml
+CMD ["./entrypoint-dev.sh"]

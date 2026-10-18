@@ -164,6 +164,7 @@ docker compose -f compose.dev.yml up --build
 ```
 
 This will start the backend and the search service in development mode.
+On startup, the backend applies any pending database migrations and indexes the documents for search.
 The app will be available at `http://localhost:5173`, and will reload when you modify the backend code, templates, styles or scripts.
 If you want to override settings, you can set them as environment variables in a `.env` file in the `backend` directory.
 
