@@ -41,7 +41,7 @@ app = FastAPI(
     title="Gnotus",
     description="An open-source knowledge-base software",
     version="0.1.0",
-    docs_url="/api/swagger",
+    docs_url=None,
     redoc_url=None,
     openapi_url="/api/openapi.json",
 )
